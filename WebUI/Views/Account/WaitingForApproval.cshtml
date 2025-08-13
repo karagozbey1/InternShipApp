@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Onay Bekleniyor";
+    Layout = "_AccountLayout";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm border-0 rounded-4 p-4 text-center">
+        <h2 class="mb-3 text-primary">Hesabınız Onay Bekliyor</h2>
+        <p class="text-muted">
+            Kaydınız başarıyla alınmıştır. Hesabınızın aktif hale gelmesi için e-posta adresinize gönderilen aktivasyon linkine tıklamanız gerekmektedir.<br />
+            Onay işlemi tamamlandığında giriş yapabilirsiniz.
+        </p>
+
+        <div class="alert alert-info mt-3">
+            Aktivasyon e-postası <strong>@ViewBag.Email</strong> adresine gönderildi. Lütfen 24 saat içinde doğrulama yapın.
+        </div>
+
+        <div class="mt-4">
+            <a href="/" class="btn btn-primary px-4">Ana Sayfaya Dön</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        max-width: 600px;
+        margin: auto;
+    }
+</style>

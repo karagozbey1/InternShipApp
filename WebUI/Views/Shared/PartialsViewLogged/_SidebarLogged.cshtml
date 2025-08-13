@@ -1,0 +1,50 @@
+﻿@* Views/Shared/_Sidebar.cshtml *@
+@using Microsoft.AspNetCore.Identity
+
+<aside class="d-flex flex-column p-4 bg-gray-800 text-white min-vh-100" style="width: 250px;">
+    <nav class="flex-grow-1">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" asp-action="Index" asp-controller="Dashboard">
+                    <i class="fas fa-home mr-2"></i> Dashboard
+                </a>
+            </li>
+
+            @if (User.IsInRole("Öğrenci"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" href="#">
+                        <i class="fas fa-file-alt mr-2"></i> Başvurularım
+                    </a>
+                </li>
+            }
+
+            @if (User.IsInRole("Danışman"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" href="#">
+                        <i class="fas fa-check-circle mr-2"></i> Onay Bekleyen Stajlar
+                    </a>
+                </li>
+            }
+
+            @if (User.IsInRole("Firma"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" href="#">
+                        <i class="fas fa-bullhorn mr-2"></i> Staj İlanları
+                    </a>
+                </li>
+            }
+
+            @if (User.IsInRole("Yönetici"))
+            {
+                <li class="nav-item">
+                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" href="#">
+                        <i class="fas fa-users-cog mr-2"></i> Kullanıcı İşlemleri
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+</aside>
