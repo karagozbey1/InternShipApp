@@ -1,0 +1,174 @@
+@model WebUI.Models.ViewModels.Advisor.AdvisorApplicationCardViewModel
+@{
+    ViewData["Title"] = "Baþvuru Detayý";
+    Layout = "_AppLayout";
+}
+
+<div class="company-dashboard">
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    <i class="fas fa-file-alt mr-3 text-blue-600"></i>Baþvuru Detayý
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400">@Model.StudentName adlý öðrencinin onay formu</p>
+            </div>
+            <a asp-action="Index" class="btn-outline-primary-company px-4 py-2 rounded-lg">
+                <i class="fas fa-arrow-left mr-2"></i>Baþvurulara Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Öðrenci Kartý -->
+            <div class="application-detail-card">
+                <div class="application-detail-header">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user-graduate text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">@Model.StudentName</h2>
+                            <div class="text-blue-100 text-sm flex flex-col md:flex-row md:space-x-4">
+                                <span>@(Model.StudentUniversity ?? "Üniversite Bilgisi Yok")</span>
+                                <span>@(Model.StudentDepartment ?? "Bölüm Bilgisi Yok")</span>
+                                <span>@(Model.StudentGrade.HasValue ? Model.StudentGrade + ". Sýnýf" : "Sýnýf Bilgisi Yok")</span>
+                            </div>
+                            <div class="flex items-center space-x-4 mt-2">
+                                <span class="status-badge status-@Model.Status.ToString().ToLower()">@Model.StatusText</span>
+                                <span class="text-blue-100 text-sm"><i class="fas fa-calendar mr-1"></i>@Model.CreatedAt.ToString("dd MMMM yyyy")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-3"><i class="fas fa-user mr-2 text-blue-600"></i>Öðrenci Bilgileri</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-600">Öðrenci No:</span><span class="font-medium">@Model.StudentNumber</span></div>
+                                <div class="flex justify-between"><span class="text-gray-600">Üniversite:</span><span class="font-medium">@(Model.StudentUniversity ?? "-")</span></div>
+                                <div class="flex justify-between"><span class="text-gray-600">Bölüm:</span><span class="font-medium">@(Model.StudentDepartment ?? "-")</span></div>
+                                <div class="flex justify-between"><span class="text-gray-600">Sýnýf:</span><span class="font-medium">@(Model.StudentGrade.HasValue ? Model.StudentGrade + ". Sýnýf" : "-")</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staj Genel Bilgileri Kartý -->
+            <div class="company-card">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><i class="fas fa-briefcase mr-2 text-blue-600"></i>Staj Genel Bilgileri</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-600">Þirket:</span><span class="font-medium">@Model.CompanyName</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Pozisyon:</span><span class="font-medium">@Model.Position</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Baþlangýç:</span><span class="font-medium">@Model.StartDate.ToString("dd.MM.yyyy")</span></div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-600">Bitiþ:</span><span class="font-medium">@Model.EndDate.ToString("dd.MM.yyyy")</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Haftalýk Saat:</span><span class="font-medium">@Model.WeeklyWorkHours</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.StudentNote))
+            {
+                <div class="company-card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><i class="fas fa-sticky-note mr-2 text-blue-600"></i>Öðrenci Notu</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg"><p class="text-gray-700 leading-relaxed">@Model.StudentNote</p></div>
+                    </div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.AdvisorNote))
+            {
+                <div class="company-card">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><i class="fas fa-comment-dots mr-2 text-blue-600"></i>Danýþman Notu</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg"><p class="text-gray-700 leading-relaxed">@Model.AdvisorNote</p></div>
+                    </div>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.RejectionReason))
+            {
+                <div class="company-card border border-red-300">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-red-700 mb-4"><i class="fas fa-times-circle mr-2 text-red-600"></i>Red Nedeni</h3>
+                        <div class="bg-red-50 p-4 rounded-lg"><p class="text-red-700 leading-relaxed">@Model.RejectionReason</p></div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="space-y-6">
+            <div class="company-card">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><i class="fas fa-tasks mr-2 text-blue-600"></i>Durum Yönetimi</h3>
+                    <div class="space-y-3">
+                        @if (Model.Status == Core.Entity.InternshipApprovalStatus.Pending)
+                        {
+                            <button onclick="showApproveModal(@Model.Id, '@Model.StudentName', '@Model.CompanyName')" class="w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors"><i class="fas fa-check mr-2"></i>Onayla</button>
+                            <button onclick="showRevisionModal(@Model.Id, '@Model.StudentName', '@Model.CompanyName')" class="w-full bg-yellow-500 text-white py-3 px-4 rounded-lg hover:bg-yellow-600 transition-colors"><i class="fas fa-undo mr-2"></i>Geri Dönüþ</button>
+                            <button onclick="showRejectModal(@Model.Id, '@Model.StudentName', '@Model.CompanyName')" class="w-full bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600 transition-colors"><i class="fas fa-times mr-2"></i>Reddet</button>
+                        }
+                        else if (Model.Status == Core.Entity.InternshipApprovalStatus.Approved)
+                        {
+                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded"><div class="flex items-center"><i class="fas fa-check-circle mr-2"></i><span>Bu baþvuru onaylandý</span></div></div>
+                        }
+                        else if (Model.Status == Core.Entity.InternshipApprovalStatus.Rejected)
+                        {
+                            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><div class="flex items-center"><i class="fas fa-times-circle mr-2"></i><span>Bu baþvuru reddedildi</span></div></div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="company-card">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4"><i class="fas fa-envelope mr-2 text-blue-600"></i>Ýletiþim</h3>
+                    <a asp-controller="Chat" asp-action="Index" class="w-full flex items-center justify-center p-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"><i class="fas fa-envelope mr-2"></i>Mesaj Gönder</a>
+                </div>
+            </div>
+            <div class="company-card">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center"><i class="fas fa-paperclip mr-2 text-blue-600"></i>Baþvuru Belgeleri</h3>
+                    <div id="approvalDocuments" class="space-y-2 text-sm">
+                        <p class="text-gray-500">Belgeler yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_ActionModals")
+
+@section Scripts {
+    <script>
+        async function loadApprovalDocuments() {
+            try {
+                const response = await fetch('/Document/GetStudentDocuments?approvalId=@Model.Id');
+                if (!response.ok) throw new Error('Belge isteði baþarýsýz');
+                const docs = await response.json();
+                const container = document.getElementById('approvalDocuments');
+                if (!docs || docs.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-sm">Bu baþvuruya baðlý belge bulunamadý.</p>';
+                    return;
+                }
+                container.innerHTML = docs.map(d => `
+                    <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-file-alt text-blue-500 text-sm"></i>
+                            <span class="text-sm">${d.title || d.fileName}</span>
+                        </div>
+                        <a href="${d.filePath}" target="_blank" class="text-blue-500 hover:text-blue-600 text-xs"><i class="fas fa-external-link-alt"></i></a>
+                    </div>`).join('');
+            } catch (e) {
+                document.getElementById('approvalDocuments').innerHTML = '<p class="text-red-500 text-sm">Belgeler yüklenirken hata oluþtu.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadApprovalDocuments);
+    </script>
+}

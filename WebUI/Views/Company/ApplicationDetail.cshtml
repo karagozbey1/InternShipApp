@@ -1,0 +1,359 @@
+@model WebUI.Models.Company.ApplicationDetailViewModel
+@{
+    ViewData["Title"] = "Baþvuru Detayý";
+    Layout = "_AppLayout";
+}
+
+<!-- Hidden antiforgery token for AJAX calls -->
+<form id="antiForgeryForm" style="display:none">@Html.AntiForgeryToken()</form>
+
+<div class="company-dashboard">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    <i class="fas fa-file-alt mr-3 text-blue-600 dark:text-blue-400"></i>Baþvuru Detayý
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400">
+                    @Model.StudentName adlý öðrencinin baþvuru detaylarý
+                </p>
+            </div>
+            <a asp-action="Applications" class="btn-outline-primary-company px-4 py-2 rounded-lg border border-blue-300 dark:border-gray-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Baþvurulara Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Student Information -->
+            <div class="application-detail-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user-graduate text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">@Model.StudentName</h2>
+                            <p class="text-blue-100">@Model.University - @Model.Department</p>
+                            <div class="flex items-center space-x-4 mt-2">
+                                <span class="status-badge status-@Model.Status.ToString().ToLower() bg-white/20 px-3 py-1 rounded-full text-white">
+                                    @Model.Status.GetDisplayName()
+                                </span>
+                                <span class="text-blue-100 text-sm">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    @Model.ApplicationDate.ToString("dd MMMM yyyy")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">
+                                <i class="fas fa-user mr-2 text-blue-600 dark:text-blue-400"></i>Kiþisel Bilgiler
+                            </h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Email:</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@Model.StudentEmail</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Sýnýf:</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@Model.StudentClass</span>
+                                </div>
+                                @if (Model.Gpa.HasValue)
+                                {
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-400">GPA:</span>
+                                        <span class="font-medium text-gray-900 dark:text-white">@Model.Gpa.Value.ToString("F2")</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-3">
+                                <i class="fas fa-university mr-2 text-blue-600 dark:text-blue-400"></i>Eðitim Bilgileri
+                            </h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Üniversite:</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@Model.University</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Bölüm:</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">@Model.Department</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Information -->
+            <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <i class="fas fa-briefcase mr-2 text-blue-600 dark:text-blue-400"></i>Baþvurulan Pozisyon
+                    </h3>
+                    
+                    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">@Model.JobTitle</h4>
+                        <p class="text-blue-800 dark:text-blue-300 text-sm">@Model.JobDescription</p>
+
+                        <div class="mt-3 text-sm text-blue-700 dark:text-blue-300">
+                            <i class="fas fa-money-bill-wave mr-2 text-yellow-600 dark:text-yellow-400"></i>
+                            @if (Model.Salary.HasValue)
+                            {
+                                <span class="font-medium">@string.Format(new System.Globalization.CultureInfo("tr-TR"), "{0:N}", Model.Salary) @(
+                                    Model.SalaryCurrency == Core.Entity.CurrencyType.TRY ? "?" : Model.SalaryCurrency == Core.Entity.CurrencyType.USD ? "$" : "€")</span>
+                            }
+                            else
+                            {
+                                <span>Ücret belirtilmemiþ</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cover Letter -->
+            @if (!string.IsNullOrEmpty(Model.CoverLetter))
+            {
+                <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fas fa-envelope-open-text mr-2 text-blue-600 dark:text-blue-400"></i>Ön Yazý
+                        </h3>
+                        
+                        <div class="bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 p-4 rounded-lg">
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">@Model.CoverLetter</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Skills -->
+            @if (Model.Skills.Any())
+            {
+                <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fas fa-code mr-2 text-blue-600 dark:text-blue-400"></i>Yetenekler
+                        </h3>
+                        
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var skill in Model.Skills)
+                            {
+                                <span class="skill-tag bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full text-sm">@skill</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Experience -->
+            @if (Model.Experiences.Any())
+            {
+                <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fas fa-briefcase mr-2 text-blue-600 dark:text-blue-400"></i>Deneyimler
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            @foreach (var experience in Model.Experiences)
+                            {
+                                <div class="border-l-4 border-blue-600 dark:border-blue-400 pl-4">
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">@experience.Position</h4>
+                                    <p class="text-blue-600 dark:text-blue-400 text-sm">@experience.Company • @experience.Duration</p>
+                                    <p class="text-gray-700 dark:text-gray-300 text-sm mt-1">@experience.Description</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Status Actions -->
+            <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <i class="fas fa-tasks mr-2 text-blue-600 dark:text-blue-400"></i>Durum Yönetimi
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        @if (Model.Status == WebUI.Models.Company.ApplicationStatus.Pending)
+                        {
+                            <button onclick="updateStatus('@WebUI.Models.Company.ApplicationStatus.Approved')" 
+                                    class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-check mr-2"></i>Baþvuruyu Onayla
+                            </button>
+                            
+                            <button onclick="updateStatus('@WebUI.Models.Company.ApplicationStatus.Rejected')" 
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-times mr-2"></i>Baþvuruyu Reddet
+                            </button>
+                        }
+                        else if (Model.Status == WebUI.Models.Company.ApplicationStatus.Approved)
+                        {
+                            <div class="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded">
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    <span>Bu baþvuru onaylanmýþ</span>
+                                </div>
+                            </div>
+                            
+                            <button onclick="updateStatus('@WebUI.Models.Company.ApplicationStatus.Rejected')" 
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-ban mr-2"></i>Onayý Ýptal Et
+                            </button>
+                        }
+                        else if (Model.Status == WebUI.Models.Company.ApplicationStatus.Rejected)
+                        {
+                            <div class="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 px-4 py-3 rounded">
+                                <div class="flex items-center">
+                                    <i class="fas fa-times-circle mr-2"></i>
+                                    <span>Bu baþvuru reddedilmiþ</span>
+                                </div>
+                            </div>
+                            
+                            <button onclick="updateStatus('@WebUI.Models.Company.ApplicationStatus.Approved')" 
+                                    class="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-undo mr-2"></i>Tekrar Onayla
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Files & Documents -->
+            <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <i class="fas fa-file-alt mr-2 text-blue-600 dark:text-blue-400"></i>Belgeler
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        @if (Model.Documents != null && Model.Documents.Any())
+                        {
+                            <div class="space-y-2">
+                                @foreach (var doc in Model.Documents)
+                                {
+                                    <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                        <div class="flex items-center gap-3">
+                                            <i class="@(GetDocIconClass(doc.DocumentType)) text-blue-500 dark:text-blue-400"></i>
+                                            <div>
+                                                <div class="font-medium text-gray-900 dark:text-white">@doc.Title</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">@doc.DocumentType • @((doc.FileSize > 0) ? (Math.Round((double)doc.FileSize / 1024 / 1024, 2) + " MB") : "Bilinmiyor")</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <a href="@doc.FilePath" target="_blank" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-lg transition-colors duration-200" title="Görüntüle"><i class="fas fa-eye"></i></a>
+                                            <a href="@doc.FilePath" download class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-lg transition-colors duration-200" title="Ýndir"><i class="fas fa-download"></i></a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-file-alt text-2xl mb-2"></i>
+                                <p class="text-sm">Henüz belge eklenmemiþ</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Actions -->
+            <div class="company-card bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl shadow-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <i class="fas fa-phone mr-2 text-blue-600 dark:text-blue-400"></i>Ýletiþim
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <button id="startChatBtn" data-student-id="@Model.StudentId" type="button"
+                                class="w-full flex items-center justify-center p-3 border border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-200">
+                            <i class="fas fa-envelope mr-2"></i>
+                            Mesaj Gönder
+                        </button>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+</div>
+
+@section Scripts {
+    <script>
+        const updateStatusUrl = '@Url.Action("UpdateApplicationStatus","CompanyApplications")';
+        const applicationsListUrl = '@Url.Action("List","CompanyApplications")';
+        const createChatUrl = '@Url.Action("CreateOrGetChatWithStudent","CompanyChat")';
+
+        function updateStatus(status) {
+            var statusText = status === 'Approved' ? 'onaylamak' : 'reddetmek';
+            if (!confirm('Bu baþvuruyu ' + statusText + ' istediðinizden emin misiniz?')) return;
+            var tokenInput = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
+            var token = tokenInput ? tokenInput.value : '';
+            $.ajax({
+                url: updateStatusUrl,
+                type: 'POST',
+                data: { id: @Model.Id, status: status, __RequestVerificationToken: token }
+            })
+                .done(function () { location.reload(); })
+                .fail(function () { alert('Ýþlem sýrasýnda bir hata oluþtu. Lütfen tekrar deneyin.'); });
+        }
+        function printApplication() { window.print(); }
+        $(document).keydown(function (e) {
+            if (e.ctrlKey && e.keyCode === 80) { e.preventDefault(); printApplication(); }
+            if (e.keyCode === 27) { window.location.href = applicationsListUrl; }
+        });
+        document.getElementById('startChatBtn')?.addEventListener('click', async function () {
+            const studentId = this.getAttribute('data-student-id');
+            if (!studentId) return;
+            try {
+                const tokenInput = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+                const resp = await fetch(createChatUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ studentId: parseInt(studentId) })
+                });
+                const data = await resp.json();
+                if (data.success && data.conversationId) {
+                    window.location.href = '/Chat?conversationId=' + data.conversationId;
+                } else { alert('Konuþma baþlatýlamadý.'); }
+            } catch (err) { console.error(err); alert('Hata oluþtu.'); }
+        });
+    </script>
+}
+
+@functions {
+    private string GetDocIconClass(string docType)
+    {
+        if (string.IsNullOrWhiteSpace(docType)) return "fas fa-file-alt";
+        switch (docType.ToLowerInvariant())
+        {
+            case "cv":
+                return "fas fa-file-pdf";
+            case "transcript":
+                return "fas fa-file-alt";
+            case "applicationform":
+                return "fas fa-file-contract";
+            case "other":
+            default:
+                return "fas fa-file";
+        }
+    }
+}

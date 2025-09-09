@@ -1,0 +1,287 @@
+@model ModernApprovalViewModel
+@{
+    ViewData["Title"] = "Adým 3: Danýþman Seçimi";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <style>
+        .approval-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
+        }
+
+        .advisor-result {
+            transition: all 0.3s ease;
+        }
+
+        .advisor-result:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+        }
+
+        .progress-step {
+            transition: all 0.5s ease;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            transform: scale(1.1);
+        }
+
+        .progress-step.completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="approval-card p-8 rounded-3xl">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-3">
+                    <i class="fas fa-search me-3"></i>Adým 3: Danýþman Seçimi
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300 text-lg">
+                    Ad, soyad veya e-posta ile danýþman arayýn
+                </p>
+            </div>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mb-2">
+                    <i class="fas fa-user-tie text-white text-2xl"></i>
+                </div>
+                <p class="text-sm text-gray-500">Danýþman Seçimi</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="approval-card p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Baþvuru Süreci</h3>
+            <div class="text-sm text-gray-500">Adým 3 / 4</div>
+        </div>
+        <div class="flex items-center justify-between">
+            <div class="progress-step completed w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
+            <div class="flex-1 h-1 bg-green-500 mx-2"></div>
+            <div class="progress-step completed w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
+            <div class="flex-1 h-1 bg-green-500 mx-2"></div>
+            <div class="progress-step active w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold">3</div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="progress-step w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gray-300">4</div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs text-gray-500">
+            <span class="text-green-600">? Belgeler</span>
+            <span class="text-green-600">? Firma Bilgileri</span>
+            <span class="font-medium text-purple-600">Danýþman</span>
+            <span>Gözden Geçir</span>
+        </div>
+    </div>
+
+    <!-- Advisor Search -->
+    <form asp-action="Step3Advisor" method="post" class="approval-card p-8 rounded-3xl">
+        @Html.AntiForgeryToken()
+
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-search text-white text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">Danýþman Seçimi</h3>
+                <p class="text-gray-600 dark:text-gray-400">Ad, soyad veya e-posta ile danýþman arayýn</p>
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div class="mb-6">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input 
+                    type="text" 
+                    id="advisorSearch"
+                    class="search-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" 
+                    placeholder="Danýþman adý, soyadý veya e-posta adresi girin..."
+                    autocomplete="off"
+                />
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="advisor-results" class="space-y-3 hidden mb-6">
+            <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Arama Sonuçlarý:</h4>
+            <div id="advisor-list" class="space-y-2"></div>
+        </div>
+
+        <!-- Selected Advisor -->
+        <div id="selected-advisor" class="hidden mb-6">
+            <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-3">Seçilen Danýþman:</h4>
+            <div id="selected-advisor-card" class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800"></div>
+        </div>
+
+        <!-- Help Text -->
+        <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+            <p class="text-sm text-purple-700 dark:text-purple-300">
+                <i class="fas fa-lightbulb mr-2"></i>
+                Danýþmanýnýzýn tam adýný veya e-posta adresini yazarak arama yapabilirsiniz. Üniversitenize ve bölümünüze uygun danýþmanlar listelenecektir.
+            </p>
+        </div>
+
+        <!-- Hidden Input -->
+        <input type="hidden" name="SelectedAdvisorId" id="selectedAdvisorId" />
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <a asp-action="Step2Company" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Önceki
+            </a>
+            <button type="submit" id="nextBtn" class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Sonraki <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedAdvisor = null;
+        let advisorSearchTimeout = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Step 3: Advisor Selection loaded');
+            setupAdvisorSearch();
+            updateUI();
+
+            // Load initial advisor suggestions for the student's university/department
+            // so advisors appear without typing
+            searchAdvisors('');
+        });
+
+        function setupAdvisorSearch() {
+            const searchInput = document.getElementById('advisorSearch');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                if (advisorSearchTimeout) clearTimeout(advisorSearchTimeout);
+                advisorSearchTimeout = setTimeout(() => {
+                    if (query.length >= 1) {
+                        searchAdvisors(query);
+                    } else {
+                        hideAdvisorResults();
+                    }
+                }, 300);
+            });
+        }
+
+        async function searchAdvisors(query) {
+            try {
+                const url = '@Url.Action("SearchAdvisors", "Approval")' + '?query=' + encodeURIComponent(query);
+                const resp = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                if (!resp.ok) {
+                    hideAdvisorResults();
+                    return;
+                }
+                const advisors = await resp.json();
+                if (!Array.isArray(advisors) || advisors.length === 0) {
+                    hideAdvisorResults();
+                    return;
+                }
+
+                displayAdvisorResults(advisors);
+            } catch (err) {
+                console.error('Advisor search failed', err);
+                hideAdvisorResults();
+            }
+        }
+
+        function displayAdvisorResults(advisors) {
+            const resultsList = document.getElementById('advisor-list');
+            const resultsContainer = document.getElementById('advisor-results');
+
+            resultsList.innerHTML = advisors.map(advisor => `
+                <div class="advisor-result p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer transition-all duration-200" 
+                     data-advisor-id="${advisor.id}"
+                     onclick="selectAdvisorFromSearch(${advisor.id}, '${advisor.fullName.replace(/'/g, "\\'")}', '${advisor.email}', '${advisor.department}')">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="font-medium text-gray-800 dark:text-gray-200">${advisor.fullName}</div>
+                            <div class="text-sm text-gray-500">${advisor.department}</div>
+                            <div class="text-xs text-gray-400">${advisor.email}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function hideAdvisorResults() {
+            const resultsContainer = document.getElementById('advisor-results');
+            if (resultsContainer) resultsContainer.classList.add('hidden');
+        }
+
+        function selectAdvisorFromSearch(id, fullName, email, department) {
+            selectedAdvisor = id;
+            document.getElementById('selectedAdvisorId').value = id;
+
+            const selectedAdvisorContainer = document.getElementById('selected-advisor');
+            const selectedAdvisorCard = document.getElementById('selected-advisor-card');
+
+            selectedAdvisorCard.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-gray-800 dark:text-gray-200">${fullName}</div>
+                            <div class="text-sm text-gray-500">${department}</div>
+                            <div class="text-xs text-gray-400">${email}</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="clearAdvisorSelection()" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            selectedAdvisorContainer.classList.remove('hidden');
+            hideAdvisorResults();
+            document.getElementById('advisorSearch').value = '';
+            updateUI();
+        }
+
+        function clearAdvisorSelection() {
+            selectedAdvisor = null;
+            document.getElementById('selectedAdvisorId').value = '';
+            document.getElementById('selected-advisor').classList.add('hidden');
+            updateUI();
+        }
+
+        function updateUI() {
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) nextBtn.disabled = selectedAdvisor === null;
+            console.log('Selected advisor:', selectedAdvisor);
+        }
+    </script>
+}

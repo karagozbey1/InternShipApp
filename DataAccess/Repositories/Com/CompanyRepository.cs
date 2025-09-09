@@ -34,6 +34,7 @@ namespace DataAccess.Repositories.Com
         {
             return await _context.Companies
                 .Include(c => c.CompanyUsers)
+                .ThenInclude(cu => cu.User)
                 .Include(c => c.InternshipOffers)
                 .FirstOrDefaultAsync(c => c.CompanyId == companyId);
         }
@@ -49,6 +50,11 @@ namespace DataAccess.Repositories.Com
             return await _context.Companies
                 .Where(c => c.InternshipOffers!.Any(o => o.IsActive && (o.ApplicationDeadline == null || o.ApplicationDeadline >= DateTime.UtcNow)))
                 .ToListAsync();
+        }
+
+        public Task<Company?> GetCompanyByUserIdAsync(int userId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

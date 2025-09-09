@@ -1,0 +1,269 @@
+@using Core.Entity
+@model ApprovalFormListViewModel
+@{
+    ViewData["Title"] = "Staj Onay Formlarý";
+    Layout = "_StudentLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clipboard-check me-2"></i>Staj Onay Formlarý
+                    </h6>
+                    <div class="d-flex gap-2">
+                        <!-- Üniversite Onay Formu Butonu -->
+                        <a asp-action="UniversityApproval" class="btn btn-success btn-sm">
+                            <i class="fas fa-university me-2"></i>Üniversite Onay Formu
+                        </a>
+                        
+                        <!-- Filtreleme ve Arama -->
+                        <form asp-action="Index" method="get" class="d-flex gap-2">
+                            <input type="text" name="searchTerm" value="@Model.SearchTerm" 
+                                   class="form-control form-control-sm" placeholder="Þirket adý, koordinatör..." style="width: 200px;">
+                            
+                            <select name="statusFilter" class="form-select form-select-sm" style="width: 150px;">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="@InternshipApprovalStatus.Pending" 
+                                        selected="@(Model.StatusFilter == InternshipApprovalStatus.Pending)">
+                                    Beklemede
+                                </option>
+                                <option value="@InternshipApprovalStatus.Approved" 
+                                        selected="@(Model.StatusFilter == InternshipApprovalStatus.Approved)">
+                                    Onaylandý
+                                </option>
+                                <option value="@InternshipApprovalStatus.Rejected" 
+                                        selected="@(Model.StatusFilter == InternshipApprovalStatus.Rejected)">
+                                    Reddedildi
+                                </option>
+                            </select>
+                            
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            
+                            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue)
+                            {
+                                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            }
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Üniversite Onay Formu Bilgilendirme -->
+                    <div class="alert alert-success d-flex align-items-center mb-4">
+                        <i class="fas fa-university me-3 fs-4"></i>
+                        <div class="flex-fill">
+                            <h6 class="alert-heading mb-1">Üniversite Onay Sistemi</h6>
+                            <small>
+                                Özel durumlar, onay talepleri veya staj sürecinizle ilgili resmi baþvurularýnýz için 
+                                üniversite koordinatörlüðüne direkt baþvuru yapabilirsiniz.
+                            </small>
+                        </div>
+                        <a asp-action="UniversityApproval" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-2"></i>Baþvuru Yap
+                        </a>
+                    </div>
+
+                    <!-- Ýstatistikler -->
+                    <div class="row mb-4">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Toplam Form
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalCount</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Beklemede
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingCount</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Onaylandý
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ApprovedCount</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-danger shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                                Reddedildi
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.RejectedCount</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onay Formlarý Listesi -->
+                    @if (Model.ApprovalForms.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Þirket</th>
+                                        <th>Staj Dönemi</th>
+                                        <th>Koordinatör</th>
+                                        <th>Durum</th>
+                                        <th>Oluþturma Tarihi</th>
+                                        <th>Ýþlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var form in Model.ApprovalForms)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@form.CompanyName</strong>
+                                                @if (!string.IsNullOrEmpty(form.OfferTitle))
+                                                {
+                                                    <br><small class="text-muted">@form.OfferTitle</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @form.StartDate.ToString("dd.MM.yyyy") - @form.EndDate.ToString("dd.MM.yyyy")
+                                                <br><small class="text-muted">@form.WeeklyWorkHours saat/hafta</small>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(form.InternshipCoordinator))
+                                                {
+                                                    <span>@form.InternshipCoordinator</span>
+                                                    @if (!string.IsNullOrEmpty(form.CoordinatorPhone))
+                                                    {
+                                                        <br><small class="text-muted">@form.CoordinatorPhone</small>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Belirtilmemiþ</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@form.StatusColor">@form.StatusText</span>
+                                                @if (form.Status == InternshipApprovalStatus.Approved && form.ApprovedAt.HasValue)
+                                                {
+                                                    <br><small class="text-muted">@form.ApprovedAt.Value.ToString("dd.MM.yyyy")</small>
+                                                }
+                                                @if (form.Status == InternshipApprovalStatus.Rejected && form.RejectedAt.HasValue)
+                                                {
+                                                    <br><small class="text-muted">@form.RejectedAt.Value.ToString("dd.MM.yyyy")</small>
+                                                }
+                                            </td>
+                                            <td>@form.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@form.Id" 
+                                                       class="btn btn-sm btn-outline-info" title="Detaylarý Görüntüle">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    @if (form.Status == InternshipApprovalStatus.Pending)
+                                                    {
+                                                        <a asp-action="Edit" asp-route-id="@form.Id" 
+                                                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz hiç onay formunuz yok</h5>
+                            <p class="text-muted mb-4">
+                                Onay formu oluþturmak için önce onaylanmýþ bir staj baþvurunuzun olmasý gerekir.
+                            </p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a asp-controller="Application" asp-action="Index" class="btn btn-primary">
+                                    <i class="fas fa-file-alt me-2"></i>Baþvurularýma Git
+                                </a>
+                                <a asp-controller="Document" asp-action="Index" class="btn btn-info">
+                                    <i class="fas fa-upload me-2"></i>Belge Yükle
+                                </a>
+                                <a asp-action="UniversityApproval" class="btn btn-success">
+                                    <i class="fas fa-university me-2"></i>Üniversite Onayý
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // DataTable baþlatma
+            if ($('table').length > 0) {
+                $('table').DataTable({
+                    "ordering": true,
+                    "searching": false,
+                    "paging": true,
+                    "info": true,
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/tr.json"
+                    }
+                });
+            }
+        });
+    </script>
+}

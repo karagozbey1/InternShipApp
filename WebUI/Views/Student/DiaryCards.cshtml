@@ -1,0 +1,602 @@
+@using WebUI.Models.ViewModels.Student.ViewModels
+@model DiaryListViewModel
+@{
+    ViewData["Title"] = "Staj Defteri";
+    Layout = "_AppLayout";
+}
+
+<div class="p-6 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    <i class="fas fa-book text-blue-500 mr-3"></i>Staj Defteri
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400">
+                    <i class="fas fa-building mr-2"></i>@Model.CompanyName - @Model.Department
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-500">
+                    <i class="fas fa-calendar mr-2"></i>
+                    @Model.InternshipStartDate.ToString("dd MMMM yyyy") - @Model.InternshipEndDate.ToString("dd MMMM yyyy")
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="showPdfModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-file-pdf mr-2"></i>PDF Olarak Ýndir
+                </button>
+                <button onclick="showCreateDiaryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Yeni Girdi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ýstatistik Kartlarý -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                    <i class="fas fa-calendar-check text-blue-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Girdi</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.TotalEntries</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                    <i class="fas fa-clock text-green-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Saat</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.TotalHours</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+                    <i class="fas fa-chart-line text-yellow-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Günlük Ortalama</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.AverageDailyHours.ToString("F1")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                    <i class="fas fa-percentage text-purple-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Tamamlanma</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.CompletionPercentage.ToString("F0")%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Defter Kartlarý Listesi -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                <i class="fas fa-sticky-note mr-2 text-blue-500"></i>Defter Girdileri
+            </h2>
+            <div class="flex gap-2">
+                <button onclick="filterByCategory('all')" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors category-filter active" data-category="all">
+                    Tümü
+                </button>
+                <button onclick="filterByCategory('recent')" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors category-filter" data-category="recent">
+                    Son 7 Gün
+                </button>
+                <button onclick="filterByCategory('approved')" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors category-filter" data-category="approved">
+                    Onaylananlar
+                </button>
+            </div>
+        </div>
+
+        @if (Model.DiaryEntries.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="diary-cards-container">
+                @foreach (var entry in Model.DiaryEntries)
+                {
+                    <div class="diary-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1" 
+                         onclick="openDiaryEntry(@entry.Id)" 
+                         data-category="@entry.Category.ToString().ToLower()" 
+                         data-date="@entry.Date.ToString("yyyy-MM-dd")"
+                         data-approved="@entry.IsApproved.ToString().ToLower()">
+                        
+                        <!-- Card Header -->
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2 bg-@(entry.CategoryColor)-100 dark:bg-@(entry.CategoryColor)-900 rounded-lg">
+                                        <i class="@entry.CategoryIcon text-@(entry.CategoryColor)-500 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900 dark:text-white text-sm line-clamp-1">@entry.Title</h3>
+                                        <span class="text-xs text-@(entry.CategoryColor)-600 dark:text-@(entry.CategoryColor)-400 bg-@(entry.CategoryColor)-100 dark:bg-@(entry.CategoryColor)-900 px-2 py-1 rounded-full">
+                                            @entry.CategoryDisplayName
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end gap-1">
+                                    @if (entry.IsApproved)
+                                    {
+                                        <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs">
+                                            <i class="fas fa-check mr-1"></i>Onaylandý
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-1 rounded-full text-xs">
+                                            <i class="fas fa-clock mr-1"></i>Beklemede
+                                        </span>
+                                    }
+                                    <div class="dropdown relative">
+                                        <button onclick="event.stopPropagation(); toggleDropdown(@entry.Id)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div id="dropdown-@entry.Id" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                                            <button onclick="editDiaryEntry(@entry.Id)" class="block w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg">
+                                                <i class="fas fa-edit mr-2"></i>Düzenle
+                                            </button>
+                                            <form asp-action="DeleteEntry" asp-route-id="@entry.Id" method="post" class="inline w-full">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="block w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 rounded-b-lg"
+                                                        onclick="event.stopPropagation(); return confirm('Bu girdiyi silmek istediðinizden emin misiniz?')">
+                                                    <i class="fas fa-trash mr-2"></i>Sil
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">
+                                    <i class="fas fa-calendar mr-1"></i>@entry.Date.ToString("dd MMMM yyyy")
+                                </span>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">
+                                    <i class="fas fa-clock mr-1"></i>@entry.WorkingHours saat
+                                </span>
+                            </div>
+                            
+                            <p class="text-gray-700 dark:text-gray-300 text-sm line-clamp-3 mb-3">@entry.Content</p>
+                            
+                            @if (!string.IsNullOrEmpty(entry.LearnedTopics))
+                            {
+                                <div class="mb-2">
+                                    <span class="text-xs text-yellow-600 dark:text-yellow-400">
+                                        <i class="fas fa-lightbulb mr-1"></i>Öðrenilenler: @entry.LearnedTopics.Substring(0, Math.Min(50, entry.LearnedTopics.Length))@(entry.LearnedTopics.Length > 50 ? "..." : "")
+                                    </span>
+                                </div>
+                            }
+                            
+                            @if (!string.IsNullOrEmpty(entry.AdvisorFeedback))
+                            {
+                                <div class="mt-3 p-2 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                                    <span class="text-xs text-blue-600 dark:text-blue-400">
+                                        <i class="fas fa-comment mr-1"></i>Danýþman yorumu var
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="px-4 pb-4">
+                            <button onclick="openDiaryEntry(@entry.Id)" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-eye mr-2"></i>Detaylarý Görüntüle
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <i class="fas fa-book text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz staj defteri girdisi yok</h3>
+                <p class="text-gray-500 dark:text-gray-500 mb-6">Ýlk girdinizi oluþturmak için "Yeni Girdi" butonunu kullanýn.</p>
+                <button onclick="showCreateDiaryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Ýlk Girdiyi Oluþtur
+                </button>
+            </div>
+        }
+
+        @* Cart: approved applications without diary *@
+        @if (Model.EligibleApplicationsForDiary != null && Model.EligibleApplicationsForDiary.Any())
+        {
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">Defter Oluþturulabilir Baþvurular</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @foreach (var app in Model.EligibleApplicationsForDiary)
+                    {
+                        <div class="p-4 rounded-lg border bg-gray-50 hover:shadow-lg cursor-pointer create-diary-card" data-appid="@app.Id" onclick="createDiaryFromCard(@app.Id)">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold">@app.Position</div>
+                                    <div class="text-sm text-gray-500">@app.CompanyName</div>
+                                </div>
+                                <div class="text-sm text-green-600 font-medium">+ Defter</div>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-2">@app.StartDate.ToString("dd.MM.yyyy") - @app.EndDate.ToString("dd.MM.yyyy")</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Defter Girdisi Detay Modal -->
+<div id="diaryDetailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Staj Defteri Detayý</h2>
+                    <button onclick="closeDiaryDetailModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="diaryDetailContent">
+                    <!-- Dinamik içerik buraya yüklenecek -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yeni Girdi Oluþturma Modal -->
+<div id="createDiaryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        <i class="fas fa-edit text-blue-500 mr-2"></i>Yeni Staj Defteri Girdisi
+                    </h2>
+                    <button onclick="closeCreateDiaryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form asp-action="CreateEntry" method="post" class="space-y-6">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label asp-for="CreateModel.Title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-heading mr-1"></i>Baþlýk
+                            </label>
+                            <input asp-for="CreateModel.Title" 
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                                   placeholder="Bugünkü çalýþma baþlýðý" />
+                            <span asp-validation-for="CreateModel.Title" class="text-red-600 text-sm"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="CreateModel.Date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-calendar mr-1"></i>Tarih
+                            </label>
+                            <input asp-for="CreateModel.Date" type="date"
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
+                            <span asp-validation-for="CreateModel.Date" class="text-red-600 text-sm"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="CreateModel.Category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-tags mr-1"></i>Kategori
+                            </label>
+                            <select asp-for="CreateModel.Category" 
+                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200">
+                                <option value="1">Günlük Çalýþma</option>
+                                <option value="2">Öðrenme</option>
+                                <option value="3">Toplantý</option>
+                                <option value="4">Proje</option>
+                                <option value="5">Eðitim</option>
+                                <option value="6">Araþtýrma</option>
+                                <option value="7">Problem Çözme</option>
+                                <option value="8">Baþarý</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label asp-for="CreateModel.WorkingHours" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-clock mr-1"></i>Çalýþma Saatleri
+                            </label>
+                            <input asp-for="CreateModel.WorkingHours" type="number" step="0.5" min="0" max="24"
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label asp-for="CreateModel.Content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-file-text mr-1"></i>Ýçerik
+                        </label>
+                        <textarea asp-for="CreateModel.Content" rows="4"
+                                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                  placeholder="Bugün neler yaptýnýz, neler öðrendiniz?"></textarea>
+                        <span asp-validation-for="CreateModel.Content" class="text-red-600 text-sm"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label asp-for="CreateModel.LearnedTopics" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-lightbulb mr-1"></i>Öðrenilen Konular
+                            </label>
+                            <textarea asp-for="CreateModel.LearnedTopics" rows="3"
+                                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                      placeholder="Yeni öðrendiðiniz teknolojiler, metodlar..."></textarea>
+                        </div>
+
+                        <div>
+                            <label asp-for="CreateModel.Challenges" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Karþýlaþýlan Zorluklar
+                            </label>
+                            <textarea asp-for="CreateModel.Challenges" rows="3"
+                                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                      placeholder="Bugün karþýlaþtýðýnýz zorluklar..."></textarea>
+                        </div>
+
+                        <div>
+                            <label asp-for="CreateModel.Solutions" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-lightbulb mr-1"></i>Uygulanan Çözümler
+                            </label>
+                            <textarea asp-for="CreateModel.Solutions" rows="3"
+                                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                      placeholder="Zorluklara uyguladýðýnýz çözümler..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                            <i class="fas fa-save mr-2"></i>Kaydet
+                        </button>
+                        <button type="button" onclick="closeCreateDiaryModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                            <i class="fas fa-times mr-2"></i>Ýptal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Modal açma/kapatma fonksiyonlarý
+        function showCreateDiaryModal() {
+            document.getElementById('createDiaryModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCreateDiaryModal() {
+            document.getElementById('createDiaryModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showPdfModal() {
+            // PDF export modal/fonksiyonu eklenebilir
+            alert('PDF export özelliði yakýnda eklenecek.');
+        }
+
+        function openDiaryEntry(entryId) {
+            // AJAX ile defter girdisi detayýný getir
+            fetch(`/Student/Diary/GetEntryDetail/${entryId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('diaryDetailContent').innerHTML = html;
+                    document.getElementById('diaryDetailModal').classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Detay yüklenirken hata oluþtu.');
+                });
+        }
+
+        function closeDiaryDetailModal() {
+            document.getElementById('diaryDetailModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function editDiaryEntry(entryId) {
+            // Edit fonksiyonu eklenebilir
+            alert('Düzenleme özelliði yakýnda eklenecek.');
+        }
+
+        function toggleDropdown(entryId) {
+            const dropdown = document.getElementById(`dropdown-${entryId}`);
+            
+            // Diðer tüm dropdown'larý kapat
+            document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+                if (d !== dropdown) d.classList.add('hidden');
+            });
+            
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Filtreleme fonksiyonlarý
+        function filterByCategory(category) {
+            const cards = document.querySelectorAll('.diary-card');
+            const filters = document.querySelectorAll('.category-filter');
+            
+            // Aktif filter stilini güncelle
+            filters.forEach(f => f.classList.remove('active', 'bg-blue-500', 'text-white'));
+            document.querySelector(`[data-category="${category}"]`).classList.add('active', 'bg-blue-500', 'text-white');
+            
+            cards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                const cardDate = new Date(card.dataset.date);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                const isApproved = card.dataset.approved === 'true';
+                
+                let shouldShow = false;
+                
+                switch(category) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+                    case 'recent':
+                        shouldShow = cardDate >= weekAgo;
+                        break;
+                    case 'approved':
+                        shouldShow = isApproved;
+                        break;
+                    default:
+                        shouldShow = cardCategory === category;
+                }
+                
+                if (shouldShow) {
+                    card.style.display = 'block';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 10);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        }
+
+        // Create diary from approved application card
+        function createDiaryFromCard(applicationId) {
+            if (!confirm('Bu baþvuru için staj defteri oluþturmak istiyor musunuz?')) return;
+            // Create a hidden form and submit to DiaryNotebook/Create using POST
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '/Student/DiaryNotebook/Create';
+            form.style.display = 'none';
+
+            // We will pass fields: Title, CompanyName, Department, InternshipStartDate, InternshipEndDate, ApplicationId
+            const inputs = [
+                { name: 'Title', value: 'Staj Defteri' },
+                { name: 'CompanyName', value: '' },
+                { name: 'Department', value: '' },
+                { name: 'InternshipStartDate', value: '' },
+                { name: 'InternshipEndDate', value: '' },
+                { name: 'ApplicationId', value: applicationId }
+            ];
+
+            inputs.forEach(i => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = i.name;
+                inp.value = i.value;
+                form.appendChild(inp);
+            });
+
+            // Anti-forgery token: try to copy existing __RequestVerificationToken if present
+            const anti = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (anti) {
+                const t = document.createElement('input');
+                t.type = 'hidden';
+                t.name = '__RequestVerificationToken';
+                t.value = anti.value;
+                form.appendChild(t);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        // Sayfa dýþýna týklanýnca dropdown'larý kapat
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+                    d.classList.add('hidden');
+                });
+            }
+        });
+
+        // Modal dýþýna týklanýnca kapat
+        document.getElementById('createDiaryModal').addEventListener('click', function(e) {
+            if (e.target === this) closeCreateDiaryModal();
+        });
+
+        document.getElementById('diaryDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDiaryDetailModal();
+        });
+
+        // Escape tuþu ile modal kapat
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCreateDiaryModal();
+                closeDiaryDetailModal();
+            }
+        });
+
+        // CSS animasyonlarý için
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.diary-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in-up');
+            });
+        });
+
+    </script>
+
+    <style>
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @@keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .category-filter.active {
+            background-color: #3b82f6 !important;
+            color: white !important;
+        }
+
+        .diary-card {
+            transition: all 0.3s ease;
+        }
+
+        .diary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+}

@@ -1,0 +1,332 @@
+@model WebUI.Models.Company.InternDetailViewModel
+@{
+    ViewData["Title"] = "Stajyer Detayý";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <style>
+        .detail-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+        .progress-container {
+            background: #f1f5f9;
+            border-radius: 12px;
+            overflow: hidden;
+            height: 12px;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            height: 100%;
+            border-radius: 12px;
+            transition: width 1s ease-in-out;
+        }
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .btn-chat {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-chat:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+            color: white;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+            color: white;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .document-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        .document-item:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-user-graduate mr-3 text-blue-600"></i>Stajyer Detayý
+            </h1>
+            <p class="text-gray-600">@Model.StudentName - Detaylý bilgiler ve dökümanlar</p>
+        </div>
+        <div class="flex space-x-4">
+            <a asp-action="StartChat" asp-route-studentId="@Model.StudentId" class="btn-chat">
+                <i class="fas fa-comments mr-2"></i>Mesajlaþ
+            </a>
+            <a asp-action="List" class="btn-back">
+                <i class="fas fa-arrow-left mr-2"></i>Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Profile Information -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Profile Card -->
+            <div class="detail-card text-center">
+                <div class="profile-avatar">
+                    @Model.StudentName.Substring(0, 1).ToUpper()
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">@Model.StudentName</h2>
+                <p class="text-gray-600 mb-4">@Model.Position</p>
+                <span class="status-badge status-active">@Model.Status</span>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="detail-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-address-card mr-2 text-blue-600"></i>Ýletiþim Bilgileri
+                </h3>
+                <div class="space-y-2">
+                    <div class="info-item">
+                        <span class="text-gray-600">E-posta:</span>
+                        <a href="mailto:@Model.StudentEmail" class="text-blue-600 hover:text-blue-800">@Model.StudentEmail</a>
+                    </div>
+                    <div class="info-item">
+                        <span class="text-gray-600">Telefon:</span>
+                        <a href="tel:@Model.StudentPhone" class="text-blue-600 hover:text-blue-800">@Model.StudentPhone</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Information -->
+            <div class="detail-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-graduation-cap mr-2 text-blue-600"></i>Akademik Bilgiler
+                </h3>
+                <div class="space-y-2">
+                    <div class="info-item">
+                        <span class="text-gray-600">Üniversite:</span>
+                        <span class="font-medium">@Model.University</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="text-gray-600">Bölüm:</span>
+                        <span class="font-medium">@Model.Department</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="text-gray-600">Sýnýf:</span>
+                        <span class="font-medium">@Model.StudentClass</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Internship Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Internship Progress -->
+            <div class="detail-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-chart-line mr-2 text-blue-600"></i>Staj Ýlerlemesi
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-600">@Model.Progress.ToString("F1")%</div>
+                        <div class="text-sm text-gray-600">Tamamlanan</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600">@Model.RemainingTime</div>
+                        <div class="text-sm text-gray-600">Kalan Süre</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-600">@Model.Status</div>
+                        <div class="text-sm text-gray-600">Durum</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">Genel Ýlerleme</span>
+                        <span class="text-sm font-medium text-gray-900">@Model.Progress.ToString("F1")%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width: @Model.Progress.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Baþlangýç Tarihi:</span>
+                        <div class="font-medium">@Model.StartDate.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Bitiþ Tarihi:</span>
+                        <div class="font-medium">@Model.EndDate.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Position Information -->
+            <div class="detail-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-briefcase mr-2 text-blue-600"></i>Pozisyon Bilgileri
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <span class="text-gray-600">Ýlan Baþlýðý:</span>
+                        <div class="font-medium text-lg">@Model.JobTitle</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Pozisyon:</span>
+                        <div class="font-medium">@Model.Position</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cover Letter -->
+            @if (!string.IsNullOrEmpty(Model.CoverLetter))
+            {
+                <div class="detail-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-file-text mr-2 text-blue-600"></i>Baþvuru Mektubu
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700 whitespace-pre-line">@Model.CoverLetter</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Documents -->
+            @if (Model.Documents.Any())
+            {
+                <div class="detail-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-folder-open mr-2 text-blue-600"></i>Yüklenen Belgeler
+                    </h3>
+                    <div class="space-y-3">
+                        @foreach (var document in Model.Documents)
+                        {
+                            <div class="document-item">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-file-pdf text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-900">@document.Title</div>
+                                            <div class="text-sm text-gray-600">
+                                                @document.DocumentType • 
+                                                @(document.FileSize > 1024 * 1024 ? $"{document.FileSize / (1024 * 1024):F1} MB" : $"{document.FileSize / 1024:F0} KB") • 
+                                                @document.UploadedAt.ToString("dd MMM yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <a href="@document.FilePath" target="_blank" class="text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Animate progress bar on load
+            $('.progress-fill').each(function() {
+                var width = $(this).css('width');
+                $(this).css('width', '0%').animate({
+                    width: width
+                }, 1500);
+            });
+
+            // Add hover effects to document items
+            $('.document-item').hover(
+                function() {
+                    $(this).addClass('shadow-md');
+                },
+                function() {
+                    $(this).removeClass('shadow-md');
+                }
+            );
+        });
+
+        // Success/Error messages
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            setTimeout(function() {
+                alert('@TempData["SuccessMessage"]');
+            }, 100);
+            </text>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>
+            setTimeout(function() {
+                alert('@TempData["ErrorMessage"]');
+            }, 100);
+            </text>
+        }
+    </script>
+}

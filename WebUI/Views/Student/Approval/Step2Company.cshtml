@@ -1,0 +1,259 @@
+@model ModernApprovalViewModel
+@{
+    ViewData["Title"] = "Adým 2: Firma Bilgileri";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <style>
+        .approval-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .company-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .company-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            border-color: #10b981;
+        }
+
+        .company-card.selected {
+            border-color: #10b981;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(110, 231, 183, 0.1) 100%);
+        }
+
+        .progress-step {
+            transition: all 0.5s ease;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            transform: scale(1.1);
+        }
+
+        .progress-step.completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="approval-card p-8 rounded-3xl">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">
+                    <i class="fas fa-building me-3"></i>Adým 2: Firma Bilgileri
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300 text-lg">
+                    Onaylanmýþ staj baþvuru bilgilerinizi seçin
+                </p>
+            </div>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-2">
+                    <i class="fas fa-building text-white text-2xl"></i>
+                </div>
+                <p class="text-sm text-gray-500">Firma Seçimi</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="approval-card p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Baþvuru Süreci</h3>
+            <div class="text-sm text-gray-500">Adým 2 / 4</div>
+        </div>
+        <div class="flex items-center justify-between">
+            <div class="progress-step completed w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
+            <div class="flex-1 h-1 bg-green-500 mx-2"></div>
+            <div class="progress-step active w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold">2</div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="progress-step w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gray-300">3</div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="progress-step w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gray-300">4</div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs text-gray-500">
+            <span class="text-green-600">? Belgeler</span>
+            <span class="font-medium text-green-600">Firma Bilgileri</span>
+            <span>Danýþman</span>
+            <span>Gözden Geçir</span>
+        </div>
+    </div>
+
+    <!-- Company Selection -->
+    <form asp-action="Step2Company" method="post" class="approval-card p-8 rounded-3xl">
+        @Html.AntiForgeryToken()
+
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-building text-white text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">Firma Bilgileri</h3>
+                <p class="text-gray-600 dark:text-gray-400">Onaylanmýþ staj baþvuru bilgilerinizi seçin</p>
+            </div>
+        </div>
+
+        <!-- Company Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="company-grid">
+            @if (Model.ApprovedApplications != null && Model.ApprovedApplications.Any())
+            {
+                foreach (var app in Model.ApprovedApplications)
+                {
+                    <div class="company-card p-6 rounded-xl border-2 border-gray-200 bg-white dark:bg-gray-800" data-app-id="@app.Id">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-briefcase text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 dark:text-gray-200">@app.CompanyName</h4>
+                                    <p class="text-sm text-gray-500">@app.Position</p>
+                                    <p class="text-xs text-gray-400">@app.StartDate.ToString("dd.MM.yyyy") - @app.EndDate.ToString("dd.MM.yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center company-checkbox">
+                                <i class="fas fa-check text-white text-xs hidden"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">@(app.Status?.ToLowerInvariant() == "approved" ? "Onaylandý" : app.Status)</span>
+                            <span class="text-gray-600">@app.CreatedAt.ToString("dd.MM.yyyy")</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="p-6 rounded-xl border-2 border-gray-200 bg-white text-center text-gray-600">
+                    Henüz onaylanmýþ baþvurunuz bulunmamaktadýr.
+                </div>
+            }
+        </div>
+
+        <!-- Selection Info -->
+        <div class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+            <p class="text-sm text-green-700 dark:text-green-300">
+                <i class="fas fa-info-circle mr-2"></i>
+                <span id="company-selected-text">Bir firma seçiniz</span>
+            </p>
+        </div>
+
+        <!-- Hidden Inputs -->
+        <input type="hidden" name="SelectedApplicationId" id="selectedApplicationId" />
+        <input type="hidden" name="CompanyName" id="hiddenCompanyName" />
+        <input type="hidden" name="StartDate" id="hiddenStartDate" />
+        <input type="hidden" name="EndDate" id="hiddenEndDate" />
+        <input type="hidden" name="Position" id="hiddenPosition" />
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <a asp-action="Step1Documents" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Önceki
+            </a>
+            <button type="submit" id="nextBtn" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Sonraki <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedApplication = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('?? Step 2: Company Selection loaded');
+            
+            setupCompanyCards();
+            updateUI();
+        });
+
+        function setupCompanyCards() {
+            const companyCards = document.querySelectorAll('.company-card');
+            
+            companyCards.forEach((card, index) => {
+                const appId = card.dataset.appId;
+                
+                card.addEventListener('click', function() {
+                    console.log(`?? Company clicked: ${appId}`);
+                    
+                    // Clear all selections
+                    companyCards.forEach(c => {
+                        c.classList.remove('selected');
+                        const checkbox = c.querySelector('.company-checkbox');
+                        if (checkbox) {
+                            checkbox.style.background = '';
+                            const icon = checkbox.querySelector('i');
+                            if (icon) icon.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Select current
+                    selectedApplication = appId;
+                    card.classList.add('selected');
+                    const checkbox = card.querySelector('.company-checkbox');
+                    if (checkbox) {
+                        checkbox.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                        const icon = checkbox.querySelector('i');
+                        if (icon) icon.classList.remove('hidden');
+                    }
+                    
+                    // Update form data
+                    updateCompanyFormData(card);
+                    updateUI();
+                });
+            });
+        }
+
+        function updateCompanyFormData(card) {
+            const companyName = card.querySelector('h4') ? card.querySelector('h4').textContent.trim() : '';
+            const position = card.querySelector('p.text-sm') ? card.querySelector('p.text-sm').textContent.trim() : '';
+            const dateText = card.querySelector('p.text-xs') ? card.querySelector('p.text-xs').textContent.trim() : '';
+            
+            // Parse dates
+            const dates = dateText.split(' - ');
+            const startDate = dates[0] ? convertDateFormat(dates[0]) : '';
+            const endDate = dates[1] ? convertDateFormat(dates[1]) : '';
+            
+            // Set hidden inputs
+            document.getElementById('selectedApplicationId').value = selectedApplication;
+            document.getElementById('hiddenCompanyName').value = companyName;
+            document.getElementById('hiddenStartDate').value = startDate;
+            document.getElementById('hiddenEndDate').value = endDate;
+            document.getElementById('hiddenPosition').value = position;
+            
+            // Update UI text
+            const selectedText = document.getElementById('company-selected-text');
+            selectedText.textContent = `${companyName} seçildi`;
+        }
+
+        function convertDateFormat(dateStr) {
+            const parts = dateStr.split('.');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        function updateUI() {
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (nextBtn) {
+                nextBtn.disabled = selectedApplication === null;
+            }
+            
+            console.log(`?? Selected application: ${selectedApplication}`);
+        }
+    </script>
+}

@@ -1,0 +1,168 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Core.Entity;
+
+namespace WebUI.Models.ViewModels.Student
+{
+    // Application related ViewModels
+    public class ApplicationListViewModel
+    {
+        public List<ApplicationItemVM> Applications { get; set; } = new();
+        public string SearchTerm { get; set; } = "";
+        public InternshipApplicationStatus? StatusFilter { get; set; }
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
+        public int TotalCount { get; set; }
+        public ApplicationStatsVM Stats { get; set; } = new();
+    }
+
+    public class ApplicationItemVM
+    {
+        public int Id { get; set; }
+        public string CompanyName { get; set; } = "";
+        public string Position { get; set; } = "";
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public InternshipApplicationStatus Status { get; set; }
+        public DateTime AppliedDate { get; set; }
+        public string Description { get; set; } = "";
+        public bool CanCreateApprovalForm { get; set; }
+        public int DocumentCount { get; set; }
+        public string AdvisorName { get; set; } = "";
+        public string AdvisorComment { get; set; } = "";
+        public bool IsCompulsory { get; set; } // display tag if compulsory
+    }
+
+    public class ApplicationStatsVM
+    {
+        public int TotalApplications { get; set; }
+        public int PendingApplications { get; set; }
+        public int ApprovedApplications { get; set; }
+        public int RejectedApplications { get; set; }
+        public int WithdrawnApplications { get; set; }
+        public double SuccessRate { get; set; }
+    }
+
+    public class ApplicationDetailsViewModel
+    {
+        public int Id { get; set; }
+        public string CompanyName { get; set; } = "";
+        public string Position { get; set; } = "";
+        public string Description { get; set; } = "";
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime AppliedDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public InternshipApplicationStatus Status { get; set; }
+        public string StatusDisplayText { get; set; } = "";
+        public string StatusColor { get; set; } = "";
+        public List<DocumentViewModel> Documents { get; set; } = new();
+        public bool CanWithdraw { get; set; }
+        public bool CanCreateApprovalForm { get; set; }
+        public string? StudentNote { get; set; }
+        public string? AdvisorFeedback { get; set; }
+        public string? RejectionReason { get; set; }
+        public DateTime? ApprovedDate { get; set; }
+        public DateTime? RejectedDate { get; set; }
+        public OfferDetailsViewModel? OfferDetails { get; set; }
+        // Indicates whether an InternshipDiary exists for this application
+        public bool HasDiary { get; set; } = false;
+        public int? DiaryId { get; set; }
+        public bool IsCompulsory { get; set; } // new
+    }
+
+    public class ApplicationCreateViewModel
+    {
+        [Required(ErrorMessage = "Staj teklifi se?imi zorunludur")]
+        public int SelectedOfferId { get; set; }
+
+        [Required(ErrorMessage = "Ba?lang?? tarihi zorunludur")]
+        [DataType(DataType.Date)]
+        public DateTime StartDate { get; set; }
+
+        [Required(ErrorMessage = "Biti? tarihi zorunludur")]
+        [DataType(DataType.Date)]
+        public DateTime EndDate { get; set; }
+
+        [StringLength(1000, ErrorMessage = "A??klama en fazla 1000 karakter olabilir")]
+        public string? Description { get; set; }
+
+        public bool IsCompulsory { get; set; } // new field bound to checkbox
+
+        public List<int> SelectedDocumentIds { get; set; } = new();
+        public List<OfferSelectViewModel> AvailableOffers { get; set; } = new();
+        public List<StudentDocumentVM> AvailableDocuments { get; set; } = new();
+    }
+
+    public class OfferSelectViewModel
+    {
+        public int OfferId { get; set; }
+        public string Title { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string City { get; set; } = "";
+        public string Field { get; set; } = "";
+        public DateTime? ApplicationDeadline { get; set; }
+    }
+
+    public class DocumentViewModel
+    {
+        public int Id { get; set; }
+        public string FileName { get; set; } = "";
+        public string? Title { get; set; }
+        public string DocumentType { get; set; } = "";
+        public DateTime UploadedAt { get; set; }
+        public long FileSize { get; set; }
+        public string FilePath { get; set; } = "";
+        public bool IsRequired { get; set; }
+        public string? Description { get; set; }
+    }
+
+    public class OfferDetailsViewModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Requirements { get; set; } = "";
+        public string Benefits { get; set; } = "";
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime ApplicationDeadline { get; set; }
+        public string WorkingHours { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string Position { get; set; } = "";
+        public int Quota { get; set; }
+        // New properties
+        public string ReferenceNumber { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new List<string>();
+        public string CompanyPhone { get; set; } = string.Empty;
+        public string CompanyEmail { get; set; } = string.Empty;
+        public string CompanyWebsite { get; set; } = string.Empty;
+        public string CompanyAddress { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        // New: company description (Hakk?m?zda)
+        public string CompanyDescription { get; set; } = string.Empty;
+
+        // Salary fields
+        public decimal? Salary { get; set; }
+        public Core.Entity.CurrencyType SalaryCurrency { get; set; } = Core.Entity.CurrencyType.TRY;
+
+        // Related offers to show under details
+        public List<OfferSelectViewModel> RelatedOffers { get; set; } = new List<OfferSelectViewModel>();
+
+        // Display mode: if true, render ecommerce-like layout for students/home; otherwise keep company-style
+        public bool ShowEcommerceMode { get; set; } = false;
+    }
+
+    public enum ApplicationStatus
+    {
+        Pending,
+        Approved,
+        Rejected,
+        InProgress,
+        Completed
+    }
+}

@@ -1,36 +1,67 @@
+using Business.Education;
+using Business.Interfaces;
 using Business.Interfaces.Chat;
 using Business.Interfaces.Com;
 using Business.Interfaces.Email;
 using Business.Interfaces.Internship;
 using Business.Interfaces.Order;
 using Business.Interfaces.UserRepose;
+using Business.Services;
 using Business.Services.Chat;
 using Business.Services.Com;
-using Business.Services.Email;
+using Business.Services.Interfaces;
 using Business.Services.Internship;
 using Business.Services.Order;
 using Business.Services.UserRepose;
 using DataAccess.Context;
+using DataAccess.Interfaces;
 using DataAccess.Interfaces.Chat;
 using DataAccess.Interfaces.Com;
+using DataAccess.Interfaces.Education;
 using DataAccess.Interfaces.Internship;
 using DataAccess.Interfaces.Order;
 using DataAccess.Interfaces.UserRepose;
+using DataAccess.Repositories;
 using DataAccess.Repositories.Chat;
 using DataAccess.Repositories.Com;
 using DataAccess.Repositories.Internship;
 using DataAccess.Repositories.Order;
 using DataAccess.Unit.Interface;
+using DataAccess.Unit.Repose;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using WebUI.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    // Global exception filter ekleme
+    options.Filters.Add<AuthExceptionFilter>();
+});
+
+// Runtime compilation support
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptions =>
+    {
+        // PostgreSQL için timestamp handling optimize et
+        npgsqlOptions.EnableRetryOnFailure();
+    });
+    
+    // Development'ta detailed logging
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging()
+               .EnableDetailedErrors();
+    }
+});
 
 // Session ve Distributed Cache hizmetlerini ekleme.
 builder.Services.AddDistributedMemoryCache();
@@ -41,17 +72,21 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Kimlik Doðrulama Hizmetini Ekleme.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(o =>
     {
-        options.LoginPath = "/Account/Login";
-        options.Cookie.Name = "InternshipAuth";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
-        options.AccessDeniedPath = "/Home/Error";
+        o.LoginPath = "/Account/Login"; // Authentication gerektiren sayfalara gidildiðinde
+        o.AccessDeniedPath = "/Account/Login"; // Yetki sorunu olduðunda
+        o.Cookie.Name = "InternshipAuth";
+        o.ExpireTimeSpan = TimeSpan.FromHours(8); // Default session süre
+        o.SlidingExpiration = false; // RememberMe ile çakýþmasýn diye false
+        o.ReturnUrlParameter = "returnUrl"; // Login sonrasý nereye dönüleceði
+        o.Cookie.HttpOnly = true; // XSS güvenliði
+        o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // HTTPS güvenliði
+        o.Cookie.SameSite = SameSiteMode.Lax; // CSRF güvenliði
     });
 
-// UnitOfWork tasarým desenini tanýmlama.
+// UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Repositories
@@ -61,6 +96,7 @@ builder.Services.AddScoped<IInternshipCommentRepository, InternshipCommentReposi
 builder.Services.AddScoped<IInternshipDocumentRepository, InternshipDocumentRepository>();
 builder.Services.AddScoped<IInternshipPeriodRepository, InternshipPeriodRepository>();
 builder.Services.AddScoped<IInternshipApplicationRepository, InternshipApplicationRepository>();
+builder.Services.AddScoped<IInternshipApprovalRepository, InternshipApprovalRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -69,7 +105,10 @@ builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddScoped<ICompanyUserRepository, CompanyUserRepository>();
 builder.Services.AddScoped<ISliderRepository, SliderRepository>();
 builder.Services.AddScoped<ISliderItemRepository, SliderItemRepository>();
-
+builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
+builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
+builder.Services.AddScoped<IDiaryRepository, DiaryRepository>();
+builder.Services.AddScoped<IInternshipDiaryRepository, InternshipDiaryRepository>();
 
 // Services
 builder.Services.AddScoped<IICompanyService, ICompanyService>();
@@ -78,6 +117,7 @@ builder.Services.AddScoped<IInternshipCommentService, InternshipCommentService>(
 builder.Services.AddScoped<IInternshipDocumentService, InternshipDocumentService>();
 builder.Services.AddScoped<IInternshipPeriodService, InternshipPeriodService>();
 builder.Services.AddScoped<IInternshipApplicationService, InternshipApplicationService>();
+builder.Services.AddScoped<IInternshipApprovalService, InternshipApprovalService>();
 builder.Services.AddScoped<IINewsService, INewsService>();
 builder.Services.AddScoped<IINotificationService, INotificationService>();
 builder.Services.AddScoped<IIUserService, UserService>();
@@ -85,13 +125,13 @@ builder.Services.AddScoped<IIChatService, IChatService>();
 builder.Services.AddScoped<IICompanyUserService, ICompanyUserService>();
 builder.Services.AddScoped<IISliderService, ISliderService>();
 builder.Services.AddScoped<IISliderItemService, ISliderItemService>();
-// ...
-
-// Doðru interface ve implementation eþleþmesi için satýrý þu þekilde deðiþtirin:
+builder.Services.AddScoped<IIProvinceService, ProvinceService>();
+builder.Services.AddScoped<IIUniversityService, UniversityService>();
 builder.Services.AddScoped<IIActivationEmailService, MailKitActivationEmailService>();
+builder.Services.AddScoped<IDiaryService, DiaryService>();
+builder.Services.AddScoped<IInternshipDiaryService, InternshipDiaryService>();
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -109,8 +149,31 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Company controller'lar için özel route
+app.MapControllerRoute(
+    name: "company",
+    pattern: "{controller}/{action=Index}/{id?}",
+    constraints: new { controller = @"^(Company)$" }
+);
+
+// Advisor controller'lar için özel route
+app.MapControllerRoute(
+    name: "advisor",
+    pattern: "{controller}/{action=Index}/{id?}",
+    constraints: new { controller = @"^(AdvisorDashboard|AdvisorProfile|AdvisorApplication|AdvisorDiary|AdvisorStudent|AdvisorNotification|AdvisorReport)$" }
+);
+
+// Student controller'lar için özel route 
+app.MapControllerRoute(
+    name: "student",
+    pattern: "{controller}/{action=Index}/{id?}",
+    constraints: new { controller = @"^(Dashboard|Profile|Application|Document|Calendar|Diary|Statistics|Help|Chat|Approval|Notification)$" }
+);
+
+// Ana sayfa için default route
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

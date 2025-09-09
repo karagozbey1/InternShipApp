@@ -8350,3 +8350,107 @@ textarea.form-control {
         border: 1px solid transparent;
         background: #fbceb5;
         color: #fff; }
+
+.form-btn {
+    border-radius: 25px; /* Butonlarýn köþelerini yuvarlar */
+    color: #fff; /* Metin rengini beyaz yapar */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Yumuþak bir geçiþ efekti ekler */
+}
+
+/* Giriþ Yap ve Kayýt Ol butonlarý için baþlangýç stili */
+.btn-primary-custom, .btn-secondary {
+    background-color: transparent; 
+    border: 1px solid #c9d5e3;
+    color: #c9d5e3; 
+}
+
+/* Fareyle üzerine gelindiðinde uygulanacak stil */
+.form-btn:hover {
+    background-color: #f7d7c4;
+    border-color: #f7d7c4; /* Kenarlýðý da ten rengi yapar */
+    color: black;
+}
+/* "Þifremi Unuttum" butonu için stil */
+.forgot-password-btn {
+    background-color: transparent; 
+    border: 1px solid #ffdfc4; /* Ten rengi tonunda kenarlýk ekler */
+    color: whitesmoke; /* Yazý rengini ten rengi tonu yapar */
+    border-radius: 6px; /* Köþeleri yuvarlar */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Yumuþak geçiþ efekti ekler */
+}
+
+    /* "Þifremi Unuttum" butonu üzerine gelindiðinde (hover) stil */
+    .forgot-password-btn:hover {
+        background-color: #ffdfc4; 
+        color: #6a6a6a;
+    }
+
+    
+    /* Placeholder metinlerinin rengini deðiþtir */
+    .form-control::placeholder {
+        color: darkslategray;
+        opacity: 1;
+    }
+    /* Inputlardaki yazýlar için renk ayarý */
+    .form-control {
+        color: #333; /* Koyu gri, daha net okunur */
+    }
+    /* Özel Dropdown Kapsayýcýsý */
+    .custom-dropdown-container {
+        position: relative;
+        width: 100%;
+    }
+        /* Dropdown Input ve Ýkonu */
+        .custom-dropdown-container .form-control {
+            cursor: pointer;
+        }
+
+    .dropdown-icon {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        pointer-events: none;
+    }
+    /* Açýlýr Liste Kutusu (Beyaz Kutu) */
+    .dropdown-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background-color: lightblue;
+        border: 1px solid white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: none;
+    }
+        /* Açýlýr listedeki arama kutusu */
+        .dropdown-list .search-box {
+            padding: 10px;
+            border-bottom: 1px solid black;
+        }
+        /* Açýlýr listedeki liste elemanlarý */
+        .dropdown-list ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .dropdown-list li {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+            .dropdown-list li:hover {
+                background-color: gray;
+            }
+
+ 
+

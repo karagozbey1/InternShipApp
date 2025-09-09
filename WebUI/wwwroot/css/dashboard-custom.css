@@ -1,0 +1,30 @@
+/* Styles to mimic advisor blue header card for student dashboard and header mini */
+.header-hero-card {
+    background: linear-gradient(180deg, #eef6ff 0%, #f8fbff 100%);
+    border: 1px solid rgba(59,130,246,0.12);
+    box-shadow: 0 6px 18px rgba(59,130,246,0.06);
+    border-radius: 14px;
+}
+
+.header-hero-card .title {
+    color: #1e3a8a; /* blue-900 */
+    font-weight: 600;
+}
+
+.header-hero-card .meta {
+    color: #2563eb; /* blue-600 */
+    font-size: 0.9rem;
+}
+
+.header-welcome-mini .fw-semibold {
+    font-weight: 600;
+    color: #111827;
+}
+
+.header-welcome-mini .text-primary {
+    color: #2563eb;
+}
+
+@media (max-width: 768px) {
+    .header-welcome-mini { text-align: left; }
+}

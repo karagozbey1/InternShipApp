@@ -36,5 +36,12 @@ namespace DataAccess.Repositories.Com
             return await _context.CompanyUsers
                 .FirstOrDefaultAsync(cu => cu.CompanyId == companyId && cu.UserId == userId);
         }
+        public async Task<Company?> GetCompanyByUserIdAsync(int userId)
+        {
+            var cu = await _context.CompanyUsers.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (cu == null) return null;
+            return await _context.Companies.FindAsync(cu.CompanyId);
+        }
+
     }
 }

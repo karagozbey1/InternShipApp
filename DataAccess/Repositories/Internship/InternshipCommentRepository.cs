@@ -15,6 +15,14 @@ namespace DataAccess.Repositories.Internship
         public InternshipCommentRepository(ApplicationDbContext context) : base(context)
         {
         }
+        public async Task AddCommentAsync(InternshipComment comment)
+        {
+            if (comment == null)
+                throw new ArgumentNullException(nameof(comment));
+
+            await _context.InternshipComments.AddAsync(comment);
+            await _context.SaveChangesAsync();
+        }
 
         public async Task<List<InternshipComment>> GetCommentsByApplicationIdAsync(int applicationId)
         {

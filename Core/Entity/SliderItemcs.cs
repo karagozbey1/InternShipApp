@@ -14,6 +14,7 @@ namespace Core.Entity
         public Slider Slider { get; set; } = null!;
         public string Title { get; set; } = null!;
         public string? Subtitle { get; set; }
+        public string? Description { get; set; } // Added property for views
         public string? ImageUrl { get; set; }
         public string? Link { get; set; }
         public string? TargetType { get; set; } // "News", "InternshipOffer",Scholership, "External"

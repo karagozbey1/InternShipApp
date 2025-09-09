@@ -1,30 +1,74 @@
-﻿
+﻿@{
+    Layout = null;
+    var title = ViewData["Title"] ?? "Panel";
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+}
+
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="h-full">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Staj Takip Sistemi</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-    <link rel="stylesheet" href="~/css/app.css" />
+    <title>@title - Staj Takip Sistemi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- jQuery - Must be loaded first -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/StudentCss/dashboard.css" />
+    <link rel="stylesheet" href="~/css/StudentCss/app-theme.css" />
+    <link rel="stylesheet" href="~/css/AdvisorCss/advisor-theme.css" />
+    <link rel="stylesheet" href="~/css/company/company-styles.css" />
+    <link rel="stylesheet" href="~/css/overrides.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    @await Html.PartialAsync("_Header")
+<body class="h-full bg-gray-50 dark:bg-gray-900">
+    <div class="min-h-screen dark:bg-gray-900">
+        <div class="flex h-screen">
+            @if (userRole == "Advisor")
+            {
+                <partial name="~/Views/Shared/PartialsViewApp/_AdvisorSidebar.cshtml" />
+            }
+            else if (userRole == "Company")
+            {
+                <partial name="~/Views/Shared/PartialsViewApp/_CompanySidebar.cshtml" />
+            }
+            else
+            {
+                <partial name="~/Views/Shared/PartialsViewApp/_Sidebar.cshtml" />
+            }
 
-    <div class="d-flex">
-        @await Html.PartialAsync("_Sidebar")
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <partial name="~/Views/Shared/PartialsViewApp/_Header.cshtml" model='@(ViewData["Title"]?.ToString() ?? "Ana Sayfa")' />
 
-        <main role="main" class="p-4 w-100">
-            <div class="container-fluid">
-                @RenderBody()
+                <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6">
+                    @RenderBody()
+                </main>
             </div>
-        </main>
+        </div>
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Dashboard Scripts -->
+    <script src="~/js/StudentScript/dashboard.js"></script>
+    <script src="~/js/AdvisorScript/advisor.js"></script>
+    <script src="~/js/company/company-dashboard.js"></script>
+ 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

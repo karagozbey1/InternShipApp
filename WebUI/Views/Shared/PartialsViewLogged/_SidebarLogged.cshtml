@@ -1,4 +1,4 @@
-﻿@* Views/Shared/_Sidebar.cshtml *@
+﻿
 @using Microsoft.AspNetCore.Identity
 
 <aside class="d-flex flex-column p-4 bg-gray-800 text-white min-vh-100" style="width: 250px;">
@@ -13,8 +13,13 @@
             @if (User.IsInRole("Öğrenci"))
             {
                 <li class="nav-item">
-                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" href="#">
+                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" asp-controller="Application" asp-action="Index">
                         <i class="fas fa-file-alt mr-2"></i> Başvurularım
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white hover:bg-gray-700 rounded transition-colors" asp-controller="Approval" asp-action="Index">
+                        <i class="fas fa-clipboard-check mr-2"></i> Onay Sayfası
                     </a>
                 </li>
             }

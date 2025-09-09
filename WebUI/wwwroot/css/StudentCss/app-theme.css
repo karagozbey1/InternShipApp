@@ -1,0 +1,544 @@
+/* Student app theme for light/dark modes - Resimdeki dark mode tasarýmýna özel */
+:root {
+  --bg: #f5f7fb;
+  --bg-soft: #eef2ff;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: rgba(0,0,0,0.06);
+  --shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+  --radius: 16px;
+  --brand1: #6366f1;
+  --brand2: #8b5cf6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --danger: #ef4444;
+  
+  /* Resimdeki renk paletiyle uyumlu ek renkler */
+  --stat-green-bg: #10b981;
+  --stat-green-text: #ffffff;
+  --stat-blue-bg: #3b82f6;
+  --stat-blue-text: #ffffff;
+  --stat-purple-bg: #8b5cf6;
+  --stat-purple-text: #ffffff;
+  
+  --activity-ok-bg: rgba(59, 130, 246, 0.15);
+  --activity-warn-bg: rgba(245, 158, 11, 0.15);
+  --activity-text: #1f2937;
+  
+  --progress-track: #e5e7eb;
+  --progress-fill: #10b981;
+}
+
+/* Dark mode - resimdeki tasarýmla birebir uyumlu */
+.dark {
+  --bg: #111827;
+  --bg-soft: #0f172a;
+  --surface: #1f2937;
+  --text: #ffffff;
+  --muted: #9ca3af;
+  --border: #374151;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  
+  /* Dark mode için stat renkleri - resimdeki gibi solid renkler */
+  --stat-green-bg: #10b981;
+  --stat-green-text: #ffffff;
+  --stat-blue-bg: #3b82f6;
+  --stat-blue-text: #ffffff;
+  --stat-purple-bg: #8b5cf6;
+  --stat-purple-text: #ffffff;
+  
+  /* Dark mode aktivite renkleri */
+  --activity-ok-bg: rgba(59, 130, 246, 0.15);
+  --activity-warn-bg: rgba(245, 158, 11, 0.15);
+  --activity-text: #ffffff;
+  
+  --progress-track: #374151;
+  --progress-fill: #10b981;
+}
+
+/* HTML ve Body dark mode arka planý */
+html {
+  height: 100%;
+}
+
+html.dark {
+  background: #111827;
+}
+
+/* Page background - resimdeki dark gradient */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.dark body {
+  background: #111827 !important;
+}
+
+/* Main content area dark background */
+.dark main {
+  background: #111827 !important;
+}
+
+/* Bildirim dropdown z-index düzeltmesi - ÖNE ÇIKARTMAK ÝÇÝN */
+#notificationDropdown {
+  z-index: 9999 !important;
+  position: absolute !important;
+}
+
+#notificationDropdown.hidden {
+  display: none !important;
+}
+
+#notificationDropdown:not(.hidden) {
+  display: block !important;
+}
+
+/* Bildirim dropdown shadow iyileþtirmesi */
+#notificationDropdown {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25) !important;
+}
+
+.dark #notificationDropdown {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Bildirim sayýsý badge stilleri */
+#notificationCount {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  min-width: 18px !important;
+  height: 18px !important;
+}
+
+/* Generic card look - resimdeki modern dark kartlar */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .card {
+  background: #1f2937 !important;
+  border: 1px solid #374151 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.dark .card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card .card-header { 
+  background: transparent; 
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.card .card-body { 
+  color: var(--text); 
+}
+
+.dark .card .card-body {
+  color: #ffffff !important;
+}
+
+/* Sidebar styles - resimdeki dark sidebar */
+#sidebar {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.dark #sidebar {
+  background: #1f2937 !important;
+  border-right: 1px solid #374151;
+}
+
+.sidebar-item {
+  width: 100%;
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+  padding: 14px 16px; 
+  border-radius: 14px;
+  transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sidebar-item i { 
+  width: 20px; 
+  text-align: center; 
+  font-size: 16px;
+}
+
+.sidebar-item-inactive {
+  color: #374151;
+}
+
+.dark .sidebar-item-inactive {
+  color: #d1d5db;
+}
+
+.sidebar-item-inactive:hover {
+  background: rgba(99, 102, 241, 0.08);
+  transform: translateX(4px);
+  color: var(--brand1);
+}
+
+.dark .sidebar-item-inactive:hover {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.sidebar-item-active {
+  background: linear-gradient(90deg, var(--brand1), var(--brand2));
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(99,102,241,.35);
+  transform: translateX(8px) scale(1.02);
+}
+
+/* Header look - resimdeki dark header */
+header[role="banner"], 
+header.h-16 {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 1000;
+}
+
+.dark header[role="banner"],
+.dark header.h-16 {
+  background: #1f2937 !important;
+  border-bottom: 1px solid #374151;
+}
+
+/* Progress track like screenshot */
+.progress-track { 
+  height: 8px; 
+  background: var(--progress-track); 
+  border-radius: 999px; 
+  overflow: hidden; 
+  position: relative;
+}
+
+.progress-fill { 
+  height: 100%; 
+  background: var(--progress-fill); 
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Activity rows colors - resimdeki dark mode renkleri */
+.activity-row.ok { 
+  background: var(--activity-ok-bg); 
+  color: var(--activity-text); 
+}
+
+.activity-row.warn { 
+  background: var(--activity-warn-bg); 
+  color: var(--activity-text); 
+}
+
+/* Badges used in dashboard list */
+.badge { 
+  border-radius: 999px; 
+  padding: 8px 12px; 
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-success { 
+  background: rgba(16,185,129,.15); 
+  color: var(--success);
+  border: 1px solid rgba(16,185,129,.3);
+}
+
+.badge-warning { 
+  background: rgba(245,158,11,.18); 
+  color: var(--warning);
+  border: 1px solid rgba(245,158,11,.3);
+}
+
+.badge-info { 
+  background: rgba(59,130,246,.18); 
+  color: var(--info);
+  border: 1px solid rgba(59,130,246,.3);
+}
+
+.badge-danger { 
+  background: rgba(239,68,68,.15); 
+  color: var(--danger);
+  border: 1px solid rgba(239,68,68,.3);
+}
+
+/* Hover shadow utility used in dashboard */
+.hover-shadow:hover {
+  box-shadow: 0 15px 35px rgba(58, 59, 69, .15) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(-4px);
+}
+
+/* Buttons similar to screenshot */
+.btn-primary,
+.bg-gradient-primary {
+  background: linear-gradient(90deg, var(--brand1), var(--brand2));
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 12px 20px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover { 
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* Form controls for light/dark */
+.form-control,
+select,
+textarea {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.form-control:focus,
+select:focus,
+textarea:focus { 
+  outline: none; 
+  box-shadow: 0 0 0 3px rgba(99,102,241,.25); 
+  border-color: var(--brand1);
+  transform: translateY(-1px);
+}
+
+/* Utility tiles like stat cards - resimdeki solid renk paleti */
+.stat-ic { 
+  border-radius: 20px; 
+}
+
+.ic-green { 
+  background: var(--stat-green-bg); 
+  color: var(--stat-green-text); 
+}
+
+.ic-blue { 
+  background: var(--stat-blue-bg); 
+  color: var(--stat-blue-text); 
+}
+
+.ic-purple { 
+  background: var(--stat-purple-bg); 
+  color: var(--stat-purple-text); 
+}
+
+/* Container paddings to give breathing room similar to mockups */
+main.p-6 { 
+  padding: 24px; 
+}
+
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Dark mode text colors - resimdeki gibi */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  color: #ffffff !important;
+}
+
+.dark .text-gray-800 {
+  color: #ffffff !important;
+}
+
+.dark .text-muted {
+  color: #9ca3af !important;
+}
+
+.dark .text-dark {
+  color: #ffffff !important;
+}
+
+/* Tailwind dark mode override */
+.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+.dark .bg-gray-900 {
+  background-color: #111827 !important;
+}
+
+/* Flexbox container dark mode */
+.dark .min-h-screen {
+  background: #111827 !important;
+}
+
+.dark .flex {
+  background: #111827 !important;
+}
+
+/* Scrollbar styling - dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-soft);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* Loading spinner */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Glass effect utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  main.p-6 {
+    padding: 16px;
+  }
+  
+  .card {
+    margin-bottom: 16px;
+  }
+  
+  .sidebar-item {
+    padding: 12px 14px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar,
+  header,
+  .btn,
+  .dropdown {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+}
+
+/* Dark mode için özel global düzenlemeler */
+.dark * {
+  border-color: #374151 !important;
+}
+
+.dark {
+  background: #111827 !important;
+}
+
+.dark .dashboard {
+  background: transparent !important;
+}
+
+/* Progress bar özel stilleri */
+.dark .progress-track {
+  background: #374151;
+}
+
+.dark .progress-fill {
+  background: #10b981;
+}
+
+/* Sayfanýn tamamý için dark mode */
+.dark,
+.dark body,
+.dark html {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}

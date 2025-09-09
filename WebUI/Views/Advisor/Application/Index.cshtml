@@ -1,0 +1,313 @@
+@using Core.Entity
+@model WebUI.Models.ViewModels.Advisor.AdvisorApplicationListViewModel
+@{
+    ViewData["Title"] = "Staj Baþvurularý";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/dynamic-dashboard.css" />
+    <style>
+        .application-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+        
+        .application-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+        }
+        
+        .application-card.status-pending {
+            border-left-color: #f59e0b;
+        }
+        
+        .application-card.status-approved {
+            border-left-color: #10b981;
+        }
+        
+        .application-card.status-rejected {
+            border-left-color: #ef4444;
+        }
+        
+        .student-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .action-buttons {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .application-card:hover .action-buttons {
+            opacity: 1;
+        }
+        
+        .filter-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="dynamic-card p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
+                    <i class="fas fa-clipboard-list me-3"></i>Staj Baþvurularý
+                </h1>
+                <p class="text-blue-600 dark:text-blue-300">
+                    Öðrencilerinizin staj onay formlarýný inceleyin ve deðerlendirin
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-blue-800 dark:text-blue-200 text-sm">@DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</div>
+                <div class="text-blue-600 dark:text-blue-300 text-sm">Toplam @Model.TotalCount baþvuru</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Baþvuru</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white">@Model.TotalCount</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
+                    <i class="fas fa-clipboard-list text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Beklemede</p>
+                    <p class="text-3xl font-bold text-yellow-600">@Model.PendingCount</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Onaylandý</p>
+                    <p class="text-3xl font-bold text-green-600">@Model.ApprovedCount</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+                    <i class="fas fa-check-circle text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Reddedildi</p>
+                    <p class="text-3xl font-bold text-red-600">@Model.RejectedCount</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl">
+                    <i class="fas fa-times-circle text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <form asp-action="Index" method="get" class="flex items-center gap-4 flex-wrap">
+            <div class="flex-1 min-w-64">
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                       placeholder="Öðrenci adý, þirket adý veya koordinatör ara...">
+            </div>
+            
+            <div class="min-w-48">
+                <select name="statusFilter" 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="@InternshipApprovalStatus.Pending" 
+                            selected="@(Model.StatusFilter == InternshipApprovalStatus.Pending)">
+                        Beklemede
+                    </option>
+                    <option value="@InternshipApprovalStatus.Approved" 
+                            selected="@(Model.StatusFilter == InternshipApprovalStatus.Approved)">
+                        Onaylandý
+                    </option>
+                    <option value="@InternshipApprovalStatus.Rejected" 
+                            selected="@(Model.StatusFilter == InternshipApprovalStatus.Rejected)">
+                        Reddedildi
+                    </option>
+                </select>
+            </div>
+            
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                <i class="fas fa-search mr-2"></i>Filtrele
+            </button>
+            
+            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue)
+            {
+                <a asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors font-medium">
+                    <i class="fas fa-times mr-2"></i>Temizle
+                </a>
+            }
+        </form>
+    </div>
+
+    <!-- Applications Grid -->
+    <div class="space-y-4" id="applicationsContainer">
+        @if (Model.Applications.Any())
+        {
+            @foreach (var application in Model.Applications)
+            {
+                <a class="application-card status-@(application.Status.ToString().ToLower()) dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700 block"
+                   href="@Url.Action("ApplicationDetail","AdvisorApplication", new { id = application.Id })">
+                    <div class="flex items-start justify-between">
+                        <!-- Left Section: Student Info -->
+                        <div class="flex items-start gap-4 flex-1">
+                            <div class="student-avatar">
+                                @(application.StudentName.Split(' ').Select(n => n.FirstOrDefault()).Take(2).Aggregate("", (acc, c) => acc + c))
+                            </div>
+                            
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                                        @application.StudentName
+                                    </h3>
+                                    <span class="px-3 py-1 text-xs font-medium rounded-full bg-@(application.StatusColor)-100 text-@(application.StatusColor)-800 dark:bg-@(application.StatusColor)-900/20">
+                                        <i class="@application.StatusIcon mr-1"></i>
+                                        @application.StatusText
+                                    </span>
+                                </div>
+                                
+                                <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                    <p><i class="fas fa-id-card mr-2"></i>@application.StudentNumber</p>
+                                    <p><i class="fas fa-envelope mr-2"></i>@application.StudentEmail</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Center Section: Company & Internship Info -->
+                        <div class="flex-1 px-6">
+                            <div class="space-y-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 dark:text-gray-200">@application.CompanyName</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">@application.Position</p>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">Baþlangýç:</span>
+                                        <p class="font-medium text-gray-800 dark:text-gray-200">@application.StartDate.ToString("dd MMM yyyy")</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Bitiþ:</span>
+                                        <p class="font-medium text-gray-800 dark:text-gray-200">@application.EndDate.ToString("dd MMM yyyy")</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                    <span><i class="fas fa-clock mr-1"></i>@application.WeeklyWorkHours sa/hafta</span>
+                                    <span><i class="fas fa-calendar mr-1"></i>@application.DurationDays gün</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Section: Actions & Date -->
+                        <div class="flex flex-col items-end gap-3">
+                            <div class="text-right text-sm text-gray-500">
+                                <p>@application.DaysFromSubmission gün önce</p>
+                                <p>@application.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                            </div>
+                            
+                            @if (application.Status == InternshipApprovalStatus.Pending)
+                            {
+                                <div class="action-buttons flex items-center gap-2">
+                                    <button onclick="showApproveModal(@application.Id, '@application.StudentName', '@application.CompanyName'); event.stopPropagation();"
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                                            title="Onayla">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    
+                                    <button onclick="showRevisionModal(@application.Id, '@application.StudentName', '@application.CompanyName'); event.stopPropagation();"
+                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                                            title="Geri Dönüþ">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    
+                                    <button onclick="showRejectModal(@application.Id, '@application.StudentName', '@application.CompanyName'); event.stopPropagation();"
+                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm transition-colors"
+                                            title="Reddet">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-right text-sm">
+                                    @if (application.Status == InternshipApprovalStatus.Approved && application.ApprovedAt.HasValue)
+                                    {
+                                        <p class="text-green-600 font-medium">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            @application.ApprovedAt.Value.ToString("dd.MM.yyyy")
+                                        </p>
+                                    }
+                                    else if (application.Status == InternshipApprovalStatus.Rejected && application.RejectedAt.HasValue)
+                                    {
+                                        <p class="text-red-600 font-medium">
+                                            <i class="fas fa-times-circle mr-1"></i>
+                                            @application.RejectedAt.Value.ToString("dd.MM.yyyy")
+                                        </p>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </a>
+            }
+        }
+        else
+        {
+            <div class="dynamic-card p-12 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700 text-center">
+                <i class="fas fa-clipboard-list text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz baþvuru bulunmamaktadýr</h3>
+                <p class="text-gray-500 dark:text-gray-500">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue)
+                    {
+                        <span>Arama kriterlerinize uygun baþvuru bulunamadý.</span>
+                    }
+                    else
+                    {
+                        <span>Öðrencilerinizin staj onay formlarý burada görünecektir.</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Action Modals -->
+@await Html.PartialAsync("_ActionModals")
+
+@section Scripts {
+    <script>
+        // Remove showApplicationDetails logic since navigating to page now
+    </script>
+}

@@ -1,5 +1,8 @@
-﻿using DataAccess.Interfaces.Chat;
+﻿using DataAccess.Interfaces;
+using DataAccess.Interfaces.Chat;
 using DataAccess.Interfaces.Com;
+
+using DataAccess.Interfaces.Education;
 using DataAccess.Interfaces.Internship;
 using DataAccess.Interfaces.Order;
 using DataAccess.Interfaces.UserRepose;
@@ -10,12 +13,16 @@ namespace DataAccess.Unit.Interface
 {
     public interface IUnitOfWork : IDisposable
     {
+        IDiaryRepository DiaryRepository { get; }
+        IDiaryRepository DiaryEntries { get; }
+        IInternshipDiaryRepository InternshipDiaries { get; }
         ICompanyRepository Companies { get; }
         IInternshipOfferRepository InternshipOffers { get; }
         IInternshipCommentRepository InternshipComments { get; }
         IInternshipDocumentRepository InternshipDocuments { get; }
         IInternshipPeriodRepository InternshipPeriods { get; }
         IInternshipApplicationRepository InternshipApplications { get; }
+        IInternshipApprovalRepository InternshipApprovals { get; }
         INewsRepository News { get; }
         INotificationRepository Notifications { get; }
         IUserRepository Users { get; }
@@ -24,7 +31,9 @@ namespace DataAccess.Unit.Interface
         ICompanyUserRepository CompanyUsers { get; }
         ISliderRepository Sliders { get; }
         ISliderItemRepository SliderItems { get; }
-        
+        IProvinceRepository Provinces { get; }
+        IUniversityRepository Universities { get; }
+     
         Task<int> SaveAsync();
     }
 }

@@ -1,0 +1,147 @@
+@using WebUI.Models.ViewModels.Student.ViewModels
+@model DiaryWeeklyReportViewModel
+@{
+    ViewData["Title"] = $"Haftalýk Rapor - Hafta {Model.WeekNumber}";
+    Layout = "_AppLayout";
+}
+
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                <i class="fas fa-file-alt text-green-500 me-3"></i>Haftalýk Rapor
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">
+                <i class="fas fa-calendar me-2"></i>
+                Hafta @Model.WeekNumber ( @Model.StartDate.ToString("dd MMMM yyyy") - @Model.EndDate.ToString("dd MMMM yyyy") )
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <a asp-action="Index" asp-controller="Diary" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-arrow-left me-2"></i>Geri Dön
+            </a>
+            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors" disabled>
+                <i class="fas fa-file-pdf me-2"></i>PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <i class="fas fa-clock text-blue-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Saat</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.TotalHours</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                <i class="fas fa-tasks text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Girdi</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Entries.Count</p>
+            </div>
+        </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                <i class="fas fa-percentage text-purple-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Günlük Ortalama</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@(Model.Entries.Any() ? (Model.TotalHours / Model.Entries.Count).ToString("F1") : "0")</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                <i class="fas fa-info-circle text-blue-500 me-2"></i>Haftalýk Özet
+            </h3>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">@Model.WeeklySummary</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                <i class="fas fa-trophy text-yellow-500 me-2"></i>Öne Çýkan Baþarýlar
+            </h3>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">@(!string.IsNullOrWhiteSpace(Model.Achievements) ? Model.Achievements : "Henüz eklenmedi.")</p>
+        </div>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                <i class="fas fa-bullseye text-green-500 me-2"></i>Gelecek Hafta Hedefleri
+            </h3>
+            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">@(!string.IsNullOrWhiteSpace(Model.NextWeekGoals) ? Model.NextWeekGoals : "Henüz eklenmedi.")</p>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                <i class="fas fa-list text-indigo-500 me-2"></i>Haftalýk Girdiler
+            </h3>
+            <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                @if (Model.Entries.Any())
+                {
+                    foreach (var e in Model.Entries.OrderBy(e => e.Date))
+                    {
+                        <div class="p-4 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <h4 class="font-semibold text-gray-800 dark:text-gray-200 text-sm">@e.Title</h4>
+                                <span class="text-xs px-2 py-1 rounded-full bg-@e.CategoryColor-100 text-@e.CategoryColor-800 dark:bg-@e.CategoryColor-900 dark:text-@e.CategoryColor-200">@e.CategoryDisplayName</span>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+                                <span><i class="far fa-calendar-alt me-1"></i>@e.Date.ToString("dd.MM.yyyy")</span>
+                                <span class="mx-1">•</span>
+                                <span><i class="far fa-clock me-1"></i>@e.WorkingHours saat</span>
+                            </div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">@e.Content</p>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>Bu hafta için girdi yok.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Entries.Any())
+{
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            <i class="fas fa-chart-pie text-purple-500 me-2"></i>Kategori Daðýlýmý
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            @{ var categoryGroups = Model.Entries.GroupBy(e => e.Category).ToList(); }
+            @foreach (var group in categoryGroups)
+            {
+                var entry = group.First();
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-@entry.CategoryColor-100 dark:bg-@entry.CategoryColor-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="@entry.CategoryIcon text-@entry.CategoryColor-500 text-xl"></i>
+                    </div>
+                    <p class="text-sm font-medium text-gray-800 dark:text-gray-200">@group.Count()</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">@entry.CategoryDisplayName</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts { <script>console.log('Weekly report ready');</script> }

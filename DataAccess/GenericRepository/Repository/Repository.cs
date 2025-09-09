@@ -1,12 +1,13 @@
 ﻿using DataAccess.Context;
 using DataAccess.GenericRepository.İnternface;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace DataAccess.GenericRepository.Repository;
 
 public class Repository<T> : IRepository<T> where T : class
 {
-    //diğer Sınıflar Repositoryden Miras Aldıgı için   _context diğer sınıflarda tekrar tanımlanmadan kullanılır ;
+
     protected readonly ApplicationDbContext _context;
     protected readonly DbSet<T> _dbSet;
 
@@ -27,4 +28,18 @@ public class Repository<T> : IRepository<T> where T : class
     public void Remove(T entity) => _dbSet.Remove(entity);
 
     public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+
+
+    public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.CountAsync(predicate);
+    }
+
+
+    public async Task<List<T>> Where(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.Where(predicate).ToListAsync();
+    }
+
+  
 }

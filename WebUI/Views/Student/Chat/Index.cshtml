@@ -1,0 +1,753 @@
+@model WebUI.Models.ViewModels.Chat.ChatViewModel
+@{
+    ViewData["Title"] = "Mesajlar";
+    Layout = "_AppLayout";
+}
+
+<div class="flex h-[calc(100vh-200px)] bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+    <!-- Conversations Sidebar -->
+    <div class="w-1/3 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Mesajlar</h2>
+                <div class="flex items-center gap-2">
+                    @if (Model.TotalUnreadCount > 0)
+                    {
+                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">@Model.TotalUnreadCount</span>
+                    }
+                    <button onclick="showNewConversationModal()" class="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Yeni Konuþma">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button onclick="showSearchModal()" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Ara">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Search -->
+            <div class="relative">
+                <input type="text" id="conversationSearch" placeholder="Konuþmalarda ara..." 
+                       class="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                       onkeyup="filterConversations(this.value)">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Conversations List -->
+        <div class="flex-1 overflow-y-auto" id="conversationsList">
+            @foreach (var conversation in Model.Conversations)
+            {
+                <div class="conversation-item @(conversation.Id == Model.SelectedConversationId ? "active" : "")" 
+                     data-conversation-id="@conversation.Id" 
+                     data-conversation-name="@conversation.Name.ToLower()"
+                     onclick="selectConversation(@conversation.Id)">
+                    <div class="flex items-center p-4 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-100 dark:border-gray-800">
+                        <div class="relative flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                @conversation.Avatar
+                            </div>
+                            @if (conversation.IsOnline)
+                            {
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
+                            }
+                            @if (conversation.IsPinned)
+                            {
+                                <div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-thumbtack text-white text-xs"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="ml-3 flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white truncate">@conversation.Name</p>
+                                    @if (conversation.RoomType == "Group")
+                                    {
+                                        <i class="fas fa-users text-xs text-gray-400"></i>
+                                    }
+                                    @if (conversation.IsMuted)
+                                    {
+                                        <i class="fas fa-bell-slash text-xs text-gray-400"></i>
+                                    }
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">@conversation.TimeText</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-gray-500 dark:text-gray-400 truncate">@conversation.LastMessageText</p>
+                                @if (conversation.UnreadCount > 0)
+                                {
+                                    <div class="ml-2 bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[1.25rem] h-5 flex items-center justify-center">
+                                        @conversation.UnreadCount
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="flex-1 flex flex-col bg-white dark:bg-gray-800" id="chatArea">
+        @if (Model.SelectedConversationId > 0)
+        {
+            var selectedConversation = Model.Conversations.FirstOrDefault(c => c.Id == Model.SelectedConversationId);
+            
+            <!-- Chat Header -->
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                            @selectedConversation?.Avatar
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-medium text-gray-900 dark:text-white">@selectedConversation?.Name</h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400" id="conversationStatus">@selectedConversation?.StatusText</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleConversationInfo()" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Bilgiler">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                        <button onclick="showSearchInConversation()" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors" title="Konuþmada Ara">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <div class="relative">
+                            <button onclick="toggleConversationMenu()" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div id="conversationMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-50">
+                                <button onclick="pinConversation(@selectedConversation?.Id)" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <i class="fas fa-thumbtack mr-2"></i>Sabitle
+                                </button>
+                                <button onclick="muteConversation(@selectedConversation?.Id)" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <i class="fas fa-bell-slash mr-2"></i>Sessize Al
+                                </button>
+                                <button onclick="clearConversation(@selectedConversation?.Id)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                    <i class="fas fa-trash mr-2"></i>Geçmiþi Temizle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="mt-2 text-xs text-gray-500 hidden">
+                    <i class="fas fa-ellipsis-h animate-pulse"></i> <span id="typingUsers"></span> yazýyor...
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4" style="max-height: calc(100vh - 400px);">
+                @foreach (var message in Model.Messages)
+                {
+                    <div class="message-item flex @(message.IsCurrentUser ? "justify-end" : "justify-start")" data-message-id="@message.Id">
+                        <div class="max-w-xs lg:max-w-md">
+                            @if (message.IsReply && message.ReplyToMessage != null)
+                            {
+                                <div class="mb-1 ml-10 p-2 bg-gray-100 dark:bg-gray-700 rounded border-l-4 border-blue-500">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">@message.ReplyToMessage.SenderName</p>
+                                    <p class="text-sm text-gray-800 dark:text-gray-200 truncate">@message.ReplyToMessage.Content</p>
+                                </div>
+                            }
+                            
+                            @if (!message.IsCurrentUser)
+                            {
+                                <div class="flex items-start group">
+                                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0">
+                                        @message.SenderAvatar
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2 relative">
+                                            @if (message.IsDeleted)
+                                            {
+                                                <p class="text-sm text-gray-500 italic">Bu mesaj silindi</p>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-sm text-gray-800 dark:text-white">@message.Content</p>
+                                                
+                                                @if (message.HasAttachments)
+                                                {
+                                                    <div class="mt-2 space-y-2">
+                                                        @foreach (var attachment in message.Attachments)
+                                                        {
+                                                            <div class="flex items-center gap-2 p-2 bg-white dark:bg-gray-600 rounded border">
+                                                                <i class="@attachment.IconClass"></i>
+                                                                <div class="flex-1 min-w-0">
+                                                                    <p class="text-xs font-medium truncate">@attachment.OriginalFileName</p>
+                                                                    <p class="text-xs text-gray-500">@attachment.FileSizeText</p>
+                                                                </div>
+                                                                <a href="@attachment.FilePath" target="_blank" class="text-blue-500 hover:text-blue-600">
+                                                                    <i class="fas fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                @message.TimeText
+                                                @if (message.IsEdited)
+                                                {
+                                                    <span class="ml-1 italic">(düzenlendi)</span>
+                                                }
+                                            </p>
+                                            <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                                <button onclick="replyToMessage(@message.Id)" class="text-gray-400 hover:text-gray-600 text-xs" title="Yanýtla">
+                                                    <i class="fas fa-reply"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex items-start justify-end group">
+                                    <div class="flex-1 max-w-xs lg:max-w-md">
+                                        <div class="bg-blue-500 rounded-lg px-4 py-2 relative">
+                                            @if (message.IsDeleted)
+                                            {
+                                                <p class="text-sm text-blue-100 italic">Bu mesaj silindi</p>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-sm text-white">@message.Content</p>
+                                                
+                                                @if (message.HasAttachments)
+                                                {
+                                                    <div class="mt-2 space-y-2">
+                                                        @foreach (var attachment in message.Attachments)
+                                                        {
+                                                            <div class="flex items-center gap-2 p-2 bg-blue-400 rounded border">
+                                                                <i class="@attachment.IconClass text-white"></i>
+                                                                <div class="flex-1 min-w-0">
+                                                                    <p class="text-xs font-medium text-white truncate">@attachment.OriginalFileName</p>
+                                                                    <p class="text-xs text-blue-100">@attachment.FileSizeText</p>
+                                                                </div>
+                                                                <a href="@attachment.FilePath" target="_blank" class="text-white hover:text-blue-100">
+                                                                    <i class="fas fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                                @if (!message.IsDeleted)
+                                                {
+                                                    <button onclick="editMessage(@message.Id)" class="text-gray-400 hover:text-gray-600 text-xs" title="Düzenle">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button onclick="deleteMessage(@message.Id)" class="text-gray-400 hover:text-red-500 text-xs" title="Sil">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                    @message.TimeText
+                                                    @if (message.IsEdited)
+                                                    {
+                                                        <span class="ml-1 italic">(düzenlendi)</span>
+                                                    }
+                                                </p>
+                                                <i class="@message.StatusIcon text-xs"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Reply Preview -->
+            <div id="replyPreview" class="hidden p-3 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-reply text-blue-500"></i>
+                        <div>
+                            <p class="text-xs text-blue-600 dark:text-blue-400" id="replyToUser"></p>
+                            <p class="text-sm text-gray-700 dark:text-gray-300" id="replyToContent"></p>
+                        </div>
+                    </div>
+                    <button onclick="cancelReply()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                <form id="messageForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="flex items-end gap-2">
+                        <div class="flex items-center gap-2">
+                            <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx" class="hidden" onchange="handleFileSelect(this)">
+                            <button type="button" onclick="document.getElementById('fileInput').click()" class="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" title="Dosya Ekle">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button type="button" onclick="toggleEmojiPicker()" class="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" title="Emoji">
+                                <i class="fas fa-smile"></i>
+                            </button>
+                        </div>
+                        <div class="flex-1 relative">
+                            <textarea id="messageInput" placeholder="Mesajýnýzý yazýn..." 
+                                      class="w-full p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                      rows="1" maxlength="1000"
+                                      onkeydown="handleKeyDown(event)"
+                                      oninput="handleInput(this)"
+                                      onpaste="handlePaste(event)"></textarea>
+                            <div id="characterCount" class="absolute bottom-1 right-1 text-xs text-gray-400"></div>
+                        </div>
+                        <button type="button" id="sendButton" onclick="sendMessage()" 
+                                class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white p-3 rounded-lg transition-colors disabled:cursor-not-allowed"
+                                disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- File Preview -->
+                    <div id="filePreview" class="hidden mt-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Seçilen dosyalar:</span>
+                            <button type="button" onclick="clearFiles()" class="text-red-500 hover:text-red-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="selectedFiles" class="mt-2 space-y-1"></div>
+                    </div>
+                </form>
+            </div>
+        }
+        else
+        {
+            <!-- No Conversation Selected -->
+            <div class="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                <div class="text-center">
+                    <i class="fas fa-comments text-6xl mb-4 text-gray-300"></i>
+                    <h3 class="text-xl font-semibold mb-2">Mesajlaþmaya Baþlayýn</h3>
+                    <p class="text-sm">Bir konuþma seçin veya yeni bir konuþma baþlatýn</p>
+                    <button onclick="showNewConversationModal()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Yeni Konuþma
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modals and additional content will be added here -->
+
+@section Scripts {
+    <script>
+        let currentConversationId = @Model.SelectedConversationId;
+        let replyToMessageId = null;
+        let selectedFiles = [];
+        let isTyping = false;
+        let typingTimeout = null;
+
+        // Initialize chat
+        document.addEventListener('DOMContentLoaded', function() {
+            scrollToBottom();
+            updateCharacterCount();
+            autoResizeTextarea();
+            
+            // Enable send button initially if there's text
+            const input = document.getElementById('messageInput');
+            if (input && input.value.trim().length > 0) {
+                document.getElementById('sendButton').disabled = false;
+            }
+        });
+
+        // Message Input Handlers
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function handleInput(textarea) {
+            updateCharacterCount();
+            autoResizeTextarea();
+        }
+
+        function handlePaste(event) {
+            setTimeout(() => {
+                updateCharacterCount();
+                autoResizeTextarea();
+            }, 0);
+        }
+
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('messageInput');
+            if (textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            }
+        }
+
+        function updateCharacterCount() {
+            const input = document.getElementById('messageInput');
+            const counter = document.getElementById('characterCount');
+            const sendButton = document.getElementById('sendButton');
+            
+            if (input && counter && sendButton) {
+                const length = input.value.length;
+                counter.textContent = `${length}/1000`;
+                
+                // Enable send button if there's content OR files selected
+                sendButton.disabled = length === 0 && selectedFiles.length === 0;
+            }
+        }
+
+        // File Handling
+        function handleFileSelect(input) {
+            selectedFiles = Array.from(input.files);
+            displaySelectedFiles();
+            updateCharacterCount();
+        }
+
+        function displaySelectedFiles() {
+            const preview = document.getElementById('filePreview');
+            const filesList = document.getElementById('selectedFiles');
+            
+            if (selectedFiles.length > 0) {
+                preview.classList.remove('hidden');
+                filesList.innerHTML = selectedFiles.map((file, index) => `
+                    <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-600 rounded border">
+                        <span class="text-sm">${file.name} (${formatFileSize(file.size)})</span>
+                        <button type="button" onclick="removeFile(${index})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            displaySelectedFiles();
+            updateCharacterCount();
+        }
+
+        function clearFiles() {
+            selectedFiles = [];
+            document.getElementById('fileInput').value = '';
+            document.getElementById('filePreview').classList.add('hidden');
+            updateCharacterCount();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // Message Sending
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (!content && selectedFiles.length === 0) {
+                alert('Lütfen bir mesaj yazýn veya dosya seçin.');
+                return;
+            }
+            
+            if (currentConversationId === 0) {
+                alert('Lütfen bir konuþma seçin.');
+                return;
+            }
+            
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                
+                let response;
+                
+                if (selectedFiles.length > 0) {
+                    // Send with attachments
+                    const formData = new FormData();
+                    formData.append('Content', content);
+                    formData.append('ConversationId', currentConversationId);
+                    if (replyToMessageId) {
+                        formData.append('ReplyToMessageId', replyToMessageId);
+                    }
+                    
+                    selectedFiles.forEach(file => {
+                        formData.append('Attachments', file);
+                    });
+                    
+                    response = await fetch('/Chat/SendMessageWithAttachment', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': token
+                        }
+                    });
+                } else {
+                    // Send text message
+                    response = await fetch('/Chat/SendMessage', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({
+                            content: content,
+                            conversationId: currentConversationId,
+                            replyToMessageId: replyToMessageId
+                        })
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessageToUI(data.message);
+                    input.value = '';
+                    clearFiles();
+                    cancelReply();
+                    updateCharacterCount();
+                    scrollToBottom();
+                } else {
+                    alert('Mesaj gönderilemedi: ' + (data.error || 'Bilinmeyen hata'));
+                    console.error('Send message error:', data);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Mesaj gönderilirken hata oluþtu: ' + error.message);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }
+
+        function addMessageToUI(message) {
+            const container = document.getElementById('messagesContainer');
+            if (!container) return;
+
+            const messageElement = document.createElement('div');
+            messageElement.className = `message-item flex ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`;
+            messageElement.setAttribute('data-message-id', message.id);
+
+            const timeText = new Date(message.sentAt).toLocaleTimeString('tr-TR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            if (message.isCurrentUser) {
+                messageElement.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="flex items-start justify-end group">
+                            <div class="flex-1 max-w-xs lg:max-w-md">
+                                <div class="bg-blue-500 rounded-lg px-4 py-2 relative">
+                                    <p class="text-sm text-white">${escapeHtml(message.content)}</p>
+                                </div>
+                                <div class="flex items-center justify-end mt-1">
+                                    <p class="text-xs text-gray-500">${timeText}</p>
+                                    <i class="fas fa-check text-xs text-gray-400 ml-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageElement.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md">
+                        <div class="flex items-start group">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold mr-2 flex-shrink-0">
+                                ${message.senderAvatar}
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-100 dark:bg-gray-700 rounded-lg px-4 py-2 relative">
+                                    <p class="text-sm text-gray-800 dark:text-white">${escapeHtml(message.content)}</p>
+                                </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${timeText}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.appendChild(messageElement);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Reply Functions
+        function replyToMessage(messageId) {
+            replyToMessageId = messageId;
+            const replyPreview = document.getElementById('replyPreview');
+            if (replyPreview) {
+                replyPreview.classList.remove('hidden');
+                // Find the original message and show preview
+                const originalMessage = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (originalMessage) {
+                    const content = originalMessage.querySelector('p').textContent;
+                    document.getElementById('replyToContent').textContent = content.substring(0, 50) + '...';
+                }
+            }
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyToMessageId = null;
+            const replyPreview = document.getElementById('replyPreview');
+            if (replyPreview) {
+                replyPreview.classList.add('hidden');
+            }
+        }
+
+        // Conversation Functions
+        function selectConversation(conversationId) {
+            if (conversationId === currentConversationId) return;
+            
+            currentConversationId = conversationId;
+            window.location.href = `/Chat?conversationId=${conversationId}`;
+        }
+
+        function filterConversations(query) {
+            const conversations = document.querySelectorAll('.conversation-item');
+            conversations.forEach(conversation => {
+                const name = conversation.getAttribute('data-conversation-name') || '';
+                if (name.includes(query.toLowerCase())) {
+                    conversation.style.display = 'block';
+                } else {
+                    conversation.style.display = 'none';
+                }
+            });
+        }
+
+        // Utility Functions
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Placeholder functions for features to be implemented
+        function showNewConversationModal() { 
+            alert('Yeni konuþma özelliði geliþtiriliyor...'); 
+        }
+        
+        function showSearchModal() { 
+            alert('Arama özelliði geliþtiriliyor...'); 
+        }
+        
+        function toggleEmojiPicker() { 
+            alert('Emoji seçici geliþtiriliyor...'); 
+        }
+        
+        function toggleConversationInfo() { 
+            alert('Konuþma bilgileri geliþtiriliyor...'); 
+        }
+        
+        function showSearchInConversation() { 
+            alert('Konuþma içi arama geliþtiriliyor...'); 
+        }
+        
+        function toggleConversationMenu() { 
+            const menu = document.getElementById('conversationMenu');
+            menu.classList.toggle('hidden');
+        }
+        
+        function pinConversation(id) { 
+            alert('Sabitleme özelliði geliþtiriliyor...'); 
+        }
+        
+        function muteConversation(id) { 
+            alert('Sessize alma özelliði geliþtiriliyor...'); 
+        }
+        
+        function clearConversation(id) { 
+            alert('Geçmiþ temizleme özelliði geliþtiriliyor...'); 
+        }
+        
+        function editMessage(id) { 
+            alert('Mesaj düzenleme özelliði geliþtiriliyor...'); 
+        }
+        
+        function deleteMessage(id) { 
+            alert('Mesaj silme özelliði geliþtiriliyor...'); 
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('conversationMenu');
+            if (!event.target.closest('.relative') && menu) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
+}
+
+<style>
+    .conversation-item.active {
+        background-color: rgba(59, 130, 246, 0.1);
+        border-right: 3px solid #3b82f6;
+    }
+    
+    .dark .conversation-item.active {
+        background-color: rgba(59, 130, 246, 0.2);
+    }
+
+    #messagesContainer::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #messagesContainer::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    #messagesContainer::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    #messagesContainer::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+
+    .dark #messagesContainer::-webkit-scrollbar-track {
+        background: #374151;
+    }
+
+    .dark #messagesContainer::-webkit-scrollbar-thumb {
+        background: #6b7280;
+    }
+
+    .dark #messagesContainer::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+    
+    textarea {
+        resize: none;
+        overflow-y: hidden;
+    }
+</style>

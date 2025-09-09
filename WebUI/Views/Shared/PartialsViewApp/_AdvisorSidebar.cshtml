@@ -1,0 +1,109 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    string IsActive(string controller, string action)
+    {
+        return (controller == currentController && action == currentAction) ? "sidebar-item-active" : "sidebar-item-inactive";
+    }
+}
+
+<div class="w-64 min-h-screen bg-white/80 backdrop-blur-md border-r border-white/20 shadow-lg dark:bg-gray-800 dark:border-gray-700" id="advisor-sidebar">
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-chalkboard-teacher text-white text-xl"></i>
+            </div>
+            <div>
+                <h3 class="font-semibold text-gray-800 dark:text-gray-200">@User.Identity.Name</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Danýþman</p>
+            </div>
+        </div>
+    </div>
+
+    <nav class="p-4">
+        <ul class="space-y-2">
+            <li>
+                <a asp-controller="AdvisorDashboard" asp-action="Index" class="sidebar-item @IsActive("AdvisorDashboard", "Index")">
+                    <i class="fas fa-home"></i>
+                    <span class="font-medium">Ana Sayfa</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorProfile" asp-action="Index" class="sidebar-item @IsActive("AdvisorProfile", "Index")">
+                    <i class="fas fa-user"></i>
+                    <span class="font-medium">Profil</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorApplication" asp-action="Index" class="sidebar-item @IsActive("AdvisorApplication", "Index")">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span class="font-medium">Staj Baþvurularý</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorDiary" asp-action="Index" class="sidebar-item @IsActive("AdvisorDiary", "Index")">
+                    <i class="fas fa-book-open"></i>
+                    <span class="font-medium">Öðrenci Staj Defterleri</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorStudent" asp-action="Index" class="sidebar-item @IsActive("AdvisorStudent", "Index")">
+                    <i class="fas fa-users"></i>
+                    <span class="font-medium">Öðrencilerim</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorNotification" asp-action="Index" class="sidebar-item @IsActive("AdvisorNotification", "Index")">
+                    <i class="fas fa-bell"></i>
+                    <span class="font-medium">Bildirimler</span>
+                    <span id="sidebarNotificationBadge" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden">0</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorReport" asp-action="Index" class="sidebar-item @IsActive("AdvisorReport", "Index")">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="font-medium">Raporlar</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="w-full flex items-center gap-3 p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all duration-200">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="font-medium">Çýkýþ Yap</span>
+                </button>
+            </form>
+        </div>
+    </nav>
+</div>
+
+<script>
+    // Advisor sidebar with notification counter
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Advisor sidebar loaded successfully');
+        updateNotificationCounter();
+        
+        // Update counter every 30 seconds
+        setInterval(updateNotificationCounter, 30000);
+    });
+    
+    function updateNotificationCounter() {
+        fetch('/Advisor/AdvisorNotification/GetUnreadCount')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('sidebarNotificationBadge');
+                if (badge) {
+                    if (data.unreadCount > 0) {
+                        badge.textContent = data.unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating notification counter:', error));
+    }
+</script>

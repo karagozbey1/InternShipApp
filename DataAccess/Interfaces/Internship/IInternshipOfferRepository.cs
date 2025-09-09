@@ -13,5 +13,6 @@ namespace DataAccess.Interfaces.Internship
         Task<List<InternshipOffer>> SearchOffersAsync(string keyword, string? city, string? field);
         Task<List<InternshipOffer>> GetOffersByFieldAsync(string field);
         Task<InternshipOffer?> GetOfferWithCompanyAndPeriodAsync(int offerId);
+    
     }
 }

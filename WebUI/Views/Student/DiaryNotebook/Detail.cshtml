@@ -1,0 +1,444 @@
+@using WebUI.Models.ViewModels.Student.ViewModels
+@model DiaryNotebookDetailViewModel
+@{
+    ViewData["Title"] = Model.Diary.Title + " - Staj Defteri";
+    Layout = "_AppLayout";
+}
+
+<div class="p-6 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <div class="flex items-center gap-3 mb-4">
+                    <a asp-action="Index" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                        <i class="fas fa-book text-blue-500 mr-3"></i>@Model.Diary.Title
+                    </h1>
+                    <span class="bg-@(Model.Diary.StatusColor)-100 text-@(Model.Diary.StatusColor)-800 dark:bg-@(Model.Diary.StatusColor)-900 dark:text-@(Model.Diary.StatusColor)-200 px-3 py-1 rounded-full text-sm font-medium">
+                        @Model.Diary.StatusText
+                    </span>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.Diary.Description))
+                {
+                    <p class="text-gray-600 dark:text-gray-400 mb-2">@Model.Diary.Description</p>
+                }
+                
+                <div class="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                    @if (!string.IsNullOrEmpty(Model.Diary.CompanyName))
+                    {
+                        <span><i class="fas fa-building mr-1"></i>@Model.Diary.CompanyName</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Diary.Department))
+                    {
+                        <span><i class="fas fa-sitemap mr-1"></i>@Model.Diary.Department</span>
+                    }
+                    <span><i class="fas fa-calendar mr-1"></i>@Model.Diary.DurationText</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                @if (Model.CanAddEntry)
+                {
+                    <button onclick="showAddEntryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Günlük Girdi Ekle
+                    </button>
+                }
+                <button onclick="exportDiary()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-download mr-2"></i>PDF Ýndir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ýstatistikler -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                    <i class="fas fa-calendar-check text-blue-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Girdi</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.TotalEntries</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                    <i class="fas fa-clock text-green-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Saat</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.TotalHours</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+                    <i class="fas fa-chart-line text-yellow-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Günlük Ortalama</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.AverageDailyHours.ToString("F1")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                    <i class="fas fa-percentage text-purple-500 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Tamamlanma</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.CompletionPercentage%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    @if (Model.Diary.TotalDays.HasValue && Model.Diary.TotalDays > 0)
+    {
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
+            <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span>Staj Ýlerlemesi</span>
+                <span>@Model.Diary.CompletedDays / @Model.Diary.TotalDays gün (%@Model.Diary.CompletionPercentage.ToString("F1"))</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div class="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300" 
+                     style="width: @Model.Diary.CompletionPercentage.ToString("F1")%"></div>
+            </div>
+        </div>
+    }
+
+    <!-- Günlük Girdiler -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                <i class="fas fa-list mr-2 text-blue-500"></i>Günlük Girdiler
+            </h2>
+        </div>
+
+        @if (Model.HasEntries)
+        {
+            <div class="space-y-4">
+                @foreach (var entry in Model.Entries)
+                {
+                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-900 dark:text-white mb-1">@entry.Title</h3>
+                                <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                    <span><i class="fas fa-calendar mr-1"></i>@entry.Date.ToString("dd MMMM yyyy, dddd")</span>
+                                    <span><i class="fas fa-clock mr-1"></i>@entry.WorkingHours saat</span>
+                                    <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
+                                        @entry.Category.ToString()
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if (entry.IsApproved)
+                                {
+                                    <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs">
+                                        <i class="fas fa-check mr-1"></i>Onaylandý
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-1 rounded-full text-xs">
+                                        <i class="fas fa-clock mr-1"></i>Beklemede
+                                    </span>
+                                }
+                                <form asp-action="DeleteEntry" asp-route-entryId="@entry.Id" asp-route-diaryId="@Model.Diary.Id" method="post" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="text-red-500 hover:text-red-700 p-1"
+                                            onclick="return confirm('Bu girdiyi silmek istediðinizden emin misiniz?')"
+                                            title="Sil">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <p class="text-gray-700 dark:text-gray-300 mb-3">@entry.Content</p>
+                        
+                        @if (!string.IsNullOrEmpty(entry.LearnedTopics) || !string.IsNullOrEmpty(entry.Challenges))
+                        {
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @if (!string.IsNullOrEmpty(entry.LearnedTopics))
+                                {
+                                    <div class="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-3">
+                                        <h4 class="font-medium text-yellow-800 dark:text-yellow-200 mb-1 text-sm">
+                                            <i class="fas fa-lightbulb mr-1"></i>Öðrenilenler
+                                        </h4>
+                                        <p class="text-yellow-700 dark:text-yellow-300 text-sm">@entry.LearnedTopics</p>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(entry.Challenges))
+                                {
+                                    <div class="bg-orange-50 dark:bg-orange-900 rounded-lg p-3">
+                                        <h4 class="font-medium text-orange-800 dark:text-orange-200 mb-1 text-sm">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>Zorluklar
+                                        </h4>
+                                        <p class="text-orange-700 dark:text-orange-300 text-sm">@entry.Challenges</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(entry.AdvisorFeedback))
+                        {
+                            <div class="mt-3 bg-blue-50 dark:bg-blue-900 rounded-lg p-3 border-l-4 border-blue-500">
+                                <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-1 text-sm">
+                                    <i class="fas fa-comment mr-1"></i>Danýþman Geri Bildirimi
+                                </h4>
+                                <p class="text-blue-700 dark:text-blue-300 text-sm">@entry.AdvisorFeedback</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <i class="fas fa-clipboard-list text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz günlük girdi yok</h3>
+                <p class="text-gray-500 dark:text-gray-500 mb-6">Ýlk günlük girdinizi oluþturmak için aþaðýdaki butonu kullanýn.</p>
+                @if (Model.CanAddEntry)
+                {
+                    <button onclick="showAddEntryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Ýlk Girdiyi Oluþtur
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Yeni Girdi Ekleme Modal -->
+<div id="addEntryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        <i class="fas fa-edit text-blue-500 mr-2"></i>Yeni Günlük Girdi
+                    </h2>
+                    <button onclick="closeAddEntryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form asp-action="AddEntry" asp-route-diaryId="@Model.Diary.Id" method="post" class="space-y-6" id="addEntryForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-heading mr-1"></i>Baþlýk *
+                            </label>
+                            <input name="Title" 
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                                   placeholder="Bugünkü çalýþma baþlýðý" 
+                                   id="titleInput" required />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-calendar mr-1"></i>Tarih *
+                            </label>
+                            <input name="Date" type="date"
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                                   id="dateInput" required />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-tags mr-1"></i>Kategori
+                            </label>
+                            <select name="Category" 
+                                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200">
+                                <option value="1">Günlük Çalýþma</option>
+                                <option value="2">Öðrenme</option>
+                                <option value="3">Toplantý</option>
+                                <option value="4">Proje</option>
+                                <option value="5">Eðitim</option>
+                                <option value="6">Araþtýrma</option>
+                                <option value="7">Problem Çözme</option>
+                                <option value="8">Baþarý</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-clock mr-1"></i>Çalýþma Saatleri
+                            </label>
+                            <input name="WorkingHours" type="number" step="0.5" min="0" max="24" value="8"
+                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-file-text mr-1"></i>Ýçerik *
+                        </label>
+                        <textarea name="Content" rows="4"
+                                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                  placeholder="Bugün neler yaptýnýz, neler öðrendiniz?"
+                                  id="contentTextarea" required></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-lightbulb mr-1"></i>Öðrenilen Konular
+                            </label>
+                            <textarea name="LearnedTopics" rows="3"
+                                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                      placeholder="Yeni öðrendiðiniz teknolojiler, metodlar..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>Karþýlaþýlan Zorluklar
+                            </label>
+                            <textarea name="Challenges" rows="3"
+                                      class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                      placeholder="Bugün karþýlaþtýðýnýz zorluklar..."></textarea>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-lightbulb mr-1"></i>Uygulanan Çözümler
+                        </label>
+                        <textarea name="Solutions" rows="3"
+                                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                                  placeholder="Zorluklara uyguladýðýnýz çözümler..."></textarea>
+                    </div>
+
+                    <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors" id="submitBtn">
+                            <i class="fas fa-save mr-2"></i>Girdiyi Kaydet
+                        </button>
+                        <button type="button" onclick="closeAddEntryModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                            <i class="fas fa-times mr-2"></i>Ýptal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function showAddEntryModal() {
+            document.getElementById('addEntryModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Default deðerleri set et
+            const dateInput = document.getElementById('dateInput');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function closeAddEntryModal() {
+            document.getElementById('addEntryModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            
+            // Formu temizle
+            document.getElementById('addEntryForm').reset();
+        }
+
+        function exportDiary() {
+            alert('PDF export özelliði yakýnda eklenecek.');
+        }
+
+        // Form submission
+        $(document).ready(function() {
+            const form = $('#addEntryForm');
+            
+            form.on('submit', function(e) {
+                e.preventDefault();
+                
+                // Validation
+                const titleInput = $('#titleInput');
+                const contentTextarea = $('#contentTextarea');
+                const dateInput = $('#dateInput');
+                
+                if (!titleInput.val() || !titleInput.val().trim()) {
+                    alert('Baþlýk alaný zorunludur!');
+                    titleInput.focus();
+                    return false;
+                }
+                
+                if (!contentTextarea.val() || !contentTextarea.val().trim()) {
+                    alert('Ýçerik alaný zorunludur!');
+                    contentTextarea.focus();
+                    return false;
+                }
+                
+                if (!dateInput.val()) {
+                    alert('Tarih alaný zorunludur!');
+                    dateInput.focus();
+                    return false;
+                }
+                
+                // Butonu disable et
+                const submitBtn = $('#submitBtn');
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Kaydediliyor...');
+                
+                // AJAX submit
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            closeAddEntryModal();
+                            window.location.reload();
+                        } else {
+                            alert('Hata: ' + response.message);
+                            submitBtn.prop('disabled', false);
+                            submitBtn.html('<i class="fas fa-save mr-2"></i>Girdiyi Kaydet');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Kaydetme sýrasýnda hata oluþtu: ' + error);
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html('<i class="fas fa-save mr-2"></i>Girdiyi Kaydet');
+                    }
+                });
+            });
+        });
+
+        // Modal kontrolleri
+        $('#addEntryModal').on('click', function(e) {
+            if (e.target === this) closeAddEntryModal();
+        });
+
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAddEntryModal();
+            }
+        });
+    </script>
+}

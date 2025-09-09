@@ -1,0 +1,308 @@
+@model WebUI.Models.Company.JobPostingCreateViewModel
+@using Core.Entity
+@{
+    ViewData["Title"] = "Yeni Staj Ýlaný Oluþtur";
+    Layout = "_AppLayout";
+}
+
+<!-- Sayfa Baþlýðý Kartý -->
+<div class="w-full mb-8 flex items-center justify-center">
+    <div class="rounded-2xl bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-600 shadow-sm px-8 py-6 flex items-center gap-4 w-full">
+        <i class="fas fa-plus-circle text-3xl text-blue-700 dark:text-blue-400"></i>
+        <div>
+            <h1 class="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-1">Yeni Staj Ýlaný Oluþtur</h1>
+            <p class="text-blue-600 dark:text-blue-400">Stajyer adaylarý için detaylý bir ilan oluþturun.</p>
+        </div>
+    </div>
+</div>
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12">
+    <div class="w-full max-w-2xl mx-auto rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-xl p-8">
+
+        @* Page-specific TempData messages (only for this view) *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="mb-4 p-4 rounded bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-600 text-green-800 dark:text-green-300">
+                @Html.Raw(TempData["SuccessMessage"])
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-4 p-4 rounded bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-600 text-red-800 dark:text-red-300">
+                @Html.Raw(TempData["ErrorMessage"])
+            </div>
+        }
+
+        <form asp-controller="CompanyJobPostings" asp-action="Create" method="post" class="space-y-8" id="jobPostingForm">
+            @Html.AntiForgeryToken()
+            <!-- Temel Bilgiler -->
+            <div>
+                <h2 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Temel Bilgiler</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label asp-for="Title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ýlan Baþlýðý *</label>
+                        <input asp-for="Title" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" placeholder="Örn: Frontend Developer Stajyeri" />
+                        <span asp-validation-for="Title" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Position" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pozisyon *</label>
+                        <input asp-for="Position" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" placeholder="Örn: Frontend Developer" />
+                        <span asp-validation-for="Position" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                    <div>
+                        <label asp-for="JobType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ýlan Türü *</label>
+                        <select asp-for="JobType" asp-items="Html.GetEnumSelectListWithDisplay<WebUI.Models.Company.JobPostingType>()" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white">
+                            <option value="">Ýlan türünü seçiniz</option>
+                        </select>
+                        <span asp-validation-for="JobType" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                    <div>
+                        <label asp-for="LocationId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lokasyon (Ýl) *</label>
+                        <select asp-for="LocationId" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white">
+                            <option value="">Þehir seçiniz</option>
+                            @foreach (var loc in Model.AvailableLocations)
+                            {
+                                @if (loc.Id == Model.LocationId)
+                                {
+                                    <option value="@loc.Id" selected>@loc.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@loc.Id">@loc.Name</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="LocationId" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarih ve Dönem Seçimi -->
+            <div>
+                <h2 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Tarih ve Dönem</h2>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tarih Seçim Modu</label>
+                    <div class="flex items-center gap-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="DateMode" value="1" class="form-radio text-indigo-600" @(Model.DateMode == Core.Entity.DateSelectionMode.Period ? "checked" : "") />
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">Dönem seç (öðrenci tarihlerini sýnýrla)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="DateMode" value="2" class="form-radio text-indigo-600" @(Model.DateMode == Core.Entity.DateSelectionMode.FixedRange ? "checked" : "") />
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">Sabit tarih aralýðý belirle</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="DateMode" value="3" class="form-radio text-indigo-600" @(Model.DateMode == Core.Entity.DateSelectionMode.Open ? "checked" : "") />
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">Açýk (öðrenci istediði tarihleri girebilir)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="periodSection" class="mb-4">
+                    <label asp-for="PeriodId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dönem</label>
+                    <div class="flex gap-2 items-center">
+                        <select asp-for="PeriodId" id="periodSelect" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white">
+                            <option value="">Dönem seçiniz</option>
+                            @foreach (var p in Model.AvailablePeriods)
+                            {
+                                @if (p.PeriodId == Model.PeriodId)
+                                {
+                                    <option value="@p.PeriodId" selected>@p.PeriodName (@p.StartDate.ToString("dd.MM.yyyy") - @p.EndDate.ToString("dd.MM.yyyy"))</option>
+                                }
+                                else
+                                {
+                                    <option value="@p.PeriodId">@p.PeriodName (@p.StartDate.ToString("dd.MM.yyyy") - @p.EndDate.ToString("dd.MM.yyyy"))</option>
+                                }
+                            }
+                        </select>
+                        <button type="button" id="showAddPeriodBtn" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200">Yeni Dönem Ekle</button>
+                    </div>
+                    <span asp-validation-for="PeriodId" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+
+                    <div id="addPeriodForm" style="display:none;" class="mt-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input type="text" id="newPeriodName" placeholder="Dönem adý (örn: 2025 Güz)" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white" />
+                            <input type="date" id="newPeriodStart" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white" />
+                            <input type="date" id="newPeriodEnd" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 dark:text-white" />
+                        </div>
+                        <div class="mt-3 flex gap-2 justify-end">
+                            <button type="button" id="cancelAddPeriod" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">Ýptal</button>
+                            <button type="button" id="saveAddPeriod" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors duration-200">Dönemi Kaydet</button>
+                        </div>
+                        <div id="addPeriodMessage" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></div>
+                    </div>
+                </div>
+
+                <div id="fixedRangeSection" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label asp-for="StartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baþlangýç Tarihi</label>
+                        <input asp-for="StartDate" type="date" id="StartDate" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" />
+                        <span asp-validation-for="StartDate" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                    <div>
+                        <label asp-for="EndDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bitiþ Tarihi</label>
+                        <input asp-for="EndDate" type="date" id="EndDate" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" />
+                        <span asp-validation-for="EndDate" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                    <div>
+                        <label asp-for="ApplicationDeadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baþvuru Son Tarihi *</label>
+                        <input asp-for="ApplicationDeadline" type="date" id="ApplicationDeadline" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" />
+                        <span asp-validation-for="ApplicationDeadline" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                </div>
+
+                <div id="openModeSection" class="mb-4" style="display:none;">
+                    <div class="text-sm text-gray-600 dark:text-gray-400">Açýk modda öðrenci istediði tarihleri girebilir. Burada bir baþlangýç/bitiþ belirtilmez.</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label asp-for="Quota" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pozisyon Sayýsý *</label>
+                        <input asp-for="Quota" type="number" min="1" max="100" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" />
+                        <span asp-validation-for="Quota" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                    <div>
+                        <label asp-for="MonthlySalary" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ücret (Aylýk)</label>
+                        <input asp-for="MonthlySalary" type="number" step="0.01" min="0" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" placeholder="Örn: 3500" />
+                        <span asp-validation-for="MonthlySalary" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Süre/Çalýþma Tipi -->
+            <div>
+                <h2 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Çalýþma Tipi</h2>
+                <div>
+                    <label asp-for="Duration" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Süre *</label>
+                    <select asp-for="Duration" asp-items="Html.GetEnumSelectListWithDisplay<Core.Entity.OfferDurationType>()" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white">
+                        <option value="">Seçiniz</option>
+                    </select>
+                    <span asp-validation-for="Duration" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+                </div>
+            </div>
+
+            <!-- Açýklama -->
+            <div>
+                <h2 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Ýlan Açýklamasý</h2>
+                <textarea asp-for="Description" rows="5" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" placeholder="Staj pozisyonu hakkýnda detaylý bilgi verin..."></textarea>
+                <span asp-validation-for="Description" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+            </div>
+
+            <!-- Gereksinimler -->
+            <div>
+                <h2 class="font-semibold text-gray-700 dark:text-gray-300 mb-4">Gereksinimler</h2>
+                <textarea asp-for="Requirements" rows="3" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 bg-white dark:bg-gray-700 dark:text-white" placeholder="Örn: ReactJS bilgisi, takým çalýþmasý..."></textarea>
+                <span asp-validation-for="Requirements" class="text-red-500 dark:text-red-400 text-sm mt-1"></span>
+            </div>
+
+            <!-- Durum -->
+            <div class="flex items-center gap-2">
+                <input asp-for="IsActive" type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 dark:border-gray-600 rounded focus:ring-indigo-600" />
+                <label asp-for="IsActive" class="text-sm font-medium text-gray-700 dark:text-gray-300">Ýlaný hemen yayýnla</label>
+            </div>
+
+            <!-- Butonlar -->
+            <div class="flex justify-end gap-4 pt-6">
+                <a asp-controller="CompanyJobPostings" asp-action="List" class="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-times mr-2"></i>Ýptal
+                </a>
+                <button type="submit" class="px-6 py-3 rounded-xl font-semibold transition-transform bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:scale-105 flex items-center gap-2">
+                    <i class="fas fa-save"></i>Ýlaný Yayýnla
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function(){
+            function updateSections(mode){
+                var periodSection = document.getElementById('periodSection');
+                var fixedSection = document.getElementById('fixedRangeSection');
+                var openSection = document.getElementById('openModeSection');
+
+                if(mode === '1') { // Period
+                    periodSection.style.display = '';
+                    fixedSection.style.display = 'none';
+                    openSection.style.display = 'none';
+                } else if(mode === '2') { // Fixed
+                    periodSection.style.display = 'none';
+                    fixedSection.style.display = '';
+                    openSection.style.display = 'none';
+                } else { // Open
+                    periodSection.style.display = 'none';
+                    fixedSection.style.display = 'none';
+                    openSection.style.display = '';
+                }
+            }
+
+            // initialize
+            var initialMode = '@((int)Model.DateMode)';
+            updateSections(initialMode);
+
+            document.querySelectorAll('input[name="DateMode"]').forEach(function(r){
+                r.addEventListener('change', function(e){ updateSections(e.target.value); });
+            });
+
+            // rest of scripts for periods (unchanged)
+            var showBtn = document.getElementById('showAddPeriodBtn');
+            var addForm = document.getElementById('addPeriodForm');
+            var cancelBtn = document.getElementById('cancelAddPeriod');
+            var saveBtn = document.getElementById('saveAddPeriod');
+            var msg = document.getElementById('addPeriodMessage');
+            var periodSelect = document.getElementById('periodSelect');
+
+            showBtn.addEventListener('click', function(){ addForm.style.display = ''; showBtn.disabled = true; });
+            cancelBtn.addEventListener('click', function(){ addForm.style.display = 'none'; showBtn.disabled = false; msg.innerText = ''; });
+
+            saveBtn.addEventListener('click', async function(){
+                var name = document.getElementById('newPeriodName').value.trim();
+                var start = document.getElementById('newPeriodStart').value;
+                var end = document.getElementById('newPeriodEnd').value;
+                if(!name || !start || !end){ msg.innerText = 'Tüm alanlarý doldurun.'; return; }
+                if(new Date(end) <= new Date(start)){ msg.innerText = 'Bitiþ tarihi baþlangýçtan sonra olmalý.'; return; }
+
+                saveBtn.disabled = true; msg.innerText = 'Kaydediliyor...';
+
+                try{
+                    var anti = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    var res = await fetch('@Url.Action("AddPeriodAjax","CompanyJobPostings")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': anti
+                        },
+                        body: JSON.stringify({ PeriodName: name, StartDate: start, EndDate: end })
+                    });
+
+                    if(!res.ok){ throw new Error('Sunucu hatasý'); }
+                    var data = await res.json();
+                    if(data.success){
+                        // append to select
+                        var opt = document.createElement('option');
+                        opt.value = data.periodId;
+                        opt.text = data.periodName + ' (' + data.start + ' - ' + data.end + ')';
+                        opt.selected = true;
+                        periodSelect.appendChild(opt);
+
+                        // reset UI
+                        addForm.style.display = 'none'; showBtn.disabled = false; msg.innerText = '';
+                        document.getElementById('newPeriodName').value = '';
+                        document.getElementById('newPeriodStart').value = '';
+                        document.getElementById('newPeriodEnd').value = '';
+                    } else {
+                        msg.innerText = data.message || 'Kayýt baþarýsýz';
+                    }
+                }catch(err){
+                    msg.innerText = 'Ýstek gönderilirken hata: ' + err.message;
+                } finally { saveBtn.disabled = false; }
+            });
+
+        })();
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

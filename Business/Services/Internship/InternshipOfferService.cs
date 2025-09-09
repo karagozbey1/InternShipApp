@@ -17,7 +17,6 @@ namespace Business.Services.Internship
 
         public async Task<List<InternshipOffer>> GetAllActiveOffersAsync()
         {
-            // Repository'deki özel metodu kullanarak aktif staj tekliflerini getirir
             return await _unitOfWork.InternshipOffers.GetAllActiveOffersAsync();
         }
 
@@ -35,7 +34,6 @@ namespace Business.Services.Internship
 
         public async Task<List<InternshipOffer>> SearchOffersAsync(string keyword, string? city, string? field)
         {
-            // Repository'deki özel metodu kullanarak arama yapar
             return await _unitOfWork.InternshipOffers.SearchOffersAsync(keyword, city, field);
         }
 
@@ -44,13 +42,12 @@ namespace Business.Services.Internship
             // İş mantığı: Yeni staj teklifi eklemeden önce gerekli kontroller yapılabilir.
             // Örneğin: İlgili şirketin var olup olmadığı veya teklif tarih aralığının geçerliliği
             await _unitOfWork.InternshipOffers.AddAsync(offer);
-            await _unitOfWork.SaveAsync(); // Değişiklikleri kaydet
+            await _unitOfWork.SaveAsync(); 
             return offer;
         }
 
         public async Task UpdateOfferAsync(InternshipOffer offer)
         {
-            // İş mantığı: Güncelleme öncesi yetkilendirme kontrolü yapılabilir.
             _unitOfWork.InternshipOffers.Update(offer);
             await _unitOfWork.SaveAsync();
         }
@@ -60,10 +57,20 @@ namespace Business.Services.Internship
             var offer = await _unitOfWork.InternshipOffers.GetByIdAsync(offerId);
             if (offer != null)
             {
-                // İş mantığı: Silme işlemi öncesi ilgili başvuruların durumu kontrol edilebilir.
                 _unitOfWork.InternshipOffers.Remove(offer);
                 await _unitOfWork.SaveAsync();
             }
+        }
+
+        // Changed: return offer with Company (and Period) navigation loaded
+        public async Task<InternshipOffer?> GetByIdAsync(int id)
+        {
+            // Use repository method that includes Company and Period
+            var offer = await _unitOfWork.InternshipOffers.GetOfferWithCompanyAndPeriodAsync(id);
+            if (offer != null) return offer;
+
+            // Fallback to basic GetByIdAsync if specialized method not available
+            return await _unitOfWork.InternshipOffers.GetByIdAsync(id);
         }
     }
 }

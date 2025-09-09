@@ -37,6 +37,27 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MessageType")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ReplyToMessageId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("SenderId")
                         .HasColumnType("integer");
 
@@ -46,6 +67,8 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChatRoomId");
+
+                    b.HasIndex("ReplyToMessageId");
 
                     b.HasIndex("SenderId");
 
@@ -60,11 +83,41 @@ namespace DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AllowFileSharing")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MaxParticipants")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("RoomIdentifier")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoomType")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("RoomIdentifier")
                         .IsUnique();
@@ -80,6 +133,9 @@ namespace DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CompanyId"));
 
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
                     b.Property<bool>("Approved")
                         .HasColumnType("boolean");
 
@@ -87,16 +143,31 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ContactPerson")
+                    b.Property<string>("Description")
                         .HasColumnType("text");
 
                     b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmployeeCount")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EstablishedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LogoPath")
                         .HasColumnType("text");
 
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
                     b.Property<string>("Sector")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TaxNumber")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Website")
                         .HasColumnType("text");
 
                     b.HasKey("CompanyId");
@@ -131,6 +202,72 @@ namespace DataAccess.Migrations
                     b.ToTable("CompanyUsers");
                 });
 
+            modelBuilder.Entity("Core.Entity.DiaryEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdvisorFeedback")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Challenges")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(5000)
+                        .HasColumnType("character varying(5000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DiaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LearnedTopics")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Solutions")
+                        .HasColumnType("text");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("WorkingHours")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiaryId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("DiaryEntries");
+                });
+
             modelBuilder.Entity("Core.Entity.InternshipApplication", b =>
                 {
                     b.Property<int>("Id")
@@ -154,30 +291,127 @@ namespace DataAccess.Migrations
                     b.Property<int?>("InternshipPeriodPeriodId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsCompulsory")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("integer");
 
                     b.Property<string>("StudentNote")
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AdvisorId");
 
-                    b.HasIndex("InternshipOfferId");
-
                     b.HasIndex("InternshipPeriodPeriodId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("InternshipOfferId", "Status");
+
+                    b.HasIndex("StudentId", "Status");
 
                     b.ToTable("InternshipApplications");
+                });
+
+            modelBuilder.Entity("Core.Entity.InternshipApprovalForm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AdvisorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("AdvisorNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CoordinatorEmail")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CoordinatorPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InternshipCoordinator")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("InternshipDescription")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StudentNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("WeeklyWorkHours")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("WorkplaceAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId")
+                        .IsUnique();
+
+                    b.HasIndex("AdvisorId", "Status");
+
+                    b.HasIndex("StudentId", "Status");
+
+                    b.ToTable("InternshipApprovalForms");
                 });
 
             modelBuilder.Entity("Core.Entity.InternshipComment", b =>
@@ -189,6 +423,9 @@ namespace DataAccess.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CommentStatus")
                         .HasColumnType("integer");
 
                     b.Property<string>("Content")
@@ -210,6 +447,67 @@ namespace DataAccess.Migrations
                     b.ToTable("InternshipComments");
                 });
 
+            modelBuilder.Entity("Core.Entity.InternshipDiary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("InternshipEndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("InternshipStartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("TotalDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("InternshipDiaries");
+                });
+
             modelBuilder.Entity("Core.Entity.InternshipDocument", b =>
                 {
                     b.Property<int>("Id")
@@ -218,23 +516,51 @@ namespace DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ApplicationId")
+                    b.Property<int?>("ApplicationId")
                         .HasColumnType("integer");
+
+                    b.Property<int?>("ApprovalFormId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("DocumentType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("FileName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("FilePath")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<long?>("FileSize")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Status")
-                        .HasColumnType("text");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone");
@@ -242,6 +568,12 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ApplicationId");
+
+                    b.HasIndex("ApprovalFormId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("InternshipDocuments");
                 });
@@ -270,8 +602,16 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DateMode")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.Property<string>("Duration")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Field")
                         .IsRequired()
@@ -279,6 +619,17 @@ namespace DataAccess.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("JobType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal?>("MonthlySalary")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("MonthlySalaryCurrency")
+                        .HasColumnType("integer");
 
                     b.Property<int>("PeriodId")
                         .HasColumnType("integer");
@@ -317,9 +668,91 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("PeriodId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("InternshipPeriods");
+                });
+
+            modelBuilder.Entity("Core.Entity.InternshipPeriodStudent", b =>
+                {
+                    b.Property<int>("InternshipPeriodId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("InternshipPeriodId", "StudentId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("InternshipPeriodStudents");
+                });
+
+            modelBuilder.Entity("Core.Entity.MessageAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChatMessageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Duration")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("PageCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ThumbnailPath")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatMessageId");
+
+                    b.ToTable("MessageAttachment");
                 });
 
             modelBuilder.Entity("Core.Entity.News", b =>
@@ -369,8 +802,26 @@ namespace DataAccess.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ActionUrl")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GroupKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IconClass")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsGrouped")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
@@ -379,7 +830,23 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("RelatedEntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RelatedEntityType")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -393,6 +860,30 @@ namespace DataAccess.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("Core.Entity.Province", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("il_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("il_name");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("iller", (string)null);
+                });
+
             modelBuilder.Entity("Core.Entity.SliderItem", b =>
                 {
                     b.Property<int>("Id")
@@ -400,6 +891,9 @@ namespace DataAccess.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("integer");
@@ -442,6 +936,36 @@ namespace DataAccess.Migrations
                     b.ToTable("SliderItems");
                 });
 
+            modelBuilder.Entity("Core.Entity.University", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("uni_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("uni_name");
+
+                    b.Property<int>("ProvinceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("il_id");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("smallint")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProvinceId");
+
+                    b.ToTable("universiteler", (string)null);
+                });
+
             modelBuilder.Entity("Core.Entity.User", b =>
                 {
                     b.Property<int>("Id")
@@ -459,6 +983,9 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Department")
+                        .HasColumnType("text");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -468,6 +995,9 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("Grade")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -475,18 +1005,35 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpireAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("text");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<string>("UniversityName")
+                    b.Property<string>("StudentNumber")
                         .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("UniversityId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("UniversityId");
 
                     b.ToTable("Users");
                 });
@@ -498,6 +1045,18 @@ namespace DataAccess.Migrations
 
                     b.Property<int>("ChatRoomId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsMuted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("UserId", "ChatRoomId");
 
@@ -540,6 +1099,10 @@ namespace DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Core.Entity.ChatMessage", "ReplyToMessage")
+                        .WithMany("Replies")
+                        .HasForeignKey("ReplyToMessageId");
+
                     b.HasOne("Core.Entity.User", "Sender")
                         .WithMany("SentMessages")
                         .HasForeignKey("SenderId")
@@ -548,7 +1111,18 @@ namespace DataAccess.Migrations
 
                     b.Navigation("ChatRoom");
 
+                    b.Navigation("ReplyToMessage");
+
                     b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("Core.Entity.ChatRoom", b =>
+                {
+                    b.HasOne("Core.Entity.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("Core.Entity.CompanyUser", b =>
@@ -568,6 +1142,25 @@ namespace DataAccess.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Core.Entity.DiaryEntry", b =>
+                {
+                    b.HasOne("Core.Entity.InternshipDiary", "Diary")
+                        .WithMany("Entries")
+                        .HasForeignKey("DiaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Diary");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Core.Entity.InternshipApplication", b =>
@@ -600,6 +1193,32 @@ namespace DataAccess.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("Core.Entity.InternshipApprovalForm", b =>
+                {
+                    b.HasOne("Core.Entity.User", "Advisor")
+                        .WithMany()
+                        .HasForeignKey("AdvisorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Core.Entity.InternshipApplication", "Application")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Advisor");
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("Core.Entity.InternshipComment", b =>
                 {
                     b.HasOne("Core.Entity.InternshipApplication", "InternshipApplication")
@@ -619,15 +1238,53 @@ namespace DataAccess.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("Core.Entity.InternshipDiary", b =>
+                {
+                    b.HasOne("Core.Entity.InternshipApplication", "Application")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("Core.Entity.InternshipDocument", b =>
                 {
                     b.HasOne("Core.Entity.InternshipApplication", "InternshipApplication")
                         .WithMany("InternshipDocuments")
                         .HasForeignKey("ApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Core.Entity.InternshipApprovalForm", "ApprovalForm")
+                        .WithMany()
+                        .HasForeignKey("ApprovalFormId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Core.Entity.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ApprovalForm");
+
+                    b.Navigation("Company");
 
                     b.Navigation("InternshipApplication");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Core.Entity.InternshipOffer", b =>
@@ -647,6 +1304,43 @@ namespace DataAccess.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("Period");
+                });
+
+            modelBuilder.Entity("Core.Entity.InternshipPeriod", b =>
+                {
+                    b.HasOne("Core.Entity.User", null)
+                        .WithMany("InternshipPeriods")
+                        .HasForeignKey("UserId");
+                });
+
+            modelBuilder.Entity("Core.Entity.InternshipPeriodStudent", b =>
+                {
+                    b.HasOne("Core.Entity.InternshipPeriod", "InternshipPeriod")
+                        .WithMany("PeriodStudents")
+                        .HasForeignKey("InternshipPeriodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany("InternshipPeriodStudents")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InternshipPeriod");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Core.Entity.MessageAttachment", b =>
+                {
+                    b.HasOne("Core.Entity.ChatMessage", "ChatMessage")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ChatMessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatMessage");
                 });
 
             modelBuilder.Entity("Core.Entity.Notification", b =>
@@ -671,6 +1365,27 @@ namespace DataAccess.Migrations
                     b.Navigation("Slider");
                 });
 
+            modelBuilder.Entity("Core.Entity.University", b =>
+                {
+                    b.HasOne("Core.Entity.Province", "Province")
+                        .WithMany("Universities")
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Province");
+                });
+
+            modelBuilder.Entity("Core.Entity.User", b =>
+                {
+                    b.HasOne("Core.Entity.University", "University")
+                        .WithMany("Users")
+                        .HasForeignKey("UniversityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("University");
+                });
+
             modelBuilder.Entity("Core.Entity.UserChatRoom", b =>
                 {
                     b.HasOne("Core.Entity.ChatRoom", "ChatRoom")
@@ -688,6 +1403,13 @@ namespace DataAccess.Migrations
                     b.Navigation("ChatRoom");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Core.Entity.ChatMessage", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Replies");
                 });
 
             modelBuilder.Entity("Core.Entity.ChatRoom", b =>
@@ -711,6 +1433,11 @@ namespace DataAccess.Migrations
                     b.Navigation("InternshipDocuments");
                 });
 
+            modelBuilder.Entity("Core.Entity.InternshipDiary", b =>
+                {
+                    b.Navigation("Entries");
+                });
+
             modelBuilder.Entity("Core.Entity.InternshipOffer", b =>
                 {
                     b.Navigation("InternshipApplications");
@@ -721,6 +1448,18 @@ namespace DataAccess.Migrations
                     b.Navigation("InternshipApplications");
 
                     b.Navigation("InternshipOffers");
+
+                    b.Navigation("PeriodStudents");
+                });
+
+            modelBuilder.Entity("Core.Entity.Province", b =>
+                {
+                    b.Navigation("Universities");
+                });
+
+            modelBuilder.Entity("Core.Entity.University", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Core.Entity.User", b =>
@@ -730,6 +1469,10 @@ namespace DataAccess.Migrations
                     b.Navigation("ChatRooms");
 
                     b.Navigation("CompanyUsers");
+
+                    b.Navigation("InternshipPeriodStudents");
+
+                    b.Navigation("InternshipPeriods");
 
                     b.Navigation("Notifications");
 

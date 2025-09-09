@@ -1,0 +1,292 @@
+@model ModernApprovalViewModel
+@{
+    ViewData["Title"] = "Adým 1: Belgelerinizi Seçin";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <style>
+        .approval-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .document-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .document-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.1) 100%);
+        }
+
+        .icon-cta { display:inline-block; text-decoration:none; color:inherit; }
+        .icon-cta-circle {
+            width:80px; height:80px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); box-shadow: 0 8px 24px rgba(79,70,229,0.18); transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .icon-cta:focus .icon-cta-circle, .icon-cta:hover .icon-cta-circle {
+            transform: translateY(-6px) scale(1.03); box-shadow: 0 18px 40px rgba(79,70,229,0.2);
+        }
+        .icon-cta p { margin:6px 0 0; font-size:0.9rem; color:#6b7280; }
+        .icon-cta:focus { outline: none; }
+        .icon-cta-circle i { font-size:26px; color:white; }
+
+        .progress-step { transition: all 0.5s ease; }
+
+        .progress-step.active { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); transform: scale(1.1); }
+
+        .progress-step.completed { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+
+        /* small responsive tweak */
+        @Html.Raw(@"@media (max-width: 640px) {
+            .approval-card .flex { flex-direction: column; gap: 12px; }
+        }")
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="approval-card p-8 rounded-3xl">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                    <i class="fas fa-file-alt me-3"></i>Adým 1: Belgelerinizi Seçin
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300 text-lg">
+                    Staj onay baþvurusuna eklenecek belgelerinizi seçin
+                </p>
+            </div>
+
+            <!-- Clickable icon CTA (only icon + label under it) -->
+            <div class="text-center">
+                <a asp-action="SentForms" class="icon-cta" aria-label="Baþvurularý Görüntüle" title="Baþvurularý Görüntüle">
+                    <div class="icon-cta-circle" role="img" aria-hidden="true">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <p class="mt-2 font-medium">Baþvurularý Görüntüle</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="approval-card p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Baþvuru Süreci</h3>
+            <div class="text-sm text-gray-500">Adým 1 / 4</div>
+        </div>
+        <div class="flex items-center justify-between">
+            <div class="progress-step active w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold">1</div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="progress-step w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gray-300">2</div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="progress-step w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gray-300">3</div>
+            <div class="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div class="progress-step w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gray-300">4</div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs text-gray-500">
+            <span class="font-medium text-blue-600">Belgeler</span>
+            <span>Firma Bilgileri</span>
+            <span>Danýþman</span>
+            <span>Gözden Geçir</span>
+        </div>
+    </div>
+
+    <!-- Document Selection -->
+    <form asp-action="Step1Documents" method="post" class="approval-card p-8 rounded-3xl">
+        @Html.AntiForgeryToken()
+
+        <div class="flex items-center mb-6">
+            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                <i class="fas fa-file-alt text-white text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200">Belgelerinizi Seçin</h3>
+                <p class="text-gray-600 dark:text-gray-400">Veritabanýnda kayýtlý belgelerinizi seçin</p>
+            </div>
+        </div>
+
+        @if (Model?.StudentDocuments != null && Model.StudentDocuments.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                @foreach (var doc in Model.StudentDocuments)
+                {
+                    <div class="document-card p-4 rounded-xl border-2 border-gray-200 bg-white dark:bg-gray-800" data-doc-id="@doc.Id">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-pdf text-red-500 text-2xl mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 dark:text-gray-200">@doc.Title</h4>
+                                    <p class="text-sm text-gray-500">@doc.DocumentType</p>
+                                </div>
+                            </div>
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center document-checkbox">
+                                <i class="fas fa-check text-white text-xs hidden"></i>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-400">
+                            <span>@(doc.FileSize > 0 ? Math.Round((double)doc.FileSize / 1024 / 1024, 2).ToString("0.00") + " MB" : "Boyut bilinmiyor")</span> • 
+                            <span>@doc.UploadedAt.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <input type="checkbox" name="SelectedDocumentIds" value="@doc.Id" class="hidden document-input" />
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Belge Yok Mesajý -->
+            <div class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-800">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-3 mt-1"></i>
+                    <div class="text-left">
+                        <h4 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">? Henüz Belge Bulunmuyor</h4>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
+                            Onay baþvurusu yapmak için önce belgelerinizi yüklemeniz gerekiyor.
+                        </p>
+                        <a asp-controller="Document" asp-action="Index" class="inline-flex items-center px-4 py-2 bg-yellow-200 hover:bg-yellow-300 text-yellow-800 rounded-lg font-medium transition-all duration-200">
+                            <i class="fas fa-upload mr-2"></i>Belge Yükle
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Belgeleri -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div class="document-card p-4 rounded-xl border-2 border-gray-200 bg-white dark:bg-gray-800" data-doc-id="1001">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-500 text-2xl mr-3"></i>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-gray-200">Özgeçmiþ CV (Test)</h4>
+                                <p class="text-sm text-gray-500">CV</p>
+                            </div>
+                        </div>
+                        <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center document-checkbox">
+                            <i class="fas fa-check text-white text-xs hidden"></i>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        <span>2.5 MB</span> • <span>15.12.2024</span>
+                    </div>
+                    <input type="checkbox" name="SelectedDocumentIds" value="1001" class="hidden document-input" />
+                </div>
+
+                <div class="document-card p-4 rounded-xl border-2 border-gray-200 bg-white dark:bg-gray-800" data-doc-id="1002">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-file-pdf text-red-500 text-2xl mr-3"></i>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 dark:text-gray-200">Transkript (Test)</h4>
+                                <p class="text-sm text-gray-500">Transcript</p>
+                            </div>
+                        </div>
+                        <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center document-checkbox">
+                            <i class="fas fa-check text-white text-xs hidden"></i>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400">
+                        <span>1.8 MB</span> • <span>10.12.2024</span>
+                    </div>
+                    <input type="checkbox" name="SelectedDocumentIds" value="1002" class="hidden document-input" />
+                </div>
+            </div>
+        }
+
+        <!-- Seçim Bilgisi -->
+        <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+            <p class="text-sm text-blue-700 dark:text-blue-300">
+                <i class="fas fa-info-circle mr-2"></i>
+                <span id="selected-count">0</span> belge seçildi. En az 1 belge seçmelisiniz.
+            </p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between">
+            <a asp-controller="Approval" asp-action="Index" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-medium transition-all duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Ýptal
+            </a>
+            <button type="submit" id="nextBtn" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Sonraki <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedDocuments = new Set();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('?? Step 1: Document Selection loaded');
+            
+            setupDocumentCards();
+            updateUI();
+        });
+
+        function setupDocumentCards() {
+            const documentCards = document.querySelectorAll('.document-card');
+            
+            documentCards.forEach((card, index) => {
+                const docId = card.dataset.docId;
+                const checkbox = card.querySelector('.document-checkbox');
+                const input = card.querySelector('.document-input');
+                
+                card.addEventListener('click', function(e) {
+                    // avoid toggling when clicking on actual links or buttons
+                    if (e.target.closest('a')) return;
+
+                    console.log(`?? Document clicked: ${docId}`);
+                    
+                    if (selectedDocuments.has(docId)) {
+                        // Deselect
+                        selectedDocuments.delete(docId);
+                        card.classList.remove('selected');
+                        checkbox.style.background = '';
+                        checkbox.querySelector('i').classList.add('hidden');
+                        input.checked = false;
+                    } else {
+                        // Select
+                        selectedDocuments.add(docId);
+                        card.classList.add('selected');
+                        checkbox.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+                        checkbox.querySelector('i').classList.remove('hidden');
+                        input.checked = true;
+                    }
+                    
+                    updateUI();
+                });
+            });
+        }
+
+        function updateUI() {
+            const selectedCount = selectedDocuments.size;
+            const nextBtn = document.getElementById('nextBtn');
+            const countElement = document.getElementById('selected-count');
+            
+            // Update count
+            if (countElement) {
+                countElement.textContent = selectedCount;
+            }
+            
+            // Enable/disable next button
+            if (nextBtn) {
+                nextBtn.disabled = selectedCount === 0;
+            }
+            
+            console.log(`?? Selected documents: ${selectedCount}`);
+        }
+    </script>
+}

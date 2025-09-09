@@ -3,110 +3,158 @@ using Business.Interfaces.UserRepose;
 using Business.OrderMethod;
 using Core.Entity;
 using DataAccess.Unit.Interface;
-using NETCore.MailKit.Core;
+using System.Linq;
 
 
-namespace Business.Services.UserRepose
+
+namespace Business.Services.UserRepose;
+
+public class UserService : IIUserService
 {
-    public class UserService : IIUserService
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IIActivationEmailService _activationEmailService;
+
+    public UserService(IUnitOfWork unitOfWork, IIActivationEmailService activationEmailService)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IIActivationEmailService _activationEmailService;
+        _unitOfWork = unitOfWork;
+        _activationEmailService = activationEmailService;
+    }
 
-        public UserService(IUnitOfWork unitOfWork, IIActivationEmailService activationEmailService)
+
+    public async Task<User?> GetUserByIdAsync(int userId)
+    {
+        return await _unitOfWork.Users.GetByIdAsync(userId);
+    }
+
+    public async Task<User?> GetUserWithUniversityAsync(int userId)
+    {
+        return await _unitOfWork.Users.GetUserWithUniversityAsync(userId);
+    }
+
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+        return await _unitOfWork.Users.GetUserByEmailAsync(email);
+    }
+    public async Task<User?> GetUserByActivationCodeAsync(string code)
+    {
+        return await _unitOfWork.Users.GetUserByActivationCodeAsync(code);
+    }
+    public async Task UpdateUserAsync(User user)
+    {
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.SaveAsync();
+    }
+
+    public async Task DeleteUserAsync(int userId)
+    {
+        var user = await _unitOfWork.Users.GetByIdAsync(userId);
+        if (user != null)
         {
-            _unitOfWork = unitOfWork;
-            _activationEmailService = activationEmailService;
-        }
-
-
-        public async Task<User?> GetUserByIdAsync(int userId)
-        {
-            return await _unitOfWork.Users.GetByIdAsync(userId);
-        }
-
-        public async Task<User?> GetUserByEmailAsync(string email)
-        {
-            return await _unitOfWork.Users.GetUserByEmailAsync(email);
-        }
-
-        public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
-        {
-            return await _unitOfWork.Users.GetUsersByRoleAsync(role);
-        }
-
-        public async Task<List<User>> SearchUsersByFullNameAsync(string keyword)
-        {
-            return await _unitOfWork.Users.SearchUsersByFullNameAsync(keyword);
-        }
-
-        public async Task<User> AddUserAsync(User user)
-        {
-            if (!await _unitOfWork.Users.IsEmailUniqueAsync(user.Email))
-                throw new InvalidOperationException("Bu e-posta adresi zaten kullanımda.");
-
-            user.PasswordHash = PasswordSecurity.HashPassword(user.PasswordHash);
-            user.ActivationCode = Guid.NewGuid().ToString();
-            user.ActivationCodeExpireAt = DateTime.UtcNow.AddHours(24); // 24 saat geçerli
-            user.IsActive = false;
-            user.CreatedAt = DateTime.UtcNow;
-
-            await _unitOfWork.Users.AddAsync(user);
-            await _unitOfWork.SaveAsync();
-
-          
-            var activationLink = $"https://localhost:7211/account/activate?code={user.ActivationCode}";
-
-            // E-posta gönderme
-            var subject = "Hesabınızı Aktifleştirin";
-            var message = $@"
-                Merhaba {user.FullName},<br/><br/>
-                Hesabınızı aktifleştirmek için aşağıdaki bağlantıya tıklayın:<br/>
-                <a href='{activationLink}'>Hesabı Aktifleştir</a><br/><br/>
-                Bu bağlantı 24 saat boyunca geçerlidir.
-            ";
-
-            await _activationEmailService.SendEmailAsync(user.Email, subject, message);
-
-            return user;
-        }
-
-        public async Task UpdateUserAsync(User user)
-        {
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.SaveAsync();
-        }
-
-        public async Task DeleteUserAsync(int userId)
-        {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (user != null)
-            {
-                _unitOfWork.Users.Remove(user);
-                await _unitOfWork.SaveAsync();
-            }
-        }
-
-        public async Task<User?> GetUserByActivationCodeAsync(string code)
-        {
-            return await _unitOfWork.Users.GetUserByActivationCodeAsync(code);
-        }
-
-        public async Task ActivateUserAsync(string code)
-        {
-            var user = await _unitOfWork.Users.GetUserByActivationCodeAsync(code);
-            if (user == null)
-                throw new InvalidOperationException("Geçersiz aktivasyon kodu.");
-
-            if (user.ActivationCodeExpireAt < DateTime.UtcNow)
-                throw new InvalidOperationException("Aktivasyon kodunun süresi dolmuş.");
-
-            user.IsActive = true;
-            user.ActivationCode = null;
-            user.ActivationCodeExpireAt = null;
-
-            _unitOfWork.Users.Update(user);
+            _unitOfWork.Users.Remove(user);
             await _unitOfWork.SaveAsync();
         }
     }
+    public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
+    {
+        return await _unitOfWork.Users.GetUsersByRoleAsync(role);
+    }
+
+    public async Task<List<User>> SearchUsersByFullNameAsync(string keyword)
+    {
+        return await _unitOfWork.Users.SearchUsersByFullNameAsync(keyword);
+    }
+
+    public async Task<User> AddUserAsync(User user)
+    {
+        if (!await _unitOfWork.Users.IsEmailUniqueAsync(user.Email))
+            throw new InvalidOperationException("Bu e-posta adresi zaten kullanımda.");
+
+        user.PasswordHash = PasswordSecurity.HashPassword(user.PasswordHash);
+        user.ActivationCode = Guid.NewGuid().ToString();
+        user.ActivationCodeExpireAt = DateTime.UtcNow.AddHours(24);
+        user.IsActive = false;
+        user.CreatedAt = DateTime.UtcNow;
+
+        await _unitOfWork.Users.AddAsync(user);
+        await _unitOfWork.SaveAsync();
+
+
+        await _activationEmailService.SendEmailAsync(user.Email, user.FullName, user.ActivationCode);
+
+
+        return user;
+    }
+
+
+    #region Şifre Sıfırlama
+    public async Task SendForgetPasswordAsync(string email, string resetUrl)
+    {
+        var user = await GetUserByEmailAsync(email);
+        if (user == null)
+            throw new InvalidOperationException("Bu e-posta adresi ile kayıtlı bir kullanıcı bulunamadı.");
+
+        // Token üret
+        var token = Guid.NewGuid().ToString();
+        user.PasswordResetToken = token;
+        user.PasswordResetTokenExpireAt = DateTime.UtcNow.AddHours(3);
+
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.SaveAsync();
+
+        var message = $"Şifrenizi sıfırlamak için lütfen aşağıdaki bağlantıya tıklayın.";
+        await _activationEmailService.SendEmailForgetPassAsync(  user.Email,  token,  resetUrl,  user.FullName);
+    }
+
+    public async Task ResetPasswordAsync(string token, string newPassword)
+    {
+        var user = await _unitOfWork.Users.GetUserByResetPasswordCodeAsync(token);
+        if (user == null)
+            throw new InvalidOperationException("Geçersiz şifre sıfırlama talebi.");
+
+        if (user.PasswordResetTokenExpireAt == null || user.PasswordResetTokenExpireAt < DateTime.UtcNow)
+            throw new InvalidOperationException("Şifre sıfırlama talebinin süresi dolmuş.");
+
+        user.PasswordHash = PasswordSecurity.HashPassword(newPassword);
+        user.IsActive = true;
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpireAt = null;
+
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.SaveAsync();
+    }
+
+    #endregion
+    public async Task ActivateUserAsync(string code)
+    {
+        await _unitOfWork.Users.ActivateUserAsync(code);
+    }
+
+
+
+    public async Task<List<User>> GetAllStudentsAsync()
+    {
+        return await _unitOfWork.Users.GetUsersByRoleAsync(UserRole.Student);
+    }
+
+    public async Task<User?> GetStudentByIdAsync(int id)
+        => await _unitOfWork.Users.GetByIdAsync(id);
+
+    public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
+    {
+        var user = await _unitOfWork.Users.GetUserByIdWithPasswordAsync(userId);
+        if (user == null)
+            throw new InvalidOperationException("Kullanıcı bulunamadı.");
+
+      
+        if (!PasswordSecurity.VerifyPassword(currentPassword, user.PasswordHash))
+            throw new InvalidOperationException("Mevcut şifre hatalı.");
+
+   
+        user.PasswordHash = PasswordSecurity.HashPassword(newPassword);
+        _unitOfWork.Users.Update(user);
+        await _unitOfWork.SaveAsync();
+
+        return true;
+    }
+
 }

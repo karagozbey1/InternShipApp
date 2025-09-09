@@ -1,0 +1,578 @@
+@using WebUI.Models.ViewModels.Advisor
+@model WebUI.Models.ViewModels.Advisor.AdvisorDashboardViewModel
+@{
+    ViewData["Title"] = "Danýþman Paneli";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/dynamic-dashboard.css" />
+}
+
+<div class="space-y-6">
+    <!-- Simplified Welcome Header -->
+    <div class="dynamic-card p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
+                    <i class="fas fa-user-tie me-3"></i>Hoþ Geldiniz, @Model.AdvisorInfo?.FullName
+                </h1>
+                <p class="text-blue-600 dark:text-blue-300">
+                    @Model.UniversityName - @Model.AdvisorInfo?.Department - @Model.AdvisorInfo?.Title
+                </p>
+                <p class="text-blue-500 dark:text-blue-400 text-sm mt-1">
+                    @Model.AcademicYear.AcademicYear - @Model.AcademicYear.CurrentSemester
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-blue-800 dark:text-blue-200 text-sm">@DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))</div>
+                <div class="text-blue-600 dark:text-blue-300 text-sm">@DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("tr-TR"))</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+        <!-- Pending Applications -->
+        <div class="stat-card dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Bekleyen Baþvurular</p>
+                    <p class="stat-number text-3xl font-bold text-gray-900 dark:text-white" data-stat="pendingApplications">@Math.Max(0, Model.PendingApplicationsCount)</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a asp-controller="AdvisorApplication" asp-action="Index" class="text-yellow-600 hover:text-yellow-800 text-sm font-medium transition-colors duration-200">
+                    Detaylarý Görüntüle <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- My Students -->
+        <div class="stat-card dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Öðrenci Sayým</p>
+                    <p class="stat-number text-3xl font-bold text-gray-900 dark:text-white" data-stat="totalStudents">@Math.Max(0, Model.MyStudentsCount)</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
+                    <i class="fas fa-users text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a asp-controller="AdvisorStudent" asp-action="Index" class="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors duration-200">
+                    Öðrencilerimi Görüntüle <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pending Diary Entries -->
+        <div class="stat-card dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Bekleyen Defterler</p>
+                    <p class="stat-number text-3xl font-bold text-gray-900 dark:text-white" data-stat="pendingDiaries">@Math.Max(0, Model.PendingDiaryEntriesCount)</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                    <i class="fas fa-book-open text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a asp-controller="AdvisorDiary" asp-action="Index" class="text-purple-600 hover:text-purple-800 text-sm font-medium transition-colors duration-200">
+                    Defterleri Görüntüle <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Completed Internships -->
+        <div class="stat-card dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Tamamlanan Stajlar</p>
+                    <p class="stat-number text-3xl font-bold text-gray-900 dark:text-white" data-stat="completedInternships">@Math.Max(0, Model.CompletedInternshipsCount)</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+                    <i class="fas fa-check-circle text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <span class="text-green-600 text-sm font-medium">
+                    Bu ay onaylanan stajlar
+                </span>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="stat-card dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Okunmayan Bildirimler</p>
+                    <p class="stat-number text-3xl font-bold text-gray-900 dark:text-white" data-stat="unreadNotifications">@Math.Max(0, Model.UnreadNotificationsCount)</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl">
+                    <i class="fas fa-bell text-white text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a asp-controller="AdvisorNotification" asp-action="Index" class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors duration-200">
+                    Bildirimleri Görüntüle <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Reports -->
+        @if (Model.Statistics != null)
+        {
+            <div class="stat-card dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Rapor ve Analiz</p>
+                        <p class="stat-number text-3xl font-bold text-gray-900 dark:text-white" data-stat="approvalRate">@Model.Statistics.ApprovalRate.ToString("F1")%</p>
+                        <p class="text-xs text-gray-500 mt-1">Onay Oraný</p>
+                    </div>
+                    <div class="p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                    <span>Bu Ay Baþvuru: @Model.Statistics.ThisMonthApplications</span>
+                    <span>Bu Ay Onay: @Model.Statistics.ThisMonthApprovals</span>
+                </div>
+                <div class="mt-2">
+                    <a asp-controller="AdvisorReport" asp-action="Index" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium transition-colors duration-200">
+                        Raporlarý Görüntüle <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Personal Notes Section (Horizontal Layout) -->
+    <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+                <i class="fas fa-sticky-note mr-2"></i>Kiþisel Notlarým
+            </h2>
+            <button onclick="openAddNoteModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium">
+                <i class="fas fa-plus mr-1"></i>Yeni Not Ekle
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="notesContainer">
+            <!-- Sample notes - these would come from database -->
+            <div class="note-card p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs text-yellow-600 font-medium">Hatýrlatma</span>
+                    <button onclick="deleteNote(this)" class="text-red-500 hover:text-red-700 text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <h4 class="font-medium text-gray-800 text-sm mb-1">Proje Toplantýsý</h4>
+                <p class="text-xs text-gray-600 mb-2">Yarýn saat 14:00'da öðrencilerle toplantý</p>
+                <span class="text-xs text-gray-500">@DateTime.Now.ToString("dd MMM")</span>
+            </div>
+            
+            <div class="note-card p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs text-blue-600 font-medium">Önemli</span>
+                    <button onclick="deleteNote(this)" class="text-red-500 hover:text-red-700 text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <h4 class="font-medium text-gray-800 text-sm mb-1">Dönem Sonu Deðerlendirme</h4>
+                <p class="text-xs text-gray-600 mb-2">Staj defterlerini deðerlendirmeyi unutma</p>
+                <span class="text-xs text-gray-500">@DateTime.Now.AddDays(-2).ToString("dd MMM")</span>
+            </div>
+            
+            <!-- Add Note Card -->
+            <div class="add-note-card p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors cursor-pointer" onclick="openAddNoteModal()">
+                <div class="flex flex-col items-center justify-center h-full text-gray-400 hover:text-blue-500">
+                    <i class="fas fa-plus text-2xl mb-2"></i>
+                    <span class="text-sm font-medium">Yeni Not</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Grid - News and Notifications -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Recent News -->
+        @if (Model.RecentNews != null && Model.RecentNews.Any())
+        {
+            <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                        <i class="fas fa-newspaper mr-2"></i>Son Haberler
+                    </h3>
+                    <a href="/Home/News" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        Tümünü Gör <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto activity-scroll">
+                    @foreach (var news in Model.RecentNews.Take(4))
+                    {
+                        <div class="activity-item p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                            <h4 class="font-medium text-gray-900 dark:text-white text-sm">@news.Title</h4>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                @news.PublishDate.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("tr-TR"))
+                            </p>
+                            @if (!string.IsNullOrEmpty(news.Content))
+                            {
+                                <p class="text-xs text-gray-700 dark:text-gray-300 mt-1">
+                                    @(news.Content.Length > 80 ? news.Content.Substring(0, 80) + "..." : news.Content)
+                                </p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Recent Notifications -->
+        @if (Model.RecentNotifications != null && Model.RecentNotifications.Any())
+        {
+            <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                        <i class="fas fa-bell mr-2"></i>Son Bildirimler
+                    </h3>
+                    <a asp-controller="AdvisorNotification" asp-action="Index" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                        Tümünü Gör <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto activity-scroll">
+                    @foreach (var notification in Model.RecentNotifications)
+                    {
+                        <div class="activity-item p-3 rounded-lg @(notification.IsRead ? "bg-gray-50 dark:bg-gray-700" : "bg-purple-50 border border-purple-200 dark:bg-purple-900/20") hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="font-medium text-gray-900 dark:text-white text-sm">@notification.Title</h4>
+                                    <p class="text-xs text-gray-700 dark:text-gray-300 mt-1">@notification.Message</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        @notification.CreatedAt.ToString("dd MMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))
+                                    </p>
+                                </div>
+                                @if (!notification.IsRead)
+                                {
+                                    <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+                <i class="fas fa-activity mr-2"></i>Son Aktiviteler
+            </h2>
+            <button onclick="refreshActivities()" class="text-blue-600 hover:text-blue-800 text-sm">
+                <i class="fas fa-sync-alt mr-1"></i>Yenile
+            </button>
+        </div>
+        
+        @if (Model.RecentActivities != null && Model.RecentActivities.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach (var activity in Model.RecentActivities)
+                {
+                    <div class="activity-item flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-gradient-to-r from-@(activity.Color)-500 to-@(activity.Color)-600 rounded-full flex items-center justify-center">
+                                <i class="@activity.Icon text-white text-sm"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-medium text-gray-900 dark:text-white">@activity.Title</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">@activity.Description</p>
+                            <p class="text-xs text-gray-500 mt-1">@activity.CreatedAt.ToString("dd MMM yyyy HH:mm", new System.Globalization.CultureInfo("tr-TR"))</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <i class="fas fa-history text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz aktivite bulunmamaktadýr</h3>
+                <p class="text-gray-500 dark:text-gray-500">Öðrencilerinizin aktiviteleri burada görünecektir.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div id="addNoteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200">
+                <i class="fas fa-sticky-note mr-2 text-blue-500"></i>Yeni Not Ekle
+            </h3>
+            <button onclick="closeAddNoteModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="addNoteForm" onsubmit="addNewNote(event)">
+            <div class="space-y-4">
+                <div>
+                    <label for="noteTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Not Baþlýðý <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="noteTitle" name="noteTitle" required 
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                           placeholder="Not baþlýðýný girin">
+                </div>
+                
+                <div>
+                    <label for="noteContent" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Not Ýçeriði <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="noteContent" name="noteContent" required rows="4"
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                              placeholder="Not içeriðini girin"></textarea>
+                </div>
+                
+                <div>
+                    <label for="noteType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Not Tipi
+                    </label>
+                    <select id="noteType" name="noteType" 
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                        <option value="Hatýrlatma">Hatýrlatma</option>
+                        <option value="Önemli">Önemli</option>
+                        <option value="Tamamlandý">Tamamlandý</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-end gap-3 mt-6">
+                <button type="button" onclick="closeAddNoteModal()" 
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                    Ýptal
+                </button>
+                <button type="submit" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors font-medium">
+                    <i class="fas fa-save mr-1"></i>Kaydet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dynamic Advisor Dashboard loaded successfully');
+            
+            // Auto-refresh stats every 30 seconds
+            setInterval(refreshStats, 30000);
+            
+            // Initialize tooltips and interactive elements
+            initializeInteractiveElements();
+            
+            // Initialize animations
+            initializeAnimations();
+        });
+
+        async function refreshStats() {
+            try {
+                const response = await fetch('/AdvisorDashboard/GetStats');
+                const data = await response.json();
+                
+                if (!data.error) {
+                    updateStatCards(data);
+                }
+            } catch (error) {
+                console.error('Stats refresh error:', error);
+            }
+        }
+
+        function updateStatCards(data) {
+            const cards = {
+                pendingApplications: data.pendingApplications,
+                totalStudents: data.totalStudents,
+                pendingDiaries: data.pendingDiaries,
+                completedInternships: data.completedInternships,
+                unreadNotifications: data.unreadNotifications,
+                approvalRate: data.approvalRate
+            };
+
+            Object.keys(cards).forEach(key => {
+                const element = document.querySelector(`[data-stat="${key}"]`);
+                if (element) {
+                    animateNumber(element, cards[key]);
+                }
+            });
+        }
+
+        function animateNumber(element, newValue) {
+            const currentValue = parseInt(element.textContent) || 0;
+            const increment = (newValue - currentValue) / 20;
+            let current = currentValue;
+            
+            const animation = setInterval(() => {
+                current += increment;
+                element.textContent = Math.round(current);
+                
+                if (Math.abs(current - newValue) < 1) {
+                    element.textContent = newValue;
+                    clearInterval(animation);
+                    
+                    // Add flash effect for changed values
+                    if (currentValue !== newValue) {
+                        element.classList.add('text-blue-600');
+                        setTimeout(() => element.classList.remove('text-blue-600'), 1000);
+                    }
+                }
+            }, 50);
+        }
+
+        function refreshActivities() {
+            window.location.reload();
+        }
+
+        function initializeInteractiveElements() {
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.stat-card, .activity-item, .note-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.1)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
+            });
+        }
+
+        function initializeAnimations() {
+            // Stagger animation for dynamic cards
+            const dynamicCards = document.querySelectorAll('.dynamic-card');
+            dynamicCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        }
+
+        // Modal functionality
+        function openAddNoteModal() {
+            document.getElementById('addNoteModal').classList.remove('hidden');
+            document.getElementById('noteTitle').focus();
+        }
+        
+        function closeAddNoteModal() {
+            document.getElementById('addNoteModal').classList.add('hidden');
+            document.getElementById('addNoteForm').reset();
+        }
+        
+        function addNewNote(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('noteTitle').value;
+            const content = document.getElementById('noteContent').value;
+            const type = document.getElementById('noteType').value;
+            
+            if (!title || !content) {
+                alert('Lütfen tüm gerekli alanlarý doldurun.');
+                return;
+            }
+            
+            const noteHtml = createNoteHtml(title, content, type);
+            const container = document.getElementById('notesContainer');
+            const addCard = container.querySelector('.add-note-card');
+            
+            addCard.insertAdjacentHTML('beforebegin', noteHtml);
+            
+            // Close modal and reset form
+            closeAddNoteModal();
+            
+            // Show success message
+            showNotification('Not baþarýyla eklendi!', 'success');
+        }
+        
+        function createNoteHtml(title, content, type) {
+            const colors = {
+                'Hatýrlatma': { bg: 'bg-yellow-50', border: 'border-yellow-400', text: 'text-yellow-600' },
+                'Önemli': { bg: 'bg-red-50', border: 'border-red-400', text: 'text-red-600' },
+                'Tamamlandý': { bg: 'bg-green-50', border: 'border-green-400', text: 'text-green-600' }
+            };
+            
+            const color = colors[type] || colors['Hatýrlatma'];
+            const date = new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
+            
+            return `
+                <div class="note-card p-4 ${color.bg} border-l-4 ${color.border} rounded-lg shadow-sm hover:shadow-md transition-shadow note-card-enter">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs ${color.text} font-medium">${type}</span>
+                        <button onclick="deleteNote(this)" class="text-red-500 hover:text-red-700 text-xs">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <h4 class="font-medium text-gray-800 text-sm mb-1">${title}</h4>
+                    <p class="text-xs text-gray-600 mb-2">${content}</p>
+                    <span class="text-xs text-gray-500">${date}</span>
+                </div>
+            `;
+        }
+        
+        function deleteNote(button) {
+            if (confirm('Bu notu silmek istediðinizden emin misiniz?')) {
+                const noteCard = button.closest('.note-card');
+                noteCard.style.animation = 'fadeOutAnimation 0.3s ease-out';
+                setTimeout(() => {
+                    noteCard.remove();
+                    showNotification('Not silindi!', 'info');
+                }, 300);
+            }
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 notification-popup ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'fadeOutAnimation 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal with escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAddNoteModal();
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('addNoteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddNoteModal();
+            }
+        });
+    </script>
+}

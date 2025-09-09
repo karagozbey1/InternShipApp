@@ -1,0 +1,440 @@
+@using WebUI.Models.ViewModels.Student.ViewModels
+@model ApplicationCreateViewModel
+@{
+    ViewData["Title"] = "Yeni Staj Baþvurusu";
+    Layout = "_AppLayout";
+}
+
+@{ 
+    var env = Context.RequestServices.GetService(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment)) as Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (env != null && env.IsDevelopment() && ViewData["DetailedError"] != null)
+{
+    <div class="mb-6 p-4 bg-gray-50 border border-gray-300 text-gray-800 rounded-lg whitespace-pre-wrap">
+        <strong>Hata Detayý (Development):</strong>
+        <pre class="text-xs mt-2">@ViewData["DetailedError"]</pre>
+    </div>
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Yeni Staj Baþvurusu</h1>
+        <a asp-controller="Application" asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Geri Dön
+        </a>
+    </div>
+
+    <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <form asp-action="Create" method="post" id="applicationForm">
+            <div asp-validation-summary="ModelOnly" id="formValidationSummary" class="text-red-600 mb-4"></div>
+
+            <div class="space-y-6">
+                <!-- Hidden Selected Offer Id -->
+                <input asp-for="SelectedOfferId" type="hidden" />
+
+                <!-- Show the selected offer card (read-only) -->
+                @{
+                    var selectedOffer = Model.AvailableOffers.FirstOrDefault(o => o.OfferId == Model.SelectedOfferId) ?? Model.AvailableOffers.FirstOrDefault();
+                }
+                @if (selectedOffer != null)
+                {
+                    <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200">@selectedOffer.CompanyName</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">@selectedOffer.Title</p>
+                            </div>
+                            <div class="text-sm text-gray-500">Seçilen Ýlan</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-4 border rounded-lg bg-yellow-50">
+                        <p class="text-yellow-700">Henüz seçilmiþ bir staj teklifi bulunmuyor. Lütfen bir ilan üzerinden "Baþvur" butonuna týklayarak baþvuru oluþturun.</p>
+                    </div>
+                }
+
+                <!-- Baþlangýç Tarihi -->
+                <div>
+                    <label asp-for="StartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baþlangýç Tarihi</label>
+                    <input asp-for="StartDate" id="StartDate" type="date" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+                    <span id="startHint" class="text-sm text-gray-500"></span>
+                    <span asp-validation-for="StartDate" class="text-red-600 text-sm" data-valmsg-for="StartDate"></span>
+                </div>
+
+                <!-- Bitiþ Tarihi -->
+                <div>
+                    <label asp-for="EndDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bitiþ Tarihi</label>
+                    <input asp-for="EndDate" id="EndDate" type="date" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+                    <span id="endHint" class="text-sm text-gray-500"></span>
+                    <span asp-validation-for="EndDate" class="text-red-600 text-sm" data-valmsg-for="EndDate"></span>
+                </div>
+
+                <!-- Belge Seçimi -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baþvuruya Eklenecek Belgeler</label>
+                    <div class="border rounded-xl p-4 bg-gray-50 dark:bg-gray-800">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Seçilen Belgeler:</span>
+                            <button type="button" id="selectDocumentsBtn" class="text-blue-500 hover:text-blue-600 text-sm font-medium">
+                                <i class="fas fa-plus mr-1"></i>Belge Seç
+                            </button>
+                        </div>
+                        <div id="selectedDocumentsList" class="space-y-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Henüz belge seçilmemiþ. "Belge Seç" butonuna týklayarak belgelerinizden seçim yapýn.</p>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Seçilen belgeler baþvurunuzla birlikte gönderilecektir. 
+                            <a asp-controller="Document" asp-action="Index" class="text-blue-500 hover:text-blue-600">
+                                Yeni belge yüklemek için týklayýn.
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Açýklama -->
+                <div>
+                    <label asp-for="Description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baþvuru Açýklamasý</label>
+                    <textarea asp-for="Description" rows="4" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Neden bu staj pozisyonu için uygun olduðunuzu açýklayýn..."></textarea>
+                    <span asp-validation-for="Description" class="text-red-600 text-sm" data-valmsg-for="Description"></span>
+                </div>
+
+                <!-- Zorunlu Staj Checkbox -->
+                <div class="flex items-center mt-2">
+                    <input asp-for="IsCompulsory" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                    <label asp-for="IsCompulsory" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Zorunlu Staj (iþaretlenirse zorunlu staj olarak kaydedilir)</label>
+                </div>
+            </div>
+
+            <!-- Seçilen belgeler için hidden inputlar -->
+            <div id="selectedDocumentsInputs"></div>
+
+            <div class="flex items-center justify-end gap-4 mt-8">
+                <a asp-controller="Application" asp-action="Index" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                    Ýptal
+                </a>
+                <button type="submit" id="submitApplicationBtn" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 font-medium">
+                    <i class="fas fa-paper-plane mr-2"></i>Baþvuru Gönder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Belge Seçim Modal -->
+<div id="documentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Belge Seç</h3>
+                <button onclick="closeDocumentModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-96">
+                <div id="modalDocumentsList" class="space-y-3">
+                    <!-- Belgeler buraya yüklenecek -->
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                <button onclick="closeDocumentModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Ýptal
+                </button>
+                <button onclick="addSelectedDocumentsToForm()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Seçilenleri Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let selectedDocuments = [];
+        let allDocuments = [];
+
+        function clearValidationMessages() {
+            const summary = document.getElementById('formValidationSummary');
+            if (summary) summary.innerHTML = '';
+
+            const fields = ['StartDate','EndDate','Description','SelectedOfferId'];
+            fields.forEach(f => {
+                const el = document.querySelector(`[data-valmsg-for="${f}"]`);
+                if (el) { el.textContent = ''; el.classList.remove('field-validation-error'); }
+            });
+        }
+
+        function showValidationMessages(summaryMessages, fieldMessages) {
+            const summary = document.getElementById('formValidationSummary');
+            if (summaryMessages && summaryMessages.length > 0) {
+                summary.innerHTML = '<ul class="list-disc pl-5">' + summaryMessages.map(m => `<li>${m}</li>`).join('') + '</ul>';
+            }
+
+            if (fieldMessages) {
+                Object.keys(fieldMessages).forEach(f => {
+                    const el = document.querySelector(`[data-valmsg-for="${f}"]`);
+                    if (el) {
+                        el.textContent = fieldMessages[f];
+                        el.classList.add('field-validation-error');
+                    }
+                });
+            }
+
+            // Scroll to summary
+            if (summary) summary.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+
+        // load offer constraints on page load if SelectedOfferId is present
+        document.addEventListener('DOMContentLoaded', function() {
+            const sel = document.getElementById('SelectedOfferId');
+            if (sel && sel.value) {
+                loadOfferConstraints(sel.value);
+            }
+
+            // Hook form submit with improved inline validation
+            const form = document.getElementById('applicationForm');
+            const submitBtn = document.getElementById('submitApplicationBtn');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                clearValidationMessages();
+
+                const selectedOffer = document.getElementById('SelectedOfferId').value;
+                const startDate = document.querySelector('input[name="StartDate"]').value;
+                const endDate = document.querySelector('input[name="EndDate"]').value;
+
+                const errors = [];
+                const fieldErrors = {};
+
+                if (!selectedOffer || selectedOffer === '0') {
+                    errors.push('Baþvurmak istediðiniz ilan seçili deðil. Lütfen ilan üzerinden baþvurun.');
+                    fieldErrors['SelectedOfferId'] = 'Ýlan seçimi zorunludur.';
+                }
+
+                const startInput = document.getElementById('StartDate');
+                const endInput = document.getElementById('EndDate');
+
+                if (startInput.disabled && endInput.disabled) {
+                    // fixed range; server will accept values set by controller
+                } else {
+                    if (!startDate) {
+                        errors.push('Lütfen baþlangýç tarihini girin.');
+                        fieldErrors['StartDate'] = 'Baþlangýç tarihi gereklidir.';
+                    }
+                    if (!endDate) {
+                        errors.push('Lütfen bitiþ tarihini girin.');
+                        fieldErrors['EndDate'] = 'Bitiþ tarihi gereklidir.';
+                    }
+
+                    if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+                        errors.push('Bitiþ tarihi, baþlangýç tarihinden sonra olmalýdýr.');
+                        fieldErrors['EndDate'] = 'Bitiþ tarihi baþlangýçtan sonra olmalýdýr.';
+                    }
+
+                    if (startInput.min && (new Date(startDate) < new Date(startInput.min) || new Date(startDate) > new Date(startInput.max))) {
+                        errors.push('Baþlangýç tarihi ilan tarafýndan belirlenen dönem dýþýnda olamaz.');
+                        fieldErrors['StartDate'] = 'Baþlangýç tarihi dönem dýþýnda.';
+                    }
+
+                    if (endInput.max && (new Date(endDate) < new Date(endInput.min) || new Date(endDate) > new Date(endInput.max))) {
+                        errors.push('Bitiþ tarihi ilan tarafýndan belirlenen dönem dýþýnda olamaz.');
+                        fieldErrors['EndDate'] = 'Bitiþ tarihi dönem dýþýnda.';
+                    }
+                }
+
+                if (errors.length > 0) {
+                    showValidationMessages(errors, fieldErrors);
+                    return false;
+                }
+
+                // disable submit to prevent double submits
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50','cursor-not-allowed');
+
+                // finally submit the form
+                form.submit();
+            });
+        });
+
+        document.getElementById('selectDocumentsBtn').addEventListener('click', async function() {
+            try {
+                const response = await fetch('@Url.Action("GetStudentDocuments", "Document")');
+                const documents = await response.json();
+                allDocuments = documents;
+                
+                const modalDocumentsList = document.getElementById('modalDocumentsList');
+                
+                if (documents.length === 0) {
+                    modalDocumentsList.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-folder-open text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500">Henüz belge yüklenmemiþ.</p>
+                            <a href="/Document" class="text-blue-500 hover:text-blue-600 text-sm">
+                                Belge yüklemek için týklayýn.
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    modalDocumentsList.innerHTML = documents.map(doc => `
+                        <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="modal_doc_${doc.id}" value="${doc.id}" 
+                                       ${selectedDocuments.includes(doc.id) ? 'checked' : ''}
+                                       onchange="toggleModalDocument(${doc.id})" 
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <p class="font-medium text-sm">${doc.title || doc.fileName}</p>
+                                    <p class="text-xs text-gray-500">${doc.type} • ${doc.fileSize} • ${doc.uploadDate}</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-file-alt text-blue-500"></i>
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('documentModal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Belgeler yüklenirken hata:', error);
+                // show inline summary error
+                showValidationMessages(['Belgeler yüklenirken bir hata oluþtu. Lütfen tekrar deneyin.'], null);
+            }
+        });
+
+        function closeDocumentModal() {
+            document.getElementById('documentModal').classList.add('hidden');
+        }
+
+        function toggleModalDocument(documentId) {
+            const checkbox = document.getElementById(`modal_doc_${documentId}`);
+            
+            if (checkbox.checked) {
+                if (!selectedDocuments.includes(documentId)) {
+                    selectedDocuments.push(documentId);
+                }
+            } else {
+                const index = selectedDocuments.indexOf(documentId);
+                if (index > -1) {
+                    selectedDocuments.splice(index, 1);
+                }
+            }
+        }
+
+        function addSelectedDocumentsToForm() {
+            const selectedDocumentsList = document.getElementById('selectedDocumentsList');
+            
+            if (selectedDocuments.length === 0) {
+                selectedDocumentsList.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">Henüz belge seçilmemiþ. "Belge Seç" butonuna týklayarak belgelerinizden seçim yapýn.</p>';
+            } else {
+                const selectedDocsData = allDocuments.filter(doc => selectedDocuments.includes(doc.id));
+                selectedDocumentsList.innerHTML = selectedDocsData.map(doc => `
+                    <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-alt text-blue-500"></i>
+                            <div>
+                                <p class="font-medium text-sm text-blue-800 dark:text-blue-200">${doc.title || doc.fileName}</p>
+                                <p class="text-xs text-blue-600 dark:text-blue-400">${doc.type} • ${doc.fileSize} • ${doc.uploadDate}</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="removeDocument(${doc.id})" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            
+            updateSelectedDocumentsInputs();
+            closeDocumentModal();
+        }
+
+        function removeDocument(documentId) {
+            const index = selectedDocuments.indexOf(documentId);
+            if (index > -1) {
+                selectedDocuments.splice(index, 1);
+                addSelectedDocumentsToForm(); // Listeyi güncelle
+            }
+        }
+
+        function updateSelectedDocumentsInputs() {
+            const container = document.getElementById('selectedDocumentsInputs');
+            container.innerHTML = selectedDocuments.map(docId => 
+                `<input type="hidden" name="SelectedDocumentIds" value="${docId}">`
+            ).join('');
+        }
+
+        // load offer constraints and configure date inputs
+        async function loadOfferConstraints(offerId) {
+            if (!offerId) return;
+            try {
+                // Use JSON API if available
+                const jsonResp = await fetch(`/api/offers/${offerId}`);
+                if (jsonResp.ok) {
+                    const data = await jsonResp.json();
+                    configureDatesFromOffer(data);
+                    return;
+                }
+
+                // Fallback: enable inputs if no JSON
+                enableDateInputs();
+            } catch (err) {
+                console.error('offer constraints load error', err);
+                enableDateInputs();
+            }
+        }
+
+        function configureDatesFromOffer(offer) {
+            const dateMode = offer.dateMode;
+            const startInput = document.getElementById('StartDate');
+            const endInput = document.getElementById('EndDate');
+            const startHint = document.getElementById('startHint');
+            const endHint = document.getElementById('endHint');
+
+            if (dateMode === 1) {
+                startInput.disabled = false; endInput.disabled = false;
+                startInput.min = offer.periodStart;
+                startInput.max = offer.periodEnd;
+                endInput.min = offer.periodStart;
+                endInput.max = offer.periodEnd;
+                startHint.textContent = `Seçim sadece dönem içerisinde olmalýdýr: ${offer.periodStart} - ${offer.periodEnd}`;
+                endHint.textContent = '';
+            } else if (dateMode === 2) {
+                startInput.disabled = true; endInput.disabled = true;
+                startInput.value = offer.fixedStart;
+                endInput.value = offer.fixedEnd;
+                startHint.textContent = 'Bu ilan için sabit baþlangýç tarihi.';
+                endHint.textContent = 'Bu ilan için sabit bitiþ tarihi.';
+            } else {
+                startInput.disabled = false; endInput.disabled = false;
+                startInput.removeAttribute('min'); startInput.removeAttribute('max');
+                endInput.removeAttribute('min'); endInput.removeAttribute('max');
+                startHint.textContent = 'Bu ilan için tarih kýsýtlamasý yok.';
+                endHint.textContent = '';
+            }
+        }
+
+        function enableDateInputs(){
+            document.getElementById('StartDate').disabled = false;
+            document.getElementById('EndDate').disabled = false;
+            document.getElementById('startHint').textContent = '';
+            document.getElementById('endHint').textContent = '';
+        }
+
+    </script>
+}

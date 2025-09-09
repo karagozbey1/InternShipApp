@@ -1,0 +1,1009 @@
+/* Advisor Theme CSS */
+
+/* Advisor specific sidebar styling */
+#advisor-sidebar {
+    background: linear-gradient(145deg, #667eea 0%, #764ba2 100%);
+    backdrop-filter: blur(10px);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Advisor sidebar items */
+.advisor-sidebar-item {
+    @apply flex items-center gap-3 p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200 font-medium;
+}
+
+.advisor-sidebar-item-active {
+    @apply bg-white/20 text-white border-l-4 border-yellow-400;
+}
+
+.advisor-sidebar-item-inactive {
+    @apply hover:bg-white/10;
+}
+
+/* Advisor specific color scheme */
+.advisor-primary {
+    color: #667eea;
+}
+
+.advisor-secondary {
+    color: #764ba2;
+}
+
+.advisor-bg-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.advisor-bg-secondary {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Advisor cards */
+.advisor-card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 hover:shadow-xl;
+}
+
+.advisor-card-header {
+    @apply p-6 border-b border-gray-200 dark:border-gray-700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.advisor-card-body {
+    @apply p-6;
+}
+
+/* Advisor buttons */
+.advisor-btn-primary {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.advisor-btn-primary:hover {
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.advisor-btn-secondary {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-200 border-2;
+    border-color: #667eea;
+    color: #667eea;
+    background: transparent;
+}
+
+.advisor-btn-secondary:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Advisor badges */
+.advisor-badge {
+    @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.advisor-badge-pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+}
+
+.advisor-badge-approved {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+}
+
+.advisor-badge-rejected {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+}
+
+/* Advisor statistics cards */
+.advisor-stat-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700;
+}
+
+.advisor-stat-card-primary {
+    @apply border-l-4 border-blue-500;
+}
+
+.advisor-stat-card-warning {
+    @apply border-l-4 border-yellow-500;
+}
+
+.advisor-stat-card-secondary {
+    @apply border-l-4 border-purple-500;
+}
+
+.advisor-stat-card-success {
+    @apply border-l-4 border-green-500;
+}
+
+/* Number Animation Styles */
+.stat-number {
+    @apply text-3xl font-bold text-gray-900 dark:text-white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-number.updating {
+    @apply text-blue-600;
+}
+
+/* Activity Item Styles */
+.activity-item {
+    @apply cursor-pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart Container */
+.chart-container {
+    @apply relative;
+    height: 250px;
+}
+
+.chart-container canvas {
+    @apply rounded-lg;
+}
+
+/* Loading State */
+.loading-overlay {
+    @apply absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 flex items-center justify-center rounded-lg;
+}
+
+.loading-spinner {
+    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500;
+}
+
+/* Error State */
+.error-state {
+    @apply text-center py-8 text-gray-500;
+}
+
+.error-icon {
+    @apply text-4xl mb-3 text-red-400;
+}
+
+/* Empty State */
+.empty-state {
+    @apply text-center py-8;
+}
+
+.empty-state i {
+    @apply text-4xl mb-3 text-gray-400;
+}
+
+.empty-state p {
+    @apply text-gray-500;
+}
+
+/* Recent Items */
+.recent-item {
+    @apply border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+}
+
+.recent-item-status {
+    @apply px-2 py-1 text-xs rounded;
+}
+
+.recent-item-status.pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+}
+
+.recent-item-status.approved {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+}
+
+.recent-item-status.rejected {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+}
+
+/* Advisor tables */
+.advisor-table {
+    @apply w-full bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg;
+}
+
+.advisor-table th {
+    @apply px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.advisor-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700;
+}
+
+.advisor-table tbody tr:hover {
+    @apply bg-gray-50 dark:bg-gray-700 transition-colors duration-200;
+}
+
+/* Advisor modals */
+.advisor-modal {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.advisor-modal-content {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto;
+}
+
+.advisor-modal-header {
+    @apply p-6 border-b border-gray-200 dark:border-gray-700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.advisor-modal-body {
+    @apply p-6;
+}
+
+.advisor-modal-footer {
+    @apply p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3;
+}
+
+/* Advisor forms */
+.advisor-form-group {
+    @apply mb-6;
+}
+
+.advisor-form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.advisor-form-input {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200;
+}
+
+.advisor-form-textarea {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none;
+    min-height: 120px;
+}
+
+.advisor-form-select {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200;
+}
+
+/* Advisor notifications */
+.advisor-notification {
+    @apply fixed top-4 right-4 z-50 max-w-sm;
+}
+
+.advisor-notification-success {
+    @apply bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-error {
+    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-warning {
+    @apply bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-info {
+    @apply bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+/* Advisor timeline */
+.advisor-timeline {
+    @apply relative;
+}
+
+.advisor-timeline::before {
+    content: '';
+    @apply absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-blue-600;
+}
+
+.advisor-timeline-item {
+    @apply relative pl-12 pb-8;
+}
+
+.advisor-timeline-item::before {
+    content: '';
+    @apply absolute left-2 top-2 w-4 h-4 bg-white border-4 border-purple-500 rounded-full;
+}
+
+.advisor-timeline-content {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-700;
+}
+
+/* Advisor progress bars */
+.advisor-progress {
+    @apply w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2;
+}
+
+.advisor-progress-bar {
+    @apply h-2 rounded-full transition-all duration-500;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Advisor dark mode adjustments */
+.dark #advisor-sidebar {
+    background: linear-gradient(145deg, #1f2937 0%, #374151 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .advisor-card {
+    @apply bg-gray-800 border-gray-700;
+}
+
+.dark .advisor-table th {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #advisor-sidebar {
+        @apply w-full h-auto fixed bottom-0 left-0 right-0 z-40;
+        height: auto;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: none;
+        border-radius: 1rem 1rem 0 0;
+    }
+    
+    .advisor-card {
+        @apply mx-2;
+    }
+    
+    .advisor-table {
+        @apply text-xs;
+    }
+    
+    .advisor-modal-content {
+        @apply mx-2;
+    }
+}
+
+/* Animation keyframes */
+@keyframes advisorFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes advisorPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.advisor-fade-in-up {
+    animation: advisorFadeInUp 0.5s ease-out;
+}
+
+.advisor-pulse {
+    animation: advisorPulse 2s infinite;
+}
+
+/* Advisor Dashboard Specific Styles */
+
+/* Stat Cards - Enhanced */
+.advisor-stat-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700;
+}
+
+.advisor-stat-card-primary {
+    @apply border-l-4 border-blue-500;
+}
+
+.advisor-stat-card-warning {
+    @apply border-l-4 border-yellow-500;
+}
+
+.advisor-stat-card-secondary {
+    @apply border-l-4 border-purple-500;
+}
+
+.advisor-stat-card-success {
+    @apply border-l-4 border-green-500;
+}
+
+/* Number Animation Styles */
+.stat-number {
+    @apply text-3xl font-bold text-gray-900 dark:text-white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-number.updating {
+    @apply text-blue-600;
+}
+
+/* Activity Item Styles */
+.activity-item {
+    @apply cursor-pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart Container */
+.chart-container {
+    @apply relative;
+    height: 250px;
+}
+
+.chart-container canvas {
+    @apply rounded-lg;
+}
+
+/* Loading State */
+.loading-overlay {
+    @apply absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 flex items-center justify-center rounded-lg;
+}
+
+.loading-spinner {
+    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500;
+}
+
+/* Error State */
+.error-state {
+    @apply text-center py-8 text-gray-500;
+}
+
+.error-icon {
+    @apply text-4xl mb-3 text-red-400;
+}
+
+/* Empty State */
+.empty-state {
+    @apply text-center py-8;
+}
+
+.empty-state i {
+    @apply text-4xl mb-3 text-gray-400;
+}
+
+.empty-state p {
+    @apply text-gray-500;
+}
+
+/* Recent Items */
+.recent-item {
+    @apply border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+}
+
+.recent-item-status {
+    @apply px-2 py-1 text-xs rounded;
+}
+
+.recent-item-status.pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+}
+
+.recent-item-status.approved {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+}
+
+.recent-item-status.rejected {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+}
+
+/* Advisor tables */
+.advisor-table {
+    @apply w-full bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg;
+}
+
+.advisor-table th {
+    @apply px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.advisor-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700;
+}
+
+.advisor-table tbody tr:hover {
+    @apply bg-gray-50 dark:bg-gray-700 transition-colors duration-200;
+}
+
+/* Advisor modals */
+.advisor-modal {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.advisor-modal-content {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto;
+}
+
+.advisor-modal-header {
+    @apply p-6 border-b border-gray-200 dark:border-gray-700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.advisor-modal-body {
+    @apply p-6;
+}
+
+.advisor-modal-footer {
+    @apply p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3;
+}
+
+/* Advisor forms */
+.advisor-form-group {
+    @apply mb-6;
+}
+
+.advisor-form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.advisor-form-input {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200;
+}
+
+.advisor-form-textarea {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none;
+    min-height: 120px;
+}
+
+.advisor-form-select {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200;
+}
+
+/* Advisor notifications */
+.advisor-notification {
+    @apply fixed top-4 right-4 z-50 max-w-sm;
+}
+
+.advisor-notification-success {
+    @apply bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-error {
+    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-warning {
+    @apply bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-info {
+    @apply bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+/* Advisor timeline */
+.advisor-timeline {
+    @apply relative;
+}
+
+.advisor-timeline::before {
+    content: '';
+    @apply absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-blue-600;
+}
+
+.advisor-timeline-item {
+    @apply relative pl-12 pb-8;
+}
+
+.advisor-timeline-item::before {
+    content: '';
+    @apply absolute left-2 top-2 w-4 h-4 bg-white border-4 border-purple-500 rounded-full;
+}
+
+.advisor-timeline-content {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-700;
+}
+
+/* Advisor progress bars */
+.advisor-progress {
+    @apply w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2;
+}
+
+.advisor-progress-bar {
+    @apply h-2 rounded-full transition-all duration-500;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Advisor dark mode adjustments */
+.dark #advisor-sidebar {
+    background: linear-gradient(145deg, #1f2937 0%, #374151 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .advisor-card {
+    @apply bg-gray-800 border-gray-700;
+}
+
+.dark .advisor-table th {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #advisor-sidebar {
+        @apply w-full h-auto fixed bottom-0 left-0 right-0 z-40;
+        height: auto;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: none;
+        border-radius: 1rem 1rem 0 0;
+    }
+    
+    .advisor-card {
+        @apply mx-2;
+    }
+    
+    .advisor-table {
+        @apply text-xs;
+    }
+    
+    .advisor-modal-content {
+        @apply mx-2;
+    }
+}
+
+/* Animation keyframes */
+@keyframes advisorFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes advisorPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.advisor-fade-in-up {
+    animation: advisorFadeInUp 0.5s ease-out;
+}
+
+.advisor-pulse {
+    animation: advisorPulse 2s infinite;
+}
+
+/* Advisor Dashboard Specific Styles */
+
+/* Stat Cards - Enhanced */
+.advisor-stat-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 dark:border-gray-700;
+}
+
+.advisor-stat-card-primary {
+    @apply border-l-4 border-blue-500;
+}
+
+.advisor-stat-card-warning {
+    @apply border-l-4 border-yellow-500;
+}
+
+.advisor-stat-card-secondary {
+    @apply border-l-4 border-purple-500;
+}
+
+.advisor-stat-card-success {
+    @apply border-l-4 border-green-500;
+}
+
+/* Number Animation Styles */
+.stat-number {
+    @apply text-3xl font-bold text-gray-900 dark:text-white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-number.updating {
+    @apply text-blue-600;
+}
+
+/* Activity Item Styles */
+.activity-item {
+    @apply cursor-pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart Container */
+.chart-container {
+    @apply relative;
+    height: 250px;
+}
+
+.chart-container canvas {
+    @apply rounded-lg;
+}
+
+/* Loading State */
+.loading-overlay {
+    @apply absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-75 flex items-center justify-center rounded-lg;
+}
+
+.loading-spinner {
+    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500;
+}
+
+/* Error State */
+.error-state {
+    @apply text-center py-8 text-gray-500;
+}
+
+.error-icon {
+    @apply text-4xl mb-3 text-red-400;
+}
+
+/* Empty State */
+.empty-state {
+    @apply text-center py-8;
+}
+
+.empty-state i {
+    @apply text-4xl mb-3 text-gray-400;
+}
+
+.empty-state p {
+    @apply text-gray-500;
+}
+
+/* Recent Items */
+.recent-item {
+    @apply border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+}
+
+.recent-item-status {
+    @apply px-2 py-1 text-xs rounded;
+}
+
+.recent-item-status.pending {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+}
+
+.recent-item-status.approved {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+}
+
+.recent-item-status.rejected {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+}
+
+/* Advisor tables */
+.advisor-table {
+    @apply w-full bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg;
+}
+
+.advisor-table th {
+    @apply px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wider;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.advisor-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700;
+}
+
+.advisor-table tbody tr:hover {
+    @apply bg-gray-50 dark:bg-gray-700 transition-colors duration-200;
+}
+
+/* Advisor modals */
+.advisor-modal {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.advisor-modal-content {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto;
+}
+
+.advisor-modal-header {
+    @apply p-6 border-b border-gray-200 dark:border-gray-700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.advisor-modal-body {
+    @apply p-6;
+}
+
+.advisor-modal-footer {
+    @apply p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3;
+}
+
+/* Advisor forms */
+.advisor-form-group {
+    @apply mb-6;
+}
+
+.advisor-form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+}
+
+.advisor-form-input {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200;
+}
+
+.advisor-form-textarea {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none;
+    min-height: 120px;
+}
+
+.advisor-form-select {
+    @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200;
+}
+
+/* Advisor notifications */
+.advisor-notification {
+    @apply fixed top-4 right-4 z-50 max-w-sm;
+}
+
+.advisor-notification-success {
+    @apply bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-error {
+    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-warning {
+    @apply bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+.advisor-notification-info {
+    @apply bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-xl shadow-lg;
+}
+
+/* Advisor timeline */
+.advisor-timeline {
+    @apply relative;
+}
+
+.advisor-timeline::before {
+    content: '';
+    @apply absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-blue-600;
+}
+
+.advisor-timeline-item {
+    @apply relative pl-12 pb-8;
+}
+
+.advisor-timeline-item::before {
+    content: '';
+    @apply absolute left-2 top-2 w-4 h-4 bg-white border-4 border-purple-500 rounded-full;
+}
+
+.advisor-timeline-content {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-700;
+}
+
+/* Advisor progress bars */
+.advisor-progress {
+    @apply w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2;
+}
+
+.advisor-progress-bar {
+    @apply h-2 rounded-full transition-all duration-500;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Advisor dark mode adjustments */
+.dark #advisor-sidebar {
+    background: linear-gradient(145deg, #1f2937 0%, #374151 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .advisor-card {
+    @apply bg-gray-800 border-gray-700;
+}
+
+.dark .advisor-table th {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #advisor-sidebar {
+        @apply w-full h-auto fixed bottom-0 left-0 right-0 z-40;
+        height: auto;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: none;
+        border-radius: 1rem 1rem 0 0;
+    }
+    
+    .advisor-card {
+        @apply mx-2;
+    }
+    
+    .advisor-table {
+        @apply text-xs;
+    }
+    
+    .advisor-modal-content {
+        @apply mx-2;
+    }
+}
+
+/* Animation keyframes */
+@keyframes advisorFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes advisorPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.advisor-fade-in-up {
+    animation: advisorFadeInUp 0.5s ease-out;
+}
+
+.advisor-pulse {
+    animation: advisorPulse 2s infinite;
+}
+
+/* Fix for negative numbers */
+.stat-number::before {
+    content: '';
+    display: inline-block;
+    width: 0;
+}
+
+/* Ensure numbers are always positive visually */
+.stat-number[data-value]::after {
+    content: attr(data-value);
+}
+
+/* Custom Scrollbar for Activity List */
+.activity-list {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.activity-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.activity-list::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-700;
+}
+
+.activity-list::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+.activity-list::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+}

@@ -10,9 +10,12 @@ namespace DataAccess.Interfaces.UserRepose
         Task<User?> GetUserByEmailAsync(string email);
         Task<List<User>> GetUsersByRoleAsync(UserRole role); 
         Task<User?> GetUserWithDetailsAsync(int userId);
+        Task<User?> GetUserWithUniversityAsync(int userId);
         Task<List<User>> SearchUsersByFullNameAsync(string keyword);
         Task<bool> IsEmailUniqueAsync(string email);
-        Task<User?> GetUserByActivationCodeAsync(string code);
+        Task<User?> GetUserByActivationCodeAsync(string ActivationCodeAsync);
+        Task<User?> GetUserByResetPasswordCodeAsync(string ResetPasswordCodeAsync);
         Task ActivateUserAsync(string code);
+        Task<User?> GetUserByIdWithPasswordAsync(int userId);
     }
 }

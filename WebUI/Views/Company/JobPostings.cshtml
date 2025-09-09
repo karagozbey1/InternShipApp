@@ -1,0 +1,232 @@
+@model WebUI.Models.Company.JobPostingListViewModel
+@{
+    ViewData["Title"] = "Ýlanlarým";
+    Layout = "_AppLayout";
+}
+<!-- Sayfa Baþlýðý Kartý ve Ýlan Gir Butonu -->
+<div class="w-full mb-8">
+    <div class="rounded-2xl bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-600 shadow-sm px-8 py-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-4">
+            <i class="fas fa-lightbulb text-3xl text-blue-600 dark:text-blue-400"></i>
+            <div>
+                <h1 class="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-1">Ýlanlarým</h1>
+                <p class="text-blue-600 dark:text-blue-400">Yayýnladýðýnýz staj ve iþ ilanlarýný yönetin.</p>
+            </div>
+        </div>
+        <a asp-controller="CompanyJobPostings" asp-action="Create" class="px-6 py-3 rounded-xl font-semibold transition-transform bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:scale-105 flex items-center gap-2">
+            <i class="fas fa-plus-circle"></i>Ýlan Gir
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="search-filters mb-6 p-6 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-md flex flex-wrap items-end gap-4">
+    <form method="get" class="flex flex-wrap items-end gap-4 w-full">
+        <!-- Search Term -->
+        <div class="flex-1 min-w-64">
+            <label for="searchTerm" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                <i class="fas fa-search mr-1"></i>Arama
+            </label>
+            <input type="text" id="searchTerm" name="searchTerm" value="@Model.SearchTerm"
+                   class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm"
+                   placeholder="Ýlan baþlýðý, pozisyon veya þehir ara..." />
+        </div>
+        <!-- Type Filter -->
+        <div class="min-w-48">
+            <label for="typeFilter" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                <i class="fas fa-filter mr-1"></i>Tür
+            </label>
+            <select name="typeFilter" id="typeFilter"
+                    class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm">
+                <option value="">Tüm Türler</option>
+                @foreach (var type in Enum.GetValues<WebUI.Models.Company.JobPostingType>())
+                {
+                    <option value="@type" selected="@(Model.TypeFilter == type)">@type.GetDisplayName()</option>
+                }
+            </select>
+        </div>
+        <!-- Active Filter -->
+        <div class="min-w-40">
+            <label for="isActiveFilter" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                <i class="fas fa-toggle-on mr-1"></i>Durum
+            </label>
+            <select name="isActiveFilter" id="isActiveFilter"
+                    class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm">
+                <option value="">Tüm Durumlar</option>
+                <option value="true" selected="@(Model.IsActiveFilter == true)">Aktif</option>
+                <option value="false" selected="@(Model.IsActiveFilter == false)">Pasif</option>
+            </select>
+        </div>
+        <!-- Search Button -->
+        <div>
+            <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200">
+                <i class="fas fa-search mr-2"></i>Filtrele
+            </button>
+        </div>
+        <!-- Clear Button -->
+        @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
+        {
+            <div>
+                <a asp-controller="CompanyJobPostings" asp-action="List" class="px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-times mr-2"></i>Temizle
+                </a>
+            </div>
+        }
+    </form>
+</div>
+
+<!-- Job Postings Grid -->
+@if (Model.JobPostings.Any())
+{
+    <div class="space-y-4">
+        @foreach (var job in Model.JobPostings)
+        {
+            <div id="job-card-@job.Id" class="job-posting-card shadow-sm rounded-2xl p-6 border cursor-pointer bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200" data-jobid="@job.Id" onclick="viewJobDetail(@job.Id)">
+                <div class="relative">
+                    <!-- Active badge top-right -->
+                    <div class="absolute top-0 right-0 mt-3 mr-3">
+                        @if (job.IsActive)
+                        {
+                            <span class="inline-flex items-center gap-2 text-xs font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">
+                                <i class="fas fa-check-circle"></i> Aktif
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Title and meta -->
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@job.Title</h3>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-4">
+                            <span class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-blue-400 dark:text-blue-300"></i> @job.Location</span>
+                            <span class="flex items-center gap-2"><i class="fas fa-briefcase text-blue-400 dark:text-blue-300"></i> @job.Position</span>
+                            <span class="flex items-center gap-2"><i class="fas fa-clock text-blue-400 dark:text-blue-300"></i> Son baþvuru: @job.ApplicationDeadline.ToString("dd.MM.yyyy")</span>
+                        </div>
+                    </div>
+
+                    <!-- Colored stat blocks (3 blocks) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-blue-600 dark:text-blue-400">Baþvuru</div>
+                                <div class="text-xl font-semibold text-blue-900 dark:text-blue-200">@job.ApplicationCount</div>
+                            </div>
+                            <i class="fas fa-user-check text-blue-400 dark:text-blue-300 text-xl"></i>
+                        </div>
+
+                        <div class="p-4 rounded-lg bg-white dark:bg-gray-700 border border-purple-100 dark:border-purple-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-purple-600 dark:text-purple-400">Departman</div>
+                                <div class="text-sm font-medium text-purple-800 dark:text-purple-300">@job.Position</div>
+                            </div>
+                            <i class="fas fa-file-alt text-purple-400 dark:text-purple-300 text-xl"></i>
+                        </div>
+
+                        <div class="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-yellow-600 dark:text-yellow-400">Maaþ</div>
+                                <div class="text-xl font-semibold text-yellow-900 dark:text-yellow-200">@((job.Salary.HasValue) ? string.Format(new System.Globalization.CultureInfo("tr-TR"), "{0:N0}", job.Salary) + " TL" : "ç")</div>
+                            </div>
+                            <i class="fas fa-coins text-yellow-400 dark:text-yellow-300 text-xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Footer row with created date and small action icons -->
+                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-600 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <div>
+                            <i class="fas fa-calendar-alt mr-2"></i> Oluþturulma: @job.CreatedDate.ToString("dd.MM.yyyy")
+                        </div>
+                        <div class="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                            <a href="#" onclick="viewJobDetail(@job.Id); event.stopPropagation();" title="Ýlan Detayý" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-eye"></i></a>
+                            <a asp-controller="CompanyJobPostings" asp-action="Create" asp-route-id="@job.Id" title="Düzenle" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-edit"></i></a>
+                            <a href="#" onclick="deleteJobPosting(@job.Id); event.stopPropagation();" title="Sil" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-trash"></i></a>
+                            <a href="#" title="Diðer" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-ellipsis-v"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <!-- Empty State -->
+    <div class="company-card bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-600">
+        <div class="p-12 text-center">
+            <i class="fas fa-briefcase text-6xl text-blue-300 dark:text-blue-500 mb-4"></i>
+            <h3 class="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-2">
+                Henüz ilan bulunmuyor
+            </h3>
+            <p class="text-blue-600 dark:text-blue-400 mb-6">
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
+                {
+                    <span>Arama kriterlerinize uygun ilan bulunamadý. Filtreleri deðiþtirin.</span>
+                }
+                else
+                {
+                    <span>Ýlk ilanýnýzý oluþturarak öðrencilere fýrsat sunmaya baþlayýn.</span>
+                }
+            </p>
+            <div class="space-x-4">
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
+                {
+                    <a asp-controller="CompanyJobPostings" asp-action="List" class="btn-outline-primary-company px-6 py-3 rounded-lg border border-blue-300 dark:border-gray-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <i class="fas fa-times mr-2"></i>Filtreleri Temizle
+                    </a>
+                }
+                <a asp-controller="CompanyJobPostings" asp-action="Create" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200">
+                    <i class="fas fa-plus mr-2"></i>Ýlk Ýlanýmý Oluþtur
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal for job detail -->
+<div id="jobDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full mx-4 overflow-auto max-h-[90vh]">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
+            <h3 class="font-semibold text-gray-900 dark:text-white">Ýlan Detayý</h3>
+            <button onclick="closeJobDetailModal()" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors duration-200"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="jobDetailContent" class="p-6">
+            <!-- partial will be loaded here -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const deleteJobUrl = '@Url.Action("DeleteJobPosting","CompanyJobPostings")';
+        const detailJobUrl = '@Url.Action("JobPostingDetail","CompanyJobPostings")';
+
+        function deleteJobPosting(jobId) {
+            if (confirm('Bu ilaný silmek istediðinizden emin misiniz? Bu iþlem geri alýnamaz.')) {
+                $.post(deleteJobUrl, { jobId: jobId, __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val() })
+                    .done(function () { location.reload(); })
+                    .fail(function () { alert('Ýþlem sýrasýnda bir hata oluþtu.'); });
+            }
+        }
+
+        function viewJobDetail(jobId) {
+            try {
+                $('#jobDetailContent').html('<div class="p-6 text-center text-gray-500 dark:text-gray-400">Yükleniyor...</div>');
+                $('#jobDetailModal').removeClass('hidden').addClass('flex');
+                $.get(detailJobUrl, { id: jobId })
+                    .done(function (html) { $('#jobDetailContent').html(html); })
+                    .fail(function () { $('#jobDetailContent').html('<div class="p-6 text-center text-red-500 dark:text-red-400">Detaylar yüklenirken hata oluþtu.</div>'); });
+            } catch (e) { console.error(e); }
+        }
+
+        function closeJobDetailModal() {
+            $('#jobDetailModal').addClass('hidden').removeClass('flex');
+            $('#jobDetailContent').html('');
+        }
+
+        // Close modal on background click
+        $('#jobDetailModal').on('click', function (e) {
+            if (e.target.id === 'jobDetailModal') {
+                closeJobDetailModal();
+            }
+        });
+    </script>
+}

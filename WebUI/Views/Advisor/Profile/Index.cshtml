@@ -1,0 +1,181 @@
+@using WebUI.Models.ViewModels.Advisor
+@model AdvisorProfileViewModel
+@{
+    ViewData["Title"] = "Profil";
+    Layout = "_AppLayout";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+<div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+</div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+<div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+    <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+</div>
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700">
+        <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
+            <i class="fas fa-user-cog me-3"></i>Profil Ayarlarý
+        </h1>
+        <p class="text-blue-600 dark:text-blue-300">
+            Danýþman profil bilgilerinizi düzenleyebilirsiniz
+        </p>
+    </div>
+
+    <!-- Profile Information -->
+    <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            <i class="fas fa-user me-2"></i>Profil Bilgileri
+        </h3>
+        
+        <form asp-action="Update" method="post" class="space-y-6">
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.Id)
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label asp-for="FullName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-user me-1"></i>Ad Soyad <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="FullName" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Adýnýzý ve soyadýnýzý girin" required />
+                    <span asp-validation-for="FullName" class="text-red-500 text-sm"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-envelope me-1"></i>E-posta
+                    </label>
+                    <input asp-for="Email" class="w-full p-3 border rounded-xl bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400" readonly />
+                    <small class="text-gray-500">E-posta adresi deðiþtirilemez</small>
+                </div>
+
+                <div>
+                    <label asp-for="Phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-phone me-1"></i>Telefon
+                    </label>
+                    <input asp-for="Phone" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Telefon numaranýzý girin (isteðe baðlý)" />
+                    <span asp-validation-for="Phone" class="text-red-500 text-sm"></span>
+                </div>
+
+                <div>
+                    <label asp-for="UniversityName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-university me-1"></i>Üniversite
+                    </label>
+                    <input asp-for="UniversityName" class="w-full p-3 border rounded-xl bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400" readonly />
+                    <small class="text-gray-500">Üniversite bilgisi deðiþtirilemez</small>
+                </div>
+
+                <div>
+                    <label asp-for="Department" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-graduation-cap me-1"></i>Bölüm <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="Department" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Bölümünüzü girin" required />
+                    <span asp-validation-for="Department" class="text-red-500 text-sm"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-user-tie me-1"></i>Ünvan
+                    </label>
+                    <input asp-for="Title" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Akademik ünvanýnýzý girin (isteðe baðlý - Ör: Dr., Prof. Dr., Doç. Dr.)" />
+                    <span asp-validation-for="Title" class="text-red-500 text-sm"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 font-medium">
+                <i class="fas fa-save mr-2"></i>Profil Bilgilerini Güncelle
+            </button>
+        </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            <i class="fas fa-lock me-2"></i>Þifre Deðiþtir
+        </h3>
+
+        <form asp-action="ChangePassword" method="post" class="change-password-form">
+            @Html.AntiForgeryToken()
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-key me-1"></i>Mevcut Þifre <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" 
+                           name="CurrentPassword" 
+                           class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                           placeholder="Mevcut þifrenizi girin" 
+                           required />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-lock me-1"></i>Yeni Þifre <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" 
+                           name="NewPassword" 
+                           class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                           placeholder="Yeni þifrenizi girin (en az 6 karakter)" 
+                           minlength="6"
+                           required />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-check-circle me-1"></i>Yeni Þifre Tekrar <span class="text-red-500">*</span>
+                    </label>
+                    <input type="password" 
+                           name="ConfirmNewPassword" 
+                           class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                           placeholder="Yeni þifrenizi tekrar girin" 
+                           required />
+                </div>
+            </div>
+
+            <button type="submit" class="mt-6 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 font-medium">
+                <i class="fas fa-shield-alt me-2"></i>Þifreyi Güncelle
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Password confirmation validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordForm = document.querySelector('.change-password-form');
+            const newPassword = passwordForm.querySelector('input[name="NewPassword"]');
+            const confirmPassword = passwordForm.querySelector('input[name="ConfirmNewPassword"]');
+            
+            function validatePasswords() {
+                if (newPassword.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Þifreler eþleþmiyor');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+            
+            newPassword.addEventListener('input', validatePasswords);
+            confirmPassword.addEventListener('input', validatePasswords);
+            
+            // Form submission validation
+            passwordForm.addEventListener('submit', function(e) {
+                if (newPassword.value !== confirmPassword.value) {
+                    e.preventDefault();
+                    alert('Þifreler eþleþmiyor. Lütfen kontrol edin.');
+                }
+            });
+        });
+    </script>
+}

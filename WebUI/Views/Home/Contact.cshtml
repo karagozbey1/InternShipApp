@@ -1,0 +1,160 @@
+@{
+    ViewData["Title"] = "Ýletiþim";
+    Layout = "_PublicLayout";
+}
+
+<div class="container py-5">
+    <h1 class="display-5 fw-bold text-center mb-5">Ýletiþim</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-envelope me-2"></i>Bize Ulaþýn</h4>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Ad Soyad</label>
+                                <input type="text" class="form-control" id="name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">E-posta</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Telefon</label>
+                                <input type="tel" class="form-control" id="phone">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Bölüm</label>
+                                <select class="form-select" id="department">
+                                    <option value="">Bölüm Seçiniz</option>
+                                    <option value="bilgisayar">Bilgisayar Mühendisliði</option>
+                                    <option value="endustri">Endüstri Mühendisliði</option>
+                                    <option value="elektrik">Elektrik-Elektronik Mühendisliði</option>
+                                    <option value="makine">Makine Mühendisliði</option>
+                                    <option value="insaat">Ýnþaat Mühendisliði</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Konu</label>
+                            <select class="form-select" id="subject" required>
+                                <option value="">Konu Seçiniz</option>
+                                <option value="staj-basvuru">Staj Baþvurusu</option>
+                                <option value="belge-sorun">Belge Sorunu</option>
+                                <option value="degerlendirme">Deðerlendirme Süreci</option>
+                                <option value="teknik-sorun">Teknik Sorun</option>
+                                <option value="diger">Diðer</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Mesajýnýz</label>
+                            <textarea class="form-control" id="message" rows="5" required placeholder="Mesajýnýzý buraya yazýnýz..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Mesaj Gönder
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Ýletiþim Bilgileri -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-address-book me-2"></i>Ýletiþim Bilgileri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="contact-item mb-3 pb-3 border-bottom">
+                        <h6 class="fw-bold text-primary">
+                            <i class="fas fa-user-tie me-2"></i>Dr. Ahmet Yýlmaz
+                        </h6>
+                        <p class="mb-1">Staj Koordinatörü</p>
+                        <p class="mb-1"><i class="fas fa-envelope me-2 text-muted"></i>staj@universite.edu.tr</p>
+                        <p class="mb-1"><i class="fas fa-phone me-2 text-muted"></i>0212 555 01 23</p>
+                        <p class="mb-0"><i class="fas fa-clock me-2 text-muted"></i>Pzt-Cum 09:00-17:00</p>
+                    </div>
+                    
+                    <div class="contact-item mb-3 pb-3 border-bottom">
+                        <h6 class="fw-bold text-primary">
+                            <i class="fas fa-user-graduate me-2"></i>Yrd. Doç. Dr. Ayþe Demir
+                        </h6>
+                        <p class="mb-1">Staj Koordinatör Yardýmcýsý</p>
+                        <p class="mb-1"><i class="fas fa-envelope me-2 text-muted"></i>yardimci@universite.edu.tr</p>
+                        <p class="mb-1"><i class="fas fa-phone me-2 text-muted"></i>0212 555 01 24</p>
+                        <p class="mb-0"><i class="fas fa-clock me-2 text-muted"></i>Pzt-Cum 09:00-17:00</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <h6 class="fw-bold text-primary">
+                            <i class="fas fa-user me-2"></i>Mehmet Özkan
+                        </h6>
+                        <p class="mb-1">Staj Sekreteri</p>
+                        <p class="mb-1"><i class="fas fa-envelope me-2 text-muted"></i>sekreter@universite.edu.tr</p>
+                        <p class="mb-1"><i class="fas fa-phone me-2 text-muted"></i>0212 555 01 25</p>
+                        <p class="mb-0"><i class="fas fa-clock me-2 text-muted"></i>Pzt-Cum 08:30-16:30</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adres -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Adres</h5>
+                </div>
+                <div class="card-body">
+                    <address class="mb-0">
+                        <strong>Üniversite Staj Koordinatörlüðü</strong><br>
+                        Mühendislik Fakültesi, 3. Kat<br>
+                        Universitesi Kampüsü<br>
+                        34000 Ýstanbul<br>
+                        <i class="fas fa-phone me-2 text-primary"></i>0212 555 01 23<br>
+                        <i class="fas fa-fax me-2 text-primary"></i>0212 555 01 24<br>
+                        <i class="fas fa-envelope me-2 text-primary"></i>staj@universite.edu.tr
+                    </address>
+                </div>
+            </div>
+
+            <!-- SSS -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Sýk Sorulan Sorular</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq1">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1">
+                                    Staj baþvurusu nasýl yapýlýr?
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Online sistem üzerinden giriþ yaptýktan sonra "Baþvurularým" bölümünden yeni baþvuru oluþturabilirsiniz.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="faq2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2">
+                                    Hangi belgeler gerekli?
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Baþvuru formu, transkript, özgeçmiþ ve varsa þirket kabul belgesi gereklidir.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

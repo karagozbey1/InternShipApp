@@ -1,0 +1,120 @@
+﻿@model string
+
+<header class="h-16 border-b bg-white/80 backdrop-blur-md border-gray-200 dark:bg-gray-800/90 dark:border-gray-700 flex items-center justify-between px-6">
+    <div>
+        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200">@Model</h1>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <button id="themeToggle" class="p-2 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-yellow-400 dark:hover:bg-gray-600 transition-all duration-200">
+            <i class="fas fa-moon dark:hidden"></i>
+            <i class="fas fa-sun hidden dark:inline"></i>
+        </button>
+
+        <button id="messengerBtn" onclick="openChat()" class="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+            <i class="fas fa-comments"></i>
+            <span class="font-medium">Mesajlar</span>
+            <span id="unreadMessagesCount" class="bg-white text-blue-600 text-xs rounded-full px-2 py-1 font-bold hidden">
+                0
+            </span>
+        </button>
+    </div>
+</header>
+
+<!-- Chat Modal Container -->
+<div id="chatModalContainer"></div>
+
+<script>
+    // Theme toggle
+    document.getElementById('themeToggle')?.addEventListener('click', function() {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+
+    // Update unread message count
+    function updateUnreadMessageCount() {
+        fetch('/Chat/GetUnreadCount')
+            .then(response => response.json())
+            .then(data => {
+                const countElement = document.getElementById('unreadMessagesCount');
+                if (countElement) {
+                    if (data.unreadCount > 0) {
+                        countElement.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                        countElement.classList.remove('hidden');
+                    } else {
+                        countElement.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Mesaj sayısı alınamadı:', error);
+            });
+    }
+
+    // Load counts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateUnreadMessageCount();
+        
+        // Update counts every 30 seconds
+        setInterval(() => {
+            updateUnreadMessageCount();
+        }, 30000);
+    });
+
+    // Chat functionality
+    function openChat() {
+        const modalContainer = document.getElementById('chatModalContainer');
+        
+        // Create iframe for chat
+        const iframe = document.createElement('iframe');
+        iframe.src = '/Chat';
+        iframe.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+        `;
+        iframe.id = 'chatIframe';
+        
+        modalContainer.appendChild(iframe);
+        
+        // Listen for close message from iframe
+        window.addEventListener('message', function(event) {
+            if (event.data === 'closeChat') {
+                closeChat();
+            }
+        });
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeChat() {
+        const chatIframe = document.getElementById('chatIframe');
+        if (chatIframe) {
+            chatIframe.remove();
+        }
+        
+        // Restore body scroll
+        document.body.style.overflow = 'auto';
+        
+        // Update message count after closing chat
+        updateUnreadMessageCount();
+    }
+
+    // Close chat with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeChat();
+        }
+    });
+</script>

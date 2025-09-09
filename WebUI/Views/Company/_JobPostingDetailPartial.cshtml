@@ -1,0 +1,58 @@
+@model WebUI.Models.Company.JobPostingDetailViewModel
+<div class="max-w-3xl mx-auto">
+    <div class="mb-4">
+        <h2 class="text-2xl font-bold">@Model.Title</h2>
+        <div class="text-sm text-gray-500 mt-1">@Model.Position</div>
+        <div class="text-xs text-gray-400 mt-1">Oluþturulma: @Model.CreatedDate.ToString("dd.MM.yyyy")</div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div class="p-4 bg-gray-50 rounded">
+            <div class="text-xs text-gray-500">Pozisyon (Kota)</div>
+            <div class="font-semibold">@Model.Quota</div>
+        </div>
+        <div class="p-4 bg-gray-50 rounded">
+            <div class="text-xs text-gray-500">Baþlangýç</div>
+            <div class="font-semibold">@((Model.StartDate == default(DateTime)) ? "—" : Model.StartDate.ToString("dd MMM yyyy"))</div>
+        </div>
+        <div class="p-4 bg-gray-50 rounded">
+            <div class="text-xs text-gray-500">Bitiþ</div>
+            <div class="font-semibold">@((Model.EndDate == default(DateTime)) ? "—" : Model.EndDate.ToString("dd MMM yyyy"))</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div class="p-4 bg-white rounded border">
+            <div class="text-xs text-gray-500">Son Baþvuru Tarihi</div>
+            <div class="font-semibold">@((Model.ApplicationDeadline == default(DateTime)) ? "—" : Model.ApplicationDeadline.ToString("dd MMM yyyy"))</div>
+        </div>
+        <div class="p-4 bg-white rounded border">
+            <div class="text-xs text-gray-500">Çalýþma Tipi</div>
+            <div class="font-semibold">@Model.JobType</div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <h4 class="font-semibold mb-2">Açýklama</h4>
+        <p class="text-sm text-gray-700">@(!string.IsNullOrWhiteSpace(Model.Description) ? Model.Description : "Açýklama bulunmuyor.")</p>
+    </div>
+
+    <div class="mb-4">
+        <h4 class="font-semibold mb-2">Gereksinimler</h4>
+        <p class="text-sm text-gray-700">@(!string.IsNullOrWhiteSpace(Model.Requirements) ? Model.Requirements : "Belirtilmemiþ")</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+        <div>
+            <div class="text-xs text-gray-500">Maaþ</div>
+            <div class="font-semibold">@((Model.Salary.HasValue) ? string.Format(new System.Globalization.CultureInfo("tr-TR"), "{0:N0}", Model.Salary) + " TL" : "—")</div>
+        </div>
+        <div>
+            <div class="text-xs text-gray-500">Baþvurular</div>
+            <div class="font-semibold">@Model.ApplicationCount</div>
+        </div>
+        <div class="text-right">
+            <a asp-action="Applications" asp-route-jobPostingIdFilter="@Model.Id" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded">Baðlý Baþvurularý Gör</a>
+        </div>
+    </div>
+</div>

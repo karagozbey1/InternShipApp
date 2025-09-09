@@ -1,0 +1,202 @@
+@model CreateApprovalFormViewModel
+@{
+    ViewData["Title"] = "Staj Onay Formu Oluþtur";
+    Layout = "_StudentLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-plus-circle me-2"></i>Staj Onay Formu Oluþtur
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Bilgi:</strong> Bu form danýþmanýnýzýn onayýna gönderilecektir. 
+                        Lütfen tüm bilgileri doðru ve eksiksiz doldurunuz.
+                    </div>
+
+                    <form asp-action="Create" method="post">
+                        <input type="hidden" asp-for="ApplicationId" />
+                        
+                        <!-- Baþvuru Bilgileri -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-primary">
+                                            <i class="fas fa-file-alt me-2"></i>Baþvuru Bilgileri
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Baþvuru:</strong> @Model.ApplicationTitle
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Þirket:</strong> @Model.CompanyName
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Þirket Bilgileri -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-building me-2"></i>Þirket Bilgileri
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label asp-for="CompanyName" class="form-label"></label>
+                                            <input asp-for="CompanyName" class="form-control" readonly />
+                                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="WorkplaceAddress" class="form-label"></label>
+                                            <textarea asp-for="WorkplaceAddress" class="form-control" rows="3" 
+                                                      placeholder="Staj yapacaðýnýz yerin tam adresi"></textarea>
+                                            <span asp-validation-for="WorkplaceAddress" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Koordinatör Bilgileri -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-user-tie me-2"></i>Staj Koordinatörü Bilgileri
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label asp-for="InternshipCoordinator" class="form-label"></label>
+                                            <input asp-for="InternshipCoordinator" class="form-control" 
+                                                   placeholder="Koordinatör adý soyadý" />
+                                            <span asp-validation-for="InternshipCoordinator" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="CoordinatorPhone" class="form-label"></label>
+                                            <input asp-for="CoordinatorPhone" class="form-control" 
+                                                   placeholder="+90 (555) 123 45 67" />
+                                            <span asp-validation-for="CoordinatorPhone" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="CoordinatorEmail" class="form-label"></label>
+                                            <input asp-for="CoordinatorEmail" class="form-control" 
+                                                   placeholder="koordinator@sirket.com" />
+                                            <span asp-validation-for="CoordinatorEmail" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <!-- Staj Detaylarý -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-calendar-alt me-2"></i>Staj Detaylarý
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="StartDate" class="form-label"></label>
+                                                <input asp-for="StartDate" type="date" class="form-control" />
+                                                <span asp-validation-for="StartDate" class="text-danger"></span>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="EndDate" class="form-label"></label>
+                                                <input asp-for="EndDate" type="date" class="form-control" />
+                                                <span asp-validation-for="EndDate" class="text-danger"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="WeeklyWorkHours" class="form-label"></label>
+                                            <div class="input-group">
+                                                <input asp-for="WeeklyWorkHours" type="number" class="form-control" 
+                                                       min="1" max="168" />
+                                                <span class="input-group-text">saat/hafta</span>
+                                            </div>
+                                            <div class="form-text">Maksimum 168 saat (24 saat x 7 gün)</div>
+                                            <span asp-validation-for="WeeklyWorkHours" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="InternshipDescription" class="form-label"></label>
+                                            <textarea asp-for="InternshipDescription" class="form-control" rows="4"
+                                                      placeholder="Yapacaðýnýz iþlerin detaylý açýklamasý..."></textarea>
+                                            <span asp-validation-for="InternshipDescription" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Öðrenci Notu -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-sticky-note me-2"></i>Öðrenci Notu
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label asp-for="StudentNote" class="form-label"></label>
+                                            <textarea asp-for="StudentNote" class="form-control" rows="3"
+                                                      placeholder="Danýþmanýnýza iletmek istediðiniz özel notlar..."></textarea>
+                                            <span asp-validation-for="StudentNote" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Butonlarý -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <button type="submit" class="btn btn-primary btn-lg me-3">
+                                            <i class="fas fa-paper-plane me-2"></i>Onaya Gönder
+                                        </button>
+                                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                            <i class="fas fa-times me-2"></i>Ýptal
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Tarih alanlarý için minimum tarih ayarla
+            const today = new Date().toISOString().split('T')[0];
+            $('#StartDate').attr('min', today);
+            
+            $('#StartDate').change(function() {
+                const startDate = $(this).val();
+                $('#EndDate').attr('min', startDate);
+            });
+        });
+    </script>
+}

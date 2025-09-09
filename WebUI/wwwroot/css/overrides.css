@@ -1,0 +1,25 @@
+/* Overrides to force white background on company/job cards */
+.job-posting-card,
+.company-card {
+    background: #ffffff !important;
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-size: auto !important;
+    border-color: #e5e7eb !important;
+    box-shadow: 0 6px 18px rgba(16,24,40,0.04) !important;
+}
+
+/* Remove pseudo-element gradients if any */
+.job-posting-card::before,
+.job-posting-card::after,
+.company-card::before,
+.company-card::after {
+    content: none !important;
+    display: none !important;
+    background: none !important;
+}
+
+/* Make stat blocks stay as designed */
+.job-posting-card .rounded-lg {
+    background-clip: padding-box !important;
+}

@@ -2,6 +2,7 @@
 using DataAccess.Context;
 using DataAccess.GenericRepository.Repository;
 using DataAccess.Interfaces.UserRepose;
+using DataAccess.Unit.Interface;
 using Microsoft.EntityFrameworkCore;
 
 public class UserRepository : Repository<User>, IUserRepository
@@ -36,6 +37,13 @@ public class UserRepository : Repository<User>, IUserRepository
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
+    public async Task<User?> GetUserWithUniversityAsync(int userId)
+    {
+        return await _context.Users
+            .Include(u => u.University)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
+
     public async Task<List<User>> SearchUsersByFullNameAsync(string keyword)
     {
         return await _context.Users.Where(u => u.FullName.Contains(keyword)).ToListAsync();
@@ -46,9 +54,9 @@ public class UserRepository : Repository<User>, IUserRepository
         return !await _context.Users.AnyAsync(u => u.Email == email);
     }
 
-    public async Task<User?> GetUserByActivationCodeAsync(string code)
+    public async Task<User?> GetUserByActivationCodeAsync(string ActivationCodeAsync)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.ActivationCode == code);
+        return await _context.Users.FirstOrDefaultAsync(u => u.ActivationCode == ActivationCodeAsync);
     }
 
     public async Task ActivateUserAsync(string code)
@@ -57,10 +65,33 @@ public class UserRepository : Repository<User>, IUserRepository
         if (user == null)
             throw new InvalidOperationException("Geçersiz aktivasyon kodu.");
 
+        if (user.ActivationCodeExpireAt < DateTime.UtcNow)
+            throw new InvalidOperationException("Aktivasyon kodunun süresi dolmuş.");
+
         user.IsActive = true;
         user.ActivationCode = null;
+        user.ActivationCodeExpireAt = null;
 
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<User?> GetUserByResetPasswordCodeAsync(string ResetPasswordCodeAsync)
+    {
+      return await _context.Users.FirstOrDefaultAsync(x=>x.PasswordResetToken== ResetPasswordCodeAsync);
+    }
+
+    public async Task<List<User>> GetAllStudentsAsync()
+       => await _context.Users
+           .Where(u => u.Role == UserRole.Student)
+           .ToListAsync();
+
+    public async Task<User?> GetStudentByIdAsync(int id)
+        => await _context.Users
+            .Where(u => u.Id == id && u.Role == UserRole.Student)
+            .FirstOrDefaultAsync();
+    public async Task<User?> GetUserByIdWithPasswordAsync(int userId)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
     }
 }

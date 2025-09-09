@@ -10,5 +10,6 @@ namespace DataAccess.Interfaces.Com
         Task<List<CompanyUser>> GetUsersByCompanyIdAsync(int companyId);
         Task<List<CompanyUser>> GetCompaniesByUserIdAsync(int userId);
         Task<CompanyUser?> GetCompanyUserAsync(int companyId, int userId);
+        Task<Company?> GetCompanyByUserIdAsync(int userId);
     }
 }

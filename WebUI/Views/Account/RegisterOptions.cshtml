@@ -1,40 +1,94 @@
 ﻿@{
-	Layout = "_AccountLayout";
+    Layout = "_AccountLayout";
 }
-<!doctype html>
-<html lang="tr">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="~/css/style.css">
-</head>
-<body>
-	<section class="ftco-section">
-		<div class="container">
-			<div class="row justify-content-center">
-				<div class="col-md-6 text-center mb-5">
-					<h2 class="heading-section">Kayıt Ol</h2>
-				</div>
-			</div>
-			<div class="row justify-content-center">
-				<div class="col-md-6 col-lg-4">
-					<div class="login-wrap p-0">
-						<h3 class="mb-4 text-center">Lütfen rolünüzü seçin</h3>
-						<div class="form-group">
-							<a asp-action="StudentRegister" class="form-control btn btn-primary submit px-3">Öğrenci</a>
-						</div>
-						<div class="form-group">
-							<a asp-action="AdvisorRegister" class="form-control btn btn-success submit px-3">Danışman</a>
-						</div>
-						<div class="form-group">
-							<a asp-action="CompanyRegister" class="form-control btn btn-info submit px-3">Firma</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-</body>
-</html>
+
+<section class="modern-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7 col-sm-9">
+                <div class="modern-card">
+                    <!-- Header with Animated Icon -->
+                    <div class="card-header">
+                        <div class="icon-wrapper">
+                            <div class="pulse-ring"></div>
+                            <div class="pulse-ring delay-1"></div>
+                            <div class="pulse-ring delay-2"></div>
+                            <div class="animated-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        </div>
+                        <h1 class="card-title">Kayıt Ol</h1>
+                        <p class="card-subtitle">
+                            Lütfen kayıt olmak istediğiniz rolü seçin
+                        </p>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <!-- Role Selection Buttons -->
+                        <div class="role-selection">
+                            <!-- Student Button -->
+                            <div class="role-option">
+                                <a asp-action="StudentRegister" class="modern-role-btn">
+                                    <div class="role-icon student-icon">
+                                        <i class="fas fa-user-graduate"></i>
+                                    </div>
+                                    <div class="role-content">
+                                        <h3>Öğrenci</h3>
+                                        <p>Staj başvurusu yapın ve sürecinizi takip edin</p>
+                                    </div>
+                                    <div class="role-arrow">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Advisor Button -->
+                            <div class="role-option">
+                                <a asp-action="AdvisorRegister" class="modern-role-btn">
+                                    <div class="role-icon advisor-icon">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                    </div>
+                                    <div class="role-content">
+                                        <h3>Danışman</h3>
+                                        <p>Öğrenci stajlarını yönetin ve onaylayın</p>
+                                    </div>
+                                    <div class="role-arrow">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Company Button -->
+                            <div class="role-option">
+                                <a asp-action="CompanyRegister" class="modern-role-btn">
+                                    <div class="role-icon company-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="role-content">
+                                        <h3>Firma</h3>
+                                        <p>Staj ilanları verin ve başvuruları değerlendirin</p>
+                                    </div>
+                                    <div class="role-arrow">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer">
+                        <div class="footer-content">
+                            <p>Zaten hesabınız var mı?</p>
+                            <a asp-controller="Account" asp-action="Login" class="login-link">
+                                <span>Giriş Yap</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

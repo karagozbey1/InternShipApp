@@ -5,6 +5,7 @@ namespace Business.Interfaces.Internship
     public interface IInternshipOfferService
     {
         Task<List<InternshipOffer>> GetAllActiveOffersAsync();
+        Task<InternshipOffer?> GetByIdAsync(int id);
         Task<InternshipOffer?> GetOfferWithCompanyAsync(int offerId);
         Task<List<InternshipOffer>> GetOffersByCompanyIdAsync(int companyId);
         Task<List<InternshipOffer>> SearchOffersAsync(string keyword, string? city, string? field);

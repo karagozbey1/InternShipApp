@@ -14,5 +14,6 @@ namespace DataAccess.Interfaces.Com
         Task<Company?> GetCompanyWithDetailsAsync(int companyId);
         Task<Company?> GetCompanyByNameAsync(string companyName);
         Task<List<Company>> GetCompaniesWithActiveOffersAsync();
+        Task<Company?> GetCompanyByUserIdAsync(int userId);
     }
 }

@@ -2,6 +2,7 @@
 using DataAccess.Context;
 using DataAccess.GenericRepository.Repository;
 using DataAccess.Interfaces.Internship;
+using DataAccess.Unit.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,7 @@ namespace DataAccess.Repositories.Internship
         public async Task<List<InternshipOffer>> GetOffersByCompanyIdAsync(int companyId)
         {
             return await _context.InternshipOffers
+                .Include(o => o.Company) // ensure Company navigation is loaded
                 .Where(o => o.CompanyId == companyId)
                 .OrderByDescending(o => o.CreatedAt)
                 .ToListAsync();
@@ -75,5 +77,6 @@ namespace DataAccess.Repositories.Internship
                                  .Include(o => o.Period)
                                  .FirstOrDefaultAsync(o => o.Id == offerId);
         }
+       
     }
 }

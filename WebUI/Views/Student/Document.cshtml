@@ -1,0 +1,244 @@
+﻿@using WebUI.Models.ViewModels.Student.ViewModels
+@model DocumentListViewModel
+@{
+    ViewData["Title"] = "Belgelerim";
+    Layout = "_AppLayout";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
+                    <i class="fas fa-folder-open me-3"></i>Belgelerim
+                </h1>
+                <p class="text-blue-600 dark:text-blue-300">
+                    Staj başvurularınızda kullanabileceğiniz belgeleri yükleyin ve yönetin
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-3xl font-bold text-blue-800 dark:text-blue-200">@Model.Documents.Count</div>
+                <div class="text-sm text-blue-600 dark:text-blue-300">Toplam Belge</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Upload -->
+    <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">Belge Yükleme</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Belgelerinizi yükleyebilir ve başvuru yaparken bunlar arasından seçim yapabilirsiniz.
+        </p>
+
+        <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+            @Html.AntiForgeryToken()
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-8 text-center hover:border-blue-400 transition-colors duration-200">
+                    <i class="fas fa-upload text-gray-400 text-5xl mb-4"></i>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Dosya Seç</p>
+                    <input name="file" type="file" class="hidden" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required />
+                    <button type="button" onclick="document.getElementById('fileInput').click()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                        Dosya Seç
+                    </button>
+                    <div id="selectedFile" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></div>
+                    <p class="text-xs text-gray-500 mt-2">Maksimum dosya boyutu: 10MB<br/>Desteklenen formatlar: PDF, DOC, DOCX, JPG, PNG</p>
+                </div>
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Belge Başlığı *</label>
+                    <input name="title" id="title" type="text" maxlength="200" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 mb-4" placeholder="Belge başlığı giriniz..." required />
+                    <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dosya Türü *</label>
+                    <select name="type" id="type" required class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                        <option value="">-- Dosya türü seçin --</option>
+                        <option value="@WebUI.Models.ViewModels.Student.DocumentType.CV">CV</option>
+                        <option value="@WebUI.Models.ViewModels.Student.DocumentType.Transcript">Transkript</option>
+                        <option value="@WebUI.Models.ViewModels.Student.DocumentType.ApplicationForm">Başvuru Formu</option>
+                        <option value="@WebUI.Models.ViewModels.Student.DocumentType.Other">Diğer</option>
+                    </select>
+                    <div class="mt-4">
+                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Açıklama (İsteğe bağlı)</label>
+                        <textarea name="description" id="description" rows="3" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Belge hakkında kısa açıklama..."></textarea>
+                    </div>
+                    <button type="submit" id="submitBtn" class="mt-4 w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105 font-medium">
+                        <span id="submitText">Dosyayı Yükle</span>
+                        <i id="loadingIcon" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Uploaded Documents -->
+    <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Yüklenen Belgeler</h3>
+            @if (Model.Documents.Any())
+            {
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                    @Model.Documents.Count belge
+                </span>
+            }
+        </div>
+
+        @if (Model.Documents.Any())
+        {
+            <div class="space-y-4">
+                @foreach (var document in Model.Documents)
+                {
+                    <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700 hover:shadow-md transition-all duration-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-file-alt text-blue-500 text-2xl"></i>
+                            <div>
+                                <p class="font-medium text-gray-800 dark:text-gray-200">@document.Title</p>
+                                <p class="text-xs text-gray-500">@document.FileName</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    @if (document.FileSize > 0)
+                                    {
+                                        @($"{Math.Round((double)document.FileSize / 1024 / 1024, 2)} MB")
+                                    }
+                                    else
+                                    {
+                                        @("Boyut bilinmiyor")
+                                    }
+                                    •
+                                    @document.Type.ToString() •
+                                    @document.UploadedAt.ToString("dd.MM.yyyy HH:mm")
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="@document.FilePath" target="_blank" class="p-2 text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors duration-200" title="Görüntüle">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="@document.FilePath" download class="p-2 text-green-500 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg transition-colors duration-200" title="İndir">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Bu dosyayı silmek istediğinizden emin misiniz?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@document.Id" />
+                                <button type="submit" class="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200" title="Sil">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <i class="fas fa-folder-open text-gray-400 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz belge yüklenmemiş</h3>
+                <p class="text-gray-500 dark:text-gray-500 mb-4">Staj başvurularınızda kullanabileceğiniz belgeleri buradan yükleyebilirsiniz.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const selectedFileDiv = document.getElementById('selectedFile');
+            const uploadForm = document.getElementById('uploadForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const loadingIcon = document.getElementById('loadingIcon');
+
+            // Dosya seçimi
+            fileInput?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+
+                if (file) {
+                    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                    const fileName = file.name;
+                    
+                    selectedFileDiv.innerHTML = `
+                        <div class="p-2 bg-blue-50 border border-blue-200 rounded mt-2">
+                            <strong>Seçilen dosya:</strong> ${fileName}<br/>
+                            <span class="text-sm text-gray-600">Boyut: ${fileSize} MB</span>
+                        </div>
+                    `;
+
+                    // Dosya boyutu kontrolü
+                    if (file.size > 10 * 1024 * 1024) {
+                        selectedFileDiv.innerHTML = `
+                            <div class="p-2 bg-red-50 border border-red-200 rounded mt-2 text-red-700">
+                                <strong>Hata:</strong> Dosya boyutu 10MB'dan büyük olamaz!
+                            </div>
+                        `;
+                        fileInput.value = '';
+                        return;
+                    }
+
+                    // Dosya türü kontrolü
+                    const allowedTypes = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+                    const fileExtension = '.' + fileName.split('.').pop().toLowerCase();
+                    
+                    if (!allowedTypes.includes(fileExtension)) {
+                        selectedFileDiv.innerHTML = `
+                            <div class="p-2 bg-red-50 border border-red-200 rounded mt-2 text-red-700">
+                                <strong>Hata:</strong> Bu dosya türü desteklenmiyor!
+                            </div>
+                        `;
+                        fileInput.value = '';
+                        return;
+                    }
+                } else if (selectedFileDiv) {
+                    selectedFileDiv.innerHTML = '';
+                }
+            });
+
+            // Form gönderimi
+            uploadForm?.addEventListener('submit', function(e) {
+                const file = fileInput?.files[0];
+                const type = document.getElementById('type').value;
+
+                if (!file) {
+                    e.preventDefault();
+                    alert('Lütfen bir dosya seçin!');
+                    return;
+                }
+
+                if (!type) {
+                    e.preventDefault();
+                    alert('Lütfen dosya türünü seçin!');
+                    return;
+                }
+
+                // Yükleme animasyonu
+                submitBtn.disabled = true;
+                submitText.textContent = 'Yükleniyor...';
+                loadingIcon.classList.remove('hidden');
+
+                // 30 saniye sonra timeout
+                setTimeout(() => {
+                    if (submitBtn.disabled) {
+                        submitBtn.disabled = false;
+                        submitText.textContent = 'Dosyayı Yükle';
+                        loadingIcon.classList.add('hidden');
+                    }
+                }, 30000);
+            });
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

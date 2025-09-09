@@ -3,6 +3,8 @@ using Core.Entity;
 using DataAccess.Unit.Interface;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using System;
 
 namespace Business.Services.Order
 {
@@ -22,8 +24,8 @@ namespace Business.Services.Order
 
         public async Task<List<News>> GetAllNewsAsync()
         {
-            var News= await _unitOfWork.News.GetAllAsync();
-            return News.ToList();
+            var news = await _unitOfWork.News.GetAllAsync();
+            return news.OrderByDescending(n => n.PublishDate).ToList();
         }
 
         public async Task<List<News>> GetRecentNewsAsync(int count)
@@ -43,7 +45,6 @@ namespace Business.Services.Order
 
         public async Task<News> AddNewsAsync(News news)
         {
-            // İş mantığı: Haber ekleme öncesi başlık ve içerik doğrulama gibi kontroller eklenebilir.
             news.PublishDate = DateTime.UtcNow;
             await _unitOfWork.News.AddAsync(news);
             await _unitOfWork.SaveAsync();

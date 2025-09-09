@@ -1,0 +1,157 @@
+@using WebUI.Models.ViewModels.Student.ViewModels
+@model DiaryEntryViewModel
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-start justify-between">
+        <div class="flex items-center gap-4">
+            <div class="p-3 bg-@(Model.CategoryColor)-100 dark:bg-@(Model.CategoryColor)-900 rounded-xl">
+                <i class="@Model.CategoryIcon text-@(Model.CategoryColor)-500 text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">@Model.Title</h3>
+                <div class="flex items-center gap-4 mt-1">
+                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-calendar mr-1"></i>@Model.Date.ToString("dd MMMM yyyy, dddd")
+                    </span>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-clock mr-1"></i>@Model.WorkingHours saat
+                    </span>
+                    <span class="bg-@(Model.CategoryColor)-100 text-@(Model.CategoryColor)-800 dark:bg-@(Model.CategoryColor)-900 dark:text-@(Model.CategoryColor)-200 px-3 py-1 rounded-full text-sm">
+                        @Model.CategoryDisplayName
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div>
+            @if (Model.IsApproved)
+            {
+                <span class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-3 py-1 rounded-full text-sm flex items-center">
+                    <i class="fas fa-check mr-1"></i>Onaylandý
+                    @if (Model.ApprovedAt.HasValue)
+                    {
+                        <span class="ml-2 text-xs">(@Model.ApprovedAt.Value.ToString("dd.MM.yyyy"))</span>
+                    }
+                </span>
+            }
+            else
+            {
+                <span class="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded-full text-sm flex items-center">
+                    <i class="fas fa-clock mr-1"></i>Danýþman Onayý Bekliyor
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Ýçerik -->
+    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+        <h4 class="font-semibold text-gray-800 dark:text-gray-200 mb-2">
+            <i class="fas fa-file-text mr-2"></i>Günlük Ýçerik
+        </h4>
+        <p class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">@Model.Content</p>
+    </div>
+
+    <!-- Detay Bilgiler -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        @if (!string.IsNullOrEmpty(Model.LearnedTopics))
+        {
+            <div class="bg-yellow-50 dark:bg-yellow-900 rounded-lg p-4">
+                <h4 class="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
+                    <i class="fas fa-lightbulb mr-2"></i>Öðrenilen Konular
+                </h4>
+                <p class="text-yellow-700 dark:text-yellow-300 leading-relaxed whitespace-pre-wrap">@Model.LearnedTopics</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Challenges))
+        {
+            <div class="bg-orange-50 dark:bg-orange-900 rounded-lg p-4">
+                <h4 class="font-semibold text-orange-800 dark:text-orange-200 mb-2">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Karþýlaþýlan Zorluklar
+                </h4>
+                <p class="text-orange-700 dark:text-orange-300 leading-relaxed whitespace-pre-wrap">@Model.Challenges</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Solutions))
+        {
+            <div class="bg-green-50 dark:bg-green-900 rounded-lg p-4">
+                <h4 class="font-semibold text-green-800 dark:text-green-200 mb-2">
+                    <i class="fas fa-check-circle mr-2"></i>Uygulanan Çözümler
+                </h4>
+                <p class="text-green-700 dark:text-green-300 leading-relaxed whitespace-pre-wrap">@Model.Solutions</p>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="bg-purple-50 dark:bg-purple-900 rounded-lg p-4">
+                <h4 class="font-semibold text-purple-800 dark:text-purple-200 mb-2">
+                    <i class="fas fa-sticky-note mr-2"></i>Ek Notlar
+                </h4>
+                <p class="text-purple-700 dark:text-purple-300 leading-relaxed whitespace-pre-wrap">@Model.Notes</p>
+            </div>
+        }
+    </div>
+
+    <!-- Danýþman Geri Bildirimi -->
+    @if (!string.IsNullOrEmpty(Model.AdvisorFeedback))
+    {
+        <div class="bg-blue-50 dark:bg-blue-900 rounded-lg p-4 border-l-4 border-blue-500">
+            <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                <i class="fas fa-comment mr-2"></i>Danýþman Geri Bildirimi
+            </h4>
+            <p class="text-blue-700 dark:text-blue-300 leading-relaxed whitespace-pre-wrap">@Model.AdvisorFeedback</p>
+            @if (Model.ApprovedAt.HasValue)
+            {
+                <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                    <i class="fas fa-clock mr-1"></i>@Model.ApprovedAt.Value.ToString("dd MMMM yyyy HH:mm")
+                </p>
+            }
+        </div>
+    }
+
+    <!-- Meta Bilgiler -->
+    <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <div class="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+            <span>
+                <i class="fas fa-plus mr-1"></i>Oluþturulma: @Model.CreatedAt.ToString("dd MMMM yyyy HH:mm")
+            </span>
+            @if (Model.CreatedAt != Model.Date)
+            {
+                <span>
+                    <i class="fas fa-edit mr-1"></i>Son güncelleme: @Model.CreatedAt.ToString("dd MMMM yyyy HH:mm")
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Aksiyonlar -->
+    <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button onclick="editDiaryEntry(@Model.Id)" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fas fa-edit mr-2"></i>Düzenle
+        </button>
+        <button onclick="printDiaryEntry()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fas fa-print mr-2"></i>Yazdýr
+        </button>
+        <form asp-action="DeleteEntry" asp-route-id="@Model.Id" method="post" class="inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    onclick="return confirm('Bu girdiyi silmek istediðinizden emin misiniz?')">
+                <i class="fas fa-trash mr-2"></i>Sil
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function printDiaryEntry() {
+        window.print();
+    }
+    
+    function editDiaryEntry(id) {
+        // Edit modal açma fonksiyonu buraya eklenebilir
+        closeDiaryDetailModal();
+        alert('Düzenleme özelliði yakýnda eklenecek.');
+    }
+</script>

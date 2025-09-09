@@ -1,0 +1,195 @@
+@model CreateDiaryNotebookViewModel
+@{
+    ViewData["Title"] = "Yeni Staj Defteri Oluþtur";
+    Layout = "_AppLayout";
+}
+
+<div class="p-6 max-w-4xl mx-auto">
+    <!-- Debug Info - Remove in production -->
+    @if (TempData["ErrorMessage"] != null || TempData["SuccessMessage"] != null || !ViewData.ModelState.IsValid)
+    {
+        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+            <h4 class="font-bold">Debug Bilgileri:</h4>
+            <p><strong>ModelState Valid:</strong> @ViewData.ModelState.IsValid</p>
+            <p><strong>Model.Title:</strong> @Model.Title</p>
+            <p><strong>Model.IsRequired:</strong> @Model.IsRequired</p>
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <p><strong>Error:</strong> @TempData["ErrorMessage"]</p>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <p><strong>Success:</strong> @TempData["SuccessMessage"]</p>
+            }
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <p><strong>Validation Errors:</strong></p>
+                <ul>
+                    @foreach (var error in ViewData.ModelState)
+                    {
+                        @foreach (var subError in error.Value.Errors)
+                        {
+                            <li>@error.Key: @subError.ErrorMessage</li>
+                        }
+                    }
+                </ul>
+            }
+        </div>
+    }
+
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <i class="fas fa-plus text-blue-500 mr-3"></i>Yeni Staj Defteri Oluþtur
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+            Staj sürecinizi takip etmek için yeni bir defter oluþturun.
+        </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+        <form asp-action="Create" method="post" class="space-y-6" id="createDiaryForm">
+            @Html.AntiForgeryToken()
+            
+            <div asp-validation-summary="All" class="text-red-600"></div>
+
+            <div>
+                <label asp-for="Title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-heading mr-1"></i>Defter Baþlýðý *
+                </label>
+                <input asp-for="Title" 
+                       class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                       placeholder="Örn: ABC Teknoloji Yazýlým Stajým"
+                       required />
+                <span asp-validation-for="Title" class="text-red-600 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="Description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-align-left mr-1"></i>Açýklama
+                </label>
+                <textarea asp-for="Description" rows="3"
+                          class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
+                          placeholder="Bu defter hakkýnda kýsa bir açýklama..."></textarea>
+                <span asp-validation-for="Description" class="text-red-600 text-sm"></span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label asp-for="CompanyName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-building mr-1"></i>Þirket Adý
+                    </label>
+                    <input asp-for="CompanyName" 
+                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                           placeholder="Þirket adýný girin" />
+                    <span asp-validation-for="CompanyName" class="text-red-600 text-sm"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Department" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-sitemap mr-1"></i>Departman
+                    </label>
+                    <input asp-for="Department" 
+                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                           placeholder="Çalýþacaðýnýz departman" />
+                    <span asp-validation-for="Department" class="text-red-600 text-sm"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label asp-for="InternshipStartDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-calendar-alt mr-1"></i>Baþlangýç Tarihi
+                    </label>
+                    <input asp-for="InternshipStartDate" type="date"
+                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
+                    <span asp-validation-for="InternshipStartDate" class="text-red-600 text-sm"></span>
+                </div>
+
+                <div>
+                    <label asp-for="InternshipEndDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-calendar-check mr-1"></i>Bitiþ Tarihi
+                    </label>
+                    <input asp-for="InternshipEndDate" type="date"
+                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
+                    <span asp-validation-for="InternshipEndDate" class="text-red-600 text-sm"></span>
+                </div>
+
+                <div>
+                    <label asp-for="TotalDays" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-calendar-day mr-1"></i>Toplam Gün
+                    </label>
+                    <input asp-for="TotalDays" type="number" min="1" max="365"
+                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
+                           placeholder="20" />
+                    <span asp-validation-for="TotalDays" class="text-red-600 text-sm"></span>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <div class="flex items-center">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="hidden" name="IsRequired" value="false" />
+                        <input type="checkbox" name="IsRequired" value="true" class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" @(Model.IsRequired ? "checked" : "") />
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Bu defter zorunlu staj için kullanýlacak</span>
+                    </label>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-7">
+                    Zorunlu stajlar için oluþturulan defterler, üniversite danýþmanýnýz tarafýndan incelenecektir.
+                </p>
+            </div>
+
+            <div class="flex gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button type="submit" id="submitButton" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg transition-colors font-medium flex items-center">
+                    <span id="submitIcon" class="fas fa-save mr-2"></span>
+                    <span id="submitText">Defteri Oluþtur</span>
+                </button>
+                <a asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg transition-colors font-medium">
+                    <i class="fas fa-times mr-2"></i>Ýptal
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('createDiaryForm');
+            const submitButton = document.getElementById('submitButton');
+            const submitIcon = document.getElementById('submitIcon');
+            const submitText = document.getElementById('submitText');
+            
+            console.log('Form bulundu:', form);
+            console.log('jQuery yüklü mü:', typeof $ !== 'undefined');
+            
+            if (form) {
+                console.log('Form action:', form.action);
+                console.log('Form method:', form.method);
+                
+                form.addEventListener('submit', function(e) {
+                    console.log('Form submit event triggered');
+                    
+                    // Validation kontrol
+                    const titleInput = document.querySelector('input[name="Title"]');
+                    if (!titleInput || !titleInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Defter baþlýðý zorunludur.');
+                        titleInput?.focus();
+                        return false;
+                    }
+                    
+                    // Submit button loading state
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    submitIcon.className = 'fas fa-spinner fa-spin mr-2';
+                    submitText.textContent = 'Oluþturuluyor...';
+                    
+                    console.log('Form gönderiliyor...');
+                    return true;
+                });
+            }
+        });
+    </script>
+}}

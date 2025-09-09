@@ -1,0 +1,325 @@
+@model UniversityApprovalFormViewModel
+@{
+    ViewData["Title"] = "Üniversite Onay Formu";
+    Layout = "_StudentLayout";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 bg-gradient-primary text-white">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-university me-3 fs-4"></i>
+                        <div>
+                            <h6 class="m-0 font-weight-bold">Üniversite Onay Baþvurusu</h6>
+                            <small class="opacity-75">@Model.UniversityName</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Bilgilendirme -->
+                    <div class="alert alert-info d-flex align-items-start mb-4">
+                        <i class="fas fa-info-circle me-3 mt-1 fs-5"></i>
+                        <div>
+                            <h6 class="alert-heading mb-2">Üniversite Onay Süreci</h6>
+                            <p class="mb-2">
+                                Bu form ile üniversitenizin staj koordinatörlüðüne özel durumlar, onay talepleri 
+                                veya staj sürecinizle ilgili resmi baþvurularýnýzý iletebilirsiniz.
+                            </p>
+                            <div class="small">
+                                <strong>Baþvuru Türleri:</strong> Staj onayý, tarih deðiþikliði, özel durum bildirimi, 
+                                koordinatör deðiþikliði, belge talepleri
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Öðrenci Bilgileri Özeti -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-user-graduate me-2"></i>Öðrenci Bilgileri
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Ad Soyad:</strong><br>
+                                    <span class="text-muted">@Model.StudentName</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>E-posta:</strong><br>
+                                    <span class="text-muted">@Model.StudentEmail</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Üniversite:</strong><br>
+                                    <span class="text-muted">@Model.UniversityName</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ana Form -->
+                    <form asp-action="UniversityApproval" method="post" class="needs-validation" novalidate>
+                        <div class="row">
+                            <!-- Sol Kolon -->
+                            <div class="col-md-6">
+                                <!-- Baþvuru Temel Bilgileri -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-clipboard-list me-2"></i>Baþvuru Bilgileri
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label asp-for="Subject" class="form-label required"></label>
+                                            <input asp-for="Subject" class="form-control" 
+                                                   placeholder="Örn: Staj Onay Talebi - ABC Þirketi" required />
+                                            <span asp-validation-for="Subject" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="RequestType" class="form-label"></label>
+                                                <select asp-for="RequestType" class="form-select">
+                                                    <option value="Staj Onayý">Staj Onayý</option>
+                                                    <option value="Tarih Deðiþikliði">Tarih Deðiþikliði</option>
+                                                    <option value="Özel Durum">Özel Durum Bildirimi</option>
+                                                    <option value="Belge Talebi">Belge Talebi</option>
+                                                    <option value="Koordinatör Deðiþikliði">Koordinatör Deðiþikliði</option>
+                                                    <option value="Diðer">Diðer</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Priority" class="form-label"></label>
+                                                <select asp-for="Priority" class="form-select">
+                                                    <option value="Düþük">Düþük</option>
+                                                    <option value="Normal" selected>Normal</option>
+                                                    <option value="Yüksek">Yüksek</option>
+                                                    <option value="Acil">Acil</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="ApplicationDetails" class="form-label required"></label>
+                                            <textarea asp-for="ApplicationDetails" class="form-control" rows="6" 
+                                                      placeholder="Baþvurunuzun detaylarýný, nedenini ve beklentilerinizi açýk bir þekilde yazýnýz. En az 50 karakter gereklidir." 
+                                                      required></textarea>
+                                            <div class="form-text">
+                                                <span id="charCount">0</span>/1000 karakter (minimum 50)
+                                            </div>
+                                            <span asp-validation-for="ApplicationDetails" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sað Kolon -->
+                            <div class="col-md-6">
+                                <!-- Staj Bilgileri (Ýsteðe Baðlý) -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-briefcase me-2"></i>Staj Bilgileri (Ýsteðe Baðlý)
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label asp-for="CompanyName" class="form-label"></label>
+                                            <input asp-for="CompanyName" class="form-control" 
+                                                   placeholder="Staj yapacaðýnýz þirket adý" />
+                                            <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="StartDate" class="form-label"></label>
+                                                <input asp-for="StartDate" type="date" class="form-control" />
+                                                <span asp-validation-for="StartDate" class="text-danger small"></span>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="EndDate" class="form-label"></label>
+                                                <input asp-for="EndDate" type="date" class="form-control" />
+                                                <span asp-validation-for="EndDate" class="text-danger small"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Ek Notlar -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-sticky-note me-2"></i>Ek Notlar
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label asp-for="AdditionalNotes" class="form-label"></label>
+                                            <textarea asp-for="AdditionalNotes" class="form-control" rows="4"
+                                                      placeholder="Baþvurunuzla ilgili ek bilgiler, özel durumlar veya istekleriniz varsa buraya yazabilirsiniz..."></textarea>
+                                            <span asp-validation-for="AdditionalNotes" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Önemli Bilgiler -->
+                                <div class="card mb-4 border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>Önemli Bilgiler
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="mb-0 small">
+                                            <li class="mb-2">Baþvurular iþletme günleri içinde 3-5 gün içinde deðerlendirilir</li>
+                                            <li class="mb-2">Acil durumlar için telefon ile koordinatörlüðe baþvurunuz</li>
+                                            <li class="mb-2">Eksik veya hatalý bilgiler baþvuru sürecini uzatabilir</li>
+                                            <li>Baþvuru sonucu e-posta ile bildirilecektir</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Butonlarý -->
+                        <div class="card">
+                            <div class="card-body text-center bg-light">
+                                <button type="submit" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-paper-plane me-2"></i>Baþvuruyu Gönder
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary btn-lg me-3">
+                                    <i class="fas fa-arrow-left me-2"></i>Geri Dön
+                                </a>
+                                <button type="reset" class="btn btn-outline-warning btn-lg">
+                                    <i class="fas fa-undo me-2"></i>Temizle
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Gizli alanlar -->
+                        <input type="hidden" asp-for="StudentId" />
+                        <input type="hidden" asp-for="StudentName" />
+                        <input type="hidden" asp-for="StudentEmail" />
+                        <input type="hidden" asp-for="UniversityId" />
+                        <input type="hidden" asp-for="UniversityName" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Karakter sayacý
+            function updateCharCount() {
+                const textarea = $('#ApplicationDetails');
+                const charCount = textarea.val().length;
+                $('#charCount').text(charCount);
+                
+                if (charCount < 50) {
+                    $('#charCount').removeClass('text-success').addClass('text-danger');
+                } else {
+                    $('#charCount').removeClass('text-danger').addClass('text-success');
+                }
+            }
+
+            $('#ApplicationDetails').on('input', updateCharCount);
+            updateCharCount(); // Initial call
+
+            // Tarih validasyonlarý
+            const today = new Date().toISOString().split('T')[0];
+            $('#StartDate').attr('min', today);
+            
+            $('#StartDate').change(function() {
+                const startDate = $(this).val();
+                if (startDate) {
+                    $('#EndDate').attr('min', startDate);
+                }
+            });
+
+            // Form validasyonu
+            $('form').on('submit', function(e) {
+                const applicationDetails = $('#ApplicationDetails').val();
+                
+                if (applicationDetails.length < 50) {
+                    e.preventDefault();
+                    alert('Baþvuru detaylarý en az 50 karakter olmalýdýr!');
+                    $('#ApplicationDetails').focus();
+                    return false;
+                }
+
+                const startDate = $('#StartDate').val();
+                const endDate = $('#EndDate').val();
+                
+                if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+                    e.preventDefault();
+                    alert('Staj bitiþ tarihi, baþlangýç tarihinden sonra olmalýdýr!');
+                    return false;
+                }
+
+                // Konfirmasyon
+                const subject = $('#Subject').val();
+                return confirm(`"${subject}" konulu baþvurunuzu göndermek istediðinizden emin misiniz?`);
+            });
+
+            // Ýstek türüne göre örnek konular
+            $('#RequestType').change(function() {
+                const requestType = $(this).val();
+                const subjectField = $('#Subject');
+                
+                const examples = {
+                    'Staj Onayý': 'Staj Onay Talebi - [Þirket Adý]',
+                    'Tarih Deðiþikliði': 'Staj Tarihi Deðiþiklik Talebi - [Þirket Adý]',
+                    'Özel Durum': 'Özel Durum Bildirimi - [Konu]',
+                    'Belge Talebi': 'Staj Belgesi Talebi - [Belge Türü]',
+                    'Koordinatör Deðiþikliði': 'Staj Koordinatörü Deðiþiklik Bildirimi',
+                    'Diðer': 'Staj Süreci Hakkýnda - [Konu]'
+                };
+                
+                if (examples[requestType] && !subjectField.val()) {
+                    subjectField.attr('placeholder', examples[requestType]);
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    
+    .card {
+        transition: box-shadow 0.15s ease-in-out;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(45deg, #4e73df, #224abe);
+    }
+    
+    .alert {
+        border-left: 4px solid;
+    }
+    
+    .alert-info {
+        border-left-color: #0dcaf0;
+    }
+    
+    .form-control:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+    }
+</style>
