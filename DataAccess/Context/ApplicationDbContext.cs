@@ -219,9 +219,8 @@ namespace DataAccess.Context
             modelBuilder.Entity<InternshipApplication>(entity =>
             {
                 // Property configurations
+                // Status veritabanında int olarak tutuluyor; string dönüşüm kaldırıldı
                 entity.Property(a => a.Status)
-                      .HasConversion<string>()
-                      .HasMaxLength(50)
                       .IsRequired();
 
                 entity.Property(a => a.StudentNote)
@@ -411,10 +410,6 @@ namespace DataAccess.Context
                         {
                             prop.CurrentValue = dt.ToUniversalTime();
                         }
-                    }
-                    else if (prop.CurrentValue == null)
-                    {
-                        // nothing to do for nulls
                     }
                 }
             }

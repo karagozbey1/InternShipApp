@@ -207,7 +207,7 @@ public class AccountController : Controller
             return await FillUniversitiesAsync(model);
         }
 
-        if (!model.Email.EndsWith("edu.tr"))
+        if (!model.Email.EndsWith("gmail.com"))
         {
             ModelState.AddModelError("Email", "Lütfen üniversitenizin kurumsal e-posta adresini giriniz.");
             return await FillUniversitiesAsync(model);
@@ -250,7 +250,7 @@ public class AccountController : Controller
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         HttpContext.Session.Clear();
-        return RedirectToAction("Index", "Home"); // Ana sayfaya yönlendir
+        return RedirectToAction("Index", "Home"); 
     }
 
     [HttpGet]

@@ -17,15 +17,106 @@ namespace DataAccess.Repositories.Internship
             if (studentId <= 0)
                 throw new ArgumentException("Geçersiz öğrenci kimliği", nameof(studentId));
 
-            // Include related Offer and Company so UI can display company name without additional queries
-            // Fixed: Also include Student.University to show university information
-            return await _context.InternshipApplications
-                .Where(app => app.StudentId == studentId)
-                .Include(a => a.InternshipOffer)
-                    .ThenInclude(o => o.Company)
-                .Include(a => a.Student)
-                    .ThenInclude(s => s.University)
-                .ToListAsync();
+            try
+            {
+                Console.WriteLine($"[DEBUG] GetApplicationsByStudentIdAsync called for studentId: {studentId}");
+                
+                // Test basic query first without includes
+                var basicApplications = await _context.InternshipApplications
+                    .Where(app => app.StudentId == studentId)
+                    .ToListAsync();
+                
+                Console.WriteLine($"[DEBUG] Found {basicApplications.Count} basic applications");
+
+                // Then try with just InternshipOffer include
+                var withOfferApplications = await _context.InternshipApplications
+                    .Where(app => app.StudentId == studentId)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .ToListAsync();
+                
+                Console.WriteLine($"[DEBUG] Found {withOfferApplications.Count} applications with offer");
+
+                // Finally try with Student include but without University
+                var withStudentApplications = await _context.InternshipApplications
+                    .Where(app => app.StudentId == studentId)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .Include(a => a.Student)
+                    .ToListAsync();
+                
+                Console.WriteLine($"[DEBUG] Found {withStudentApplications.Count} applications with student (no university)");
+
+                // Test University access separately
+                try
+                {
+                    Console.WriteLine("[DEBUG] Testing university table access...");
+                    var universityCount = await _context.Universities.CountAsync();
+                    Console.WriteLine($"[DEBUG] University count: {universityCount}");
+                    
+                    // Now try the full query with University include
+                    Console.WriteLine("[DEBUG] Attempting full query with University include...");
+                    return await _context.InternshipApplications
+                        .Where(app => app.StudentId == studentId)
+                        .Include(a => a.InternshipOffer)
+                            .ThenInclude(o => o.Company)
+                        .Include(a => a.Student)
+                            .ThenInclude(s => s.University)
+                        .ToListAsync();
+                }
+                catch (Exception universityEx)
+                {
+                    Console.WriteLine($"[ERROR] University access failed: {universityEx.Message}");
+                    Console.WriteLine($"[ERROR] Stack trace: {universityEx.StackTrace}");
+                    
+                    // Fallback: return without University include
+                    return withStudentApplications;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] GetApplicationsByStudentIdAsync failed: {ex.Message}");
+                Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+                throw;
+            }
+        }
+
+        // University bilgisini ayrı olarak getiren yardımcı metod - Interface requirement
+        public async Task<University?> GetStudentUniversityAsync(int studentId)
+        {
+            try
+            {
+                var student = await _context.Users
+                    .Include(u => u.University)
+                    .FirstOrDefaultAsync(u => u.Id == studentId);
+
+                return student?.University;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] GetStudentUniversityAsync failed: {ex.Message}");
+                return null;
+            }
+        }
+
+        // University bilgisini ayrı olarak getiren yardımcı metod - çoklu student - Interface requirement
+        public async Task<Dictionary<int, University?>> GetStudentsUniversitiesAsync(List<int> studentIds)
+        {
+            try
+            {
+                var students = await _context.Users
+                    .Where(u => studentIds.Contains(u.Id))
+                    .Include(u => u.University)
+                    .Select(u => new { u.Id, u.University })
+                    .ToListAsync();
+
+                return students.ToDictionary(s => s.Id, s => s.University);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] GetStudentsUniversitiesAsync failed: {ex.Message}");
+                return new Dictionary<int, University?>();
+            }
         }
 
         public async Task<List<InternshipApplication>> GetApplicationsByOfferIdAsync(int offerId)
@@ -33,14 +124,41 @@ namespace DataAccess.Repositories.Internship
             if (offerId <= 0)
                 throw new ArgumentException("Geçersiz teklif kimliği", nameof(offerId));
 
-            // Exclude rejected (withdrawn) applications so companies don't see withdrawn ones
-            // Fixed: Include Student.University to show university information in company applications
-            return await _context.InternshipApplications
-                .Include(a => a.Student)
-                    .ThenInclude(s => s.University)
-                .Include(a => a.InternshipOffer).ThenInclude(o => o.Company)
-                .Where(app => app.InternshipOfferId == offerId && app.Status != InternshipApplicationStatus.Rejected)
-                .ToListAsync();
+            try
+            {
+                Console.WriteLine($"[DEBUG] GetApplicationsByOfferIdAsync called for offerId: {offerId}");
+                
+                // Try without University include first
+                var withoutUniversity = await _context.InternshipApplications
+                    .Where(app => app.InternshipOfferId == offerId && app.Status != InternshipApplicationStatus.Rejected)
+                    .Include(a => a.Student)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .ToListAsync();
+                
+                Console.WriteLine($"[DEBUG] Found {withoutUniversity.Count} applications without university");
+
+                // Try with University include
+                return await _context.InternshipApplications
+                    .Where(app => app.InternshipOfferId == offerId && app.Status != InternshipApplicationStatus.Rejected)
+                    .Include(a => a.Student)
+                        .ThenInclude(s => s.University)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] GetApplicationsByOfferIdAsync failed: {ex.Message}");
+                
+                // Fallback: return without University include
+                return await _context.InternshipApplications
+                    .Where(app => app.InternshipOfferId == offerId && app.Status != InternshipApplicationStatus.Rejected)
+                    .Include(a => a.Student)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .ToListAsync();
+            }
         }
 
         public async Task<InternshipApplication?> GetApplicationWithDetailsAsync(int applicationId)
@@ -48,14 +166,32 @@ namespace DataAccess.Repositories.Internship
             if (applicationId <= 0)
                 throw new ArgumentException("Geçersiz başvuru kimliği", nameof(applicationId));
 
-            return await _context.InternshipApplications
-                .Include(a => a.Student)
-                    .ThenInclude(s => s.University)
-                .Include(a => a.InternshipOffer)
-                    .ThenInclude(o => o.Company)
-                .Include(a => a.Advisor)
-                .Include(a => a.InternshipDocuments)
-                .FirstOrDefaultAsync(a => a.Id == applicationId);
+            try
+            {
+                return await _context.InternshipApplications
+                    .Where(a => a.Id == applicationId)
+                    .Include(a => a.Student)
+                        .ThenInclude(s => s.University)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .Include(a => a.Advisor)
+                    .Include(a => a.InternshipDocuments)
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] GetApplicationWithDetailsAsync failed: {ex.Message}");
+                
+                // Fallback: return without University include
+                return await _context.InternshipApplications
+                    .Where(a => a.Id == applicationId)
+                    .Include(a => a.Student)
+                    .Include(a => a.InternshipOffer)
+                        .ThenInclude(o => o.Company)
+                    .Include(a => a.Advisor)
+                    .Include(a => a.InternshipDocuments)
+                    .FirstOrDefaultAsync();
+            }
         }
 
         public async Task<List<InternshipApplication>> GetApplicationsByStatusAsync(string status)
@@ -82,14 +218,15 @@ namespace DataAccess.Repositories.Internship
                 .Where(a => a.AdvisorId == advisorId)
                 .ToListAsync();
         }
+        
         public async Task<List<InternshipApplication>> GetApprovedByStudentIdAsync(int studentId)
         {
             return await _context.InternshipApplications
-                .Include(x => x.InternshipOffer).ThenInclude(o => o.Company)
                 .Where(x => x.StudentId == studentId && x.Status == InternshipApplicationStatus.Approved)
+                .Include(x => x.InternshipOffer)
+                    .ThenInclude(o => o.Company)
                 .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
         }
-
     }
 }

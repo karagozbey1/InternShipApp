@@ -130,6 +130,7 @@ builder.Services.AddScoped<IIUniversityService, UniversityService>();
 builder.Services.AddScoped<IIActivationEmailService, MailKitActivationEmailService>();
 builder.Services.AddScoped<IDiaryService, DiaryService>();
 builder.Services.AddScoped<IInternshipDiaryService, InternshipDiaryService>();
+// builder.Services.AddScoped<ISiteContentService, SiteContentService>(); // Removed because About/Contact pages removed
 
 var app = builder.Build();
 

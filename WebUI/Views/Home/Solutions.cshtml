@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Çözüm";
+    Layout = "_PublicLayout";
+}
+
+<section class="py-5" style="background:linear-gradient(135deg,#5b21b6,#2563eb 60%,#0ea5e9);min-height:420px;color:#fff;">
+    <div class="container pt-4 pb-5 text-center">
+        <h1 class="fw-bold display-5 mb-3">Staj Sürecinizi Dijitalleþtirin</h1>
+        <p class="lead mb-4">Öðrenciler, akademisyenler ve þirketler için uçtan uca baþvuru, takip ve yönetim platformu.</p>
+        <a asp-controller="Account" asp-action="RegisterOptions" class="btn btn-light px-4 py-2 me-2"><i class="fas fa-paper-plane me-2"></i>Bize Katýl</a>
+        <a href="#roles" class="btn btn-outline-light px-4 py-2"><i class="fas fa-angle-down me-1"></i>Keþfet</a>
+        <div class="d-flex justify-content-center gap-5 mt-5 small fw-semibold">
+            <div><i class="fas fa-user-graduate me-1"></i>1+ Aktif Öðrenci</div>
+            <div><i class="fas fa-building me-1"></i>1+ Firma</div>
+            <div><i class="fas fa-user-tie me-1"></i>1+ Akademisyen</div>
+            <div><i class="fas fa-check-circle me-1"></i>2+ Tamamlanan Staj</div>
+        </div>
+    </div>
+</section>
+
+<section class="container py-5" id="why">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Neden <span class="text-primary">StajTakip</span>?</h2>
+        <p class="text-muted">Modern teknoloji ile staj sürecinizi daha verimli hale getirin</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        <div class="col-6 col-md-3">
+            <div class="border rounded-4 h-100 p-4 text-center hover-shadow">
+                <div class="text-primary fs-3 mb-2"><i class="fas fa-file-signature"></i></div>
+                <h6 class="fw-bold mb-1">Dijital Baþvuru</h6>
+                <p class="small text-muted mb-0">Kolay ve hýzlý baþlangýç</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-4 h-100 p-4 text-center hover-shadow">
+                <div class="text-primary fs-3 mb-2"><i class="fas fa-bolt"></i></div>
+                <h6 class="fw-bold mb-1">Anlýk Takip</h6>
+                <p class="small text-muted mb-0">Süreçleri gerçek zamanlý izleyin</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-4 h-100 p-4 text-center hover-shadow">
+                <div class="text-primary fs-3 mb-2"><i class="fas fa-shield-alt"></i></div>
+                <h6 class="fw-bold mb-1">Veri Güvenliði</h6>
+                <p class="small text-muted mb-0">Verileriniz güvende</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-4 h-100 p-4 text-center hover-shadow">
+                <div class="text-primary fs-3 mb-2"><i class="fas fa-gauge-high"></i></div>
+                <h6 class="fw-bold mb-1">Güçlü Performans</h6>
+                <p class="small text-muted mb-0">Verimli çalýþma</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-light py-5" id="roles">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold">Herkes için Çözüm</h3>
+            <p class="text-muted">Staj sürecinin tüm taraflarý için özel tasarlanmýþ özellikler</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 rounded-4">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="mb-3 text-primary fs-2"><i class="fas fa-user-graduate"></i></div>
+                        <h5 class="fw-bold">Öðrenciler</h5>
+                        <ul class="small text-muted mb-4 ps-3">
+                            <li>Dijital baþvuru ve takip</li>
+                            <li>Belge yönetimi</li>
+                            <li>Staj defteri takibi</li>
+                            <li>Revizyon bildirimleri</li>
+                            <li>Raporlama & analiz</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary mt-auto">Öðrenci Giriþ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 rounded-4">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="mb-3 text-primary fs-2"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <h5 class="fw-bold">Akademisyenler</h5>
+                        <ul class="small text-muted mb-4 ps-3">
+                            <li>Öðrencileri yönetin</li>
+                            <li>Baþvurularý onaylayýn</li>
+                            <li>Defter ve rapor deðerlendirme</li>
+                            <li>Revizyon bildirimleri</li>
+                            <li>Ýstatistiksel analiz</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary mt-auto">Akademisyen Giriþ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 rounded-4">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="mb-3 text-primary fs-2"><i class="fas fa-building"></i></div>
+                        <h5 class="fw-bold">Þirketler</h5>
+                        <ul class="small text-muted mb-4 ps-3">
+                            <li>Ýlan yönetimi</li>
+                            <li>Aday deðerlendirme</li>
+                            <li>Süreç raporlarý</li>
+                            <li>Güvenli depolama</li>
+                            <li>Performans analizi</li>
+                        </ul>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary mt-auto">Þirket Giriþ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.hover-shadow{transition:.25s;}
+.hover-shadow:hover{box-shadow:0 10px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1);transform:translateY(-3px);}
+</style>

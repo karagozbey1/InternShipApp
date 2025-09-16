@@ -297,10 +297,8 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("integer");
