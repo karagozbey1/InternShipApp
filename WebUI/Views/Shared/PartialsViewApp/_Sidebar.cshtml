@@ -78,6 +78,12 @@
                     <span class="font-medium">İstatistikler</span>
                 </a>
             </li>
+            <li>
+                <a asp-controller="Application" asp-action="Favorites" class="sidebar-item @IsActive("Application", "Favorites")" style="display:none">
+                    <i class="fas fa-bookmark"></i>
+                    <span class="font-medium">Favorilerim</span>
+                </a>
+            </li>
         </ul>
 
         <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">

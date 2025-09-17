@@ -143,7 +143,7 @@ namespace WebUI.Models.ViewModels.Student
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        // New: company description (Hakk?m?zda)
+        // New: company description (Hakkýmýzda)
         public string CompanyDescription { get; set; } = string.Empty;
 
         // Salary fields
@@ -152,9 +152,21 @@ namespace WebUI.Models.ViewModels.Student
 
         // Related offers to show under details
         public List<OfferSelectViewModel> RelatedOffers { get; set; } = new List<OfferSelectViewModel>();
+        // New: other companies' offers list
+        public List<OfferSelectViewModel> OtherCompanyOffers { get; set; } = new List<OfferSelectViewModel>();
 
         // Display mode: if true, render ecommerce-like layout for students/home; otherwise keep company-style
         public bool ShowEcommerceMode { get; set; } = false;
+
+        // New: student state
+        public bool HasApplied { get; set; } = false;
+        public bool IsFavorite { get; set; } = false;
+    }
+
+    public class FavoritesListViewModel
+    {
+        public List<OfferSelectViewModel> Favorites { get; set; } = new();
+        public int TotalCount => Favorites?.Count ?? 0;
     }
 
     public enum ApplicationStatus

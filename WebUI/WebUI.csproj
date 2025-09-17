@@ -49,9 +49,4 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-    <Folder Include="Utilities\" />
-  </ItemGroup>
-
 </Project>

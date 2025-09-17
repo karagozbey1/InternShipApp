@@ -150,6 +150,9 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Attribute-routed API controller'larý etkinleþtir
+app.MapControllers();
+
 // Company controller'lar için özel route
 app.MapControllerRoute(
     name: "company",

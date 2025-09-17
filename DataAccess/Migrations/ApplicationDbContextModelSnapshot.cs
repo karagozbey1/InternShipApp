@@ -858,6 +858,33 @@ namespace DataAccess.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("Core.Entity.OfferFavorite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OfferId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId");
+
+                    b.HasIndex("StudentId", "OfferId")
+                        .IsUnique();
+
+                    b.ToTable("OfferFavorites", (string)null);
+                });
+
             modelBuilder.Entity("Core.Entity.Province", b =>
                 {
                     b.Property<int>("Id")
@@ -1350,6 +1377,25 @@ namespace DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Core.Entity.OfferFavorite", b =>
+                {
+                    b.HasOne("Core.Entity.InternshipOffer", "Offer")
+                        .WithMany()
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Offer");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("Core.Entity.SliderItem", b =>

@@ -1,0 +1,118 @@
+@{
+    ViewData["Title"] = "Benim Favorilerim";
+    Layout = "_AppLayout";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0">Benim Favorilerim</h2>
+        <a asp-controller="Application" asp-action="Browse" class="btn btn-outline-primary">Yeni Ýlanlara Göz At</a>
+    </div>
+
+    <div id="emptyState" class="text-center p-5 bg-white rounded-3 shadow-sm d-none">
+        <div class="mb-2"><i class="far fa-bookmark text-secondary" style="font-size:40px;"></i></div>
+        <div class="fw-semibold mb-1">Henüz favori ilan eklemediniz</div>
+        <div class="text-muted">Ýlan detayýndaki Kaydet butonu ile favorilerinize ekleyin.</div>
+    </div>
+
+    <div class="row g-3" id="favList"></div>
+</div>
+
+<style>
+    .legacy-offer-card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:18px}
+    .legacy-avatar{width:48px;height:48px;border-radius:6px;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .legacy-title{font-weight:600;color:#1f2937}
+    .legacy-btn{display:inline-block;padding:.5rem 1rem;border-radius:12px;background:linear-gradient(90deg,#6D28D9,#7C3AED);color:#fff;font-weight:600;text-decoration:none}
+    .legacy-btn:hover{filter:brightness(1.05)}
+</style>
+
+@section Scripts {
+<script>
+(function(){
+  const favList = document.getElementById('favList');
+  const emptyState = document.getElementById('emptyState');
+  const userId = '@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")';
+  const storageKey = `favOffers:${userId}`;
+
+  function getFavSet(){ try{ return new Set((localStorage.getItem(storageKey)||'').split(',').filter(x=>x)); }catch{ return new Set(); } }
+  function saveFavSet(set){ try{ localStorage.setItem(storageKey, Array.from(set).join(',')); }catch{} }
+
+  function render(items){
+    favList.innerHTML = '';
+    if(!items || items.length === 0){ emptyState.classList.remove('d-none'); return; }
+    emptyState.classList.add('d-none');
+
+    const s = getFavSet();
+    items.forEach(o => {
+      const letter = (o.companyName||'').trim().charAt(0).toUpperCase();
+      const col = document.createElement('div');
+      col.className = 'col-12 fav-item';
+      col.setAttribute('data-offer-id', o.id);
+      col.innerHTML = `
+        <div class="legacy-offer-card">
+          <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+            <div class="d-flex align-items-start gap-3">
+              <div class="legacy-avatar">${letter || ''}</div>
+              <div>
+                <div class="legacy-title">${o.title||''}</div>
+                <div class="legacy-sub small text-muted">${o.companyName||''} • ${o.city||''}</div>
+                <div class="legacy-deadline small text-muted text-uppercase mt-3">Son Baþvuru: ${o.applicationDeadline? new Date(o.applicationDeadline).toLocaleDateString('tr-TR'): '-'}</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+              <button type="button" class="btn btn-sm btn-outline-danger remove-fav" title="Favoriden Kaldýr"><i class="fas fa-times"></i></button>
+              <a href="/Student/Application/OfferDetails/${o.id}?source=student" class="legacy-btn">Detay</a>
+            </div>
+          </div>
+        </div>`;
+      favList.appendChild(col);
+      // Ensure local cache contains current items
+      if(o.id && !s.has(String(o.id))) { s.add(String(o.id)); }
+    });
+    saveFavSet(s);
+  }
+
+  async function load(){
+    try{
+      const res = await fetch('/api/public/offers/favorites');
+      if(!res.ok){ throw new Error('HTTP '+res.status); }
+      const data = await res.json();
+      render(data);
+    }catch(err){
+      console.error('Favoriler yüklenemedi:', err);
+      // Fallback: render from localStorage minimal
+      const ids = Array.from(getFavSet());
+      if(ids.length === 0){ emptyState.classList.remove('d-none'); return; }
+      favList.innerHTML = ids.map(id=>`
+        <div class="col-12 fav-item" data-offer-id="${id}">
+          <div class="legacy-offer-card d-flex justify-content-between align-items-center">
+            <div class="text-muted">Ýlan #${id}</div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-danger remove-fav" title="Favoriden Kaldýr"><i class="fas fa-times"></i></button>
+              <a href="/Student/Application/OfferDetails/${id}?source=student" class="legacy-btn">Detay</a>
+            </div>
+          </div>
+        </div>`).join('');
+      emptyState.classList.add('d-none');
+    }
+  }
+
+  favList.addEventListener('click', function(e){
+    const btn = e.target.closest('.remove-fav');
+    if(!btn) return;
+    const item = e.target.closest('.fav-item');
+    if(!item) return;
+    const offerId = item.getAttribute('data-offer-id');
+    // Remove instantly
+    item.parentNode.removeChild(item);
+    if(favList.children.length === 0){ emptyState.classList.remove('d-none'); }
+    // Update local cache
+    const s = getFavSet(); s.delete(String(offerId)); saveFavSet(s);
+    // Persist via AJAX
+    fetch(`/api/public/offers/${offerId}/favorite`, { method:'POST' }).catch(()=>{});
+  });
+
+  document.addEventListener('DOMContentLoaded', load());
+})();
+</script>
+}

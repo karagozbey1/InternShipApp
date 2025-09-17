@@ -58,7 +58,7 @@ namespace WebUI.Controllers.Student
                 StatusFilter = ParseCoreStatus(statusFilter)
             };
 
-            return View("~/Views/Student/ApplicationView.cshtml", vm);
+            return View("~/Views/Student/Application/Index.cshtml", vm);
         }
 
         /// Aktif staj ilanlarını listeler - Yeni başvuru oluştur butonuna tıklandığında açılır
@@ -457,10 +457,7 @@ namespace WebUI.Controllers.Student
 
         private async Task<ApplicationDetailsViewModel> MapToDetailsVm(AppEntity.InternshipApplication a)
         {
-            // Onay formu oluşturulabilir mi kontrol et
             var canCreateApprovalForm = await _approvalService.CanCreateApprovalFormAsync(a.Id);
-
-            // Check if an InternshipDiary exists for this application
             int? diaryId = null;
             try
             {
@@ -470,11 +467,81 @@ namespace WebUI.Controllers.Student
             }
             catch { }
 
-            // Belgeler navigation gelmemişse servisten çek
-            var documentsSource = a.InternshipDocuments;
-            if (documentsSource == null)
+            var documentsSource = a.InternshipDocuments ?? await _documentService.GetDocumentsByApplicationIdAsync(a.Id);
+
+            var offer = a.InternshipOffer ?? (a.InternshipOfferId > 0 ? await _offerService.GetByIdAsync(a.InternshipOfferId) : null);
+
+            var offerDetails = offer == null ? null : new OfferDetailsViewModel
             {
-                try { documentsSource = await _documentService.GetDocumentsByApplicationIdAsync(a.Id); } catch { documentsSource = new List<Core.Entity.InternshipDocument>(); }
+                Id = offer.Id,
+                Title = offer.Title,
+                CompanyName = offer.Company?.CompanyName ?? "",
+                Description = offer.Description ?? "",
+                Requirements = offer.Requirements ?? "",
+                Benefits = string.Empty,
+                StartDate = offer.Period?.StartDate ?? a.StartDate,
+                EndDate = offer.Period?.EndDate ?? a.EndDate,
+                ApplicationDeadline = offer.ApplicationDeadline ?? DateTime.UtcNow,
+                WorkingHours = "",
+                Location = offer.City ?? "",
+                Position = offer.Field ?? string.Empty,
+                Quota = offer.AvailablePositions > 0 ? offer.AvailablePositions : 1,
+                IsActive = offer.IsActive,
+                CreatedAt = offer.CreatedAt,
+                Salary = offer.MonthlySalary,
+                SalaryCurrency = offer.MonthlySalaryCurrency,
+                CompanyDescription = offer.Company?.Description ?? string.Empty,
+                RelatedOffers = new List<OfferSelectViewModel>(),
+                OtherCompanyOffers = new List<OfferSelectViewModel>()
+            };
+
+            if (offerDetails != null)
+            {
+                // Aynı şirketin diğer ilanları
+                if (offer.CompanyId > 0)
+                {
+                    try
+                    {
+                        var companyOffers = await _offerService.GetOffersByCompanyIdAsync(offer.CompanyId);
+                        offerDetails.RelatedOffers = companyOffers
+                            .Where(o => o.Id != offer.Id && o.IsActive)
+                            .OrderBy(o => Guid.NewGuid())
+                            .Take(6)
+                            .Select(o => new OfferSelectViewModel
+                            {
+                                OfferId = o.Id,
+                                Title = o.Title,
+                                CompanyName = o.Company?.CompanyName ?? string.Empty,
+                                City = o.City ?? string.Empty,
+                                Field = o.Field ?? string.Empty,
+                                ApplicationDeadline = o.ApplicationDeadline
+                            }).ToList();
+                    }
+                    catch { }
+                }
+
+                // Diğer şirketlerin ilanları (aynı alan/şehir öncelikli)
+                try
+                {
+                    var allActive = await _offerService.GetAllActiveOffersAsync();
+                    var others = allActive.Where(o => o.CompanyId != offer.CompanyId && o.IsActive);
+                    // Basit alaka sıralaması: aynı Field, sonra aynı City, sonra rastgele
+                    others = others
+                        .OrderByDescending(o => (o.Field ?? "").Equals(offer.Field ?? "", StringComparison.OrdinalIgnoreCase))
+                        .ThenByDescending(o => (o.City ?? "").Equals(offer.City ?? "", StringComparison.OrdinalIgnoreCase))
+                        .ThenBy(o => Guid.NewGuid());
+
+                    offerDetails.OtherCompanyOffers = others.Take(6).Select(o => new OfferSelectViewModel
+                    {
+                        OfferId = o.Id,
+                        Title = o.Title,
+                        CompanyName = o.Company?.CompanyName ?? string.Empty,
+                        City = o.City ?? string.Empty,
+                        Field = o.Field ?? string.Empty,
+                        ApplicationDeadline = o.ApplicationDeadline
+                    }).ToList();
+                }
+                catch { }
             }
 
             return new ApplicationDetailsViewModel
@@ -499,25 +566,7 @@ namespace WebUI.Controllers.Student
                     UploadedAt = d.UploadedAt,
                     Title = d.Title
                 }).ToList() ?? new List<DocumentViewModel>(),
-                OfferDetails = a.InternshipOffer == null ? null : new OfferDetailsViewModel
-                {
-                    Id = a.InternshipOffer.Id,
-                    Title = a.InternshipOffer.Title,
-                    CompanyName = a.InternshipOffer.Company?.CompanyName ?? "",
-                    Description = a.InternshipOffer.Description ?? "",
-                    Requirements = a.InternshipOffer.Requirements ?? "",
-                    Benefits = "",
-                    StartDate = a.InternshipOffer.Period?.StartDate ?? a.StartDate,
-                    EndDate = a.InternshipOffer.Period?.EndDate ?? a.EndDate,
-                    ApplicationDeadline = a.InternshipOffer.ApplicationDeadline ?? DateTime.UtcNow,
-                    WorkingHours = "",
-                    Location = a.InternshipOffer.City ?? "",
-                    IsActive = a.InternshipOffer.IsActive,
-                    CreatedAt = a.InternshipOffer.CreatedAt,
-                    // Salary mapping
-                    Salary = a.InternshipOffer.MonthlySalary,
-                    SalaryCurrency = a.InternshipOffer.MonthlySalaryCurrency
-                },
+                OfferDetails = offerDetails,
                 HasDiary = diaryId.HasValue,
                 DiaryId = diaryId,
                 IsCompulsory = a.IsCompulsory
@@ -604,6 +653,38 @@ namespace WebUI.Controllers.Student
                 return RedirectToAction(nameof(Browse));
             }
 
+            var userId = 0;
+            if (User?.Identity?.IsAuthenticated == true)
+            {
+                var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (claim != null) int.TryParse(claim.Value, out userId);
+            }
+
+            bool hasApplied = false;
+            bool isFavorite = false;
+            if (userId > 0)
+            {
+                try
+                {
+                    var apps = await _applicationService.GetApplicationsByStudentIdAsync(userId);
+                    hasApplied = apps.Any(a => a.InternshipOfferId == id);
+                }
+                catch { }
+
+                try
+                {
+                    var favKey = $"FavOffers:{userId}";
+                    var raw = HttpContext.Session.GetString(favKey) ?? string.Empty;
+                    var set = new HashSet<int>();
+                    foreach (var part in raw.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        if (int.TryParse(part, out var v)) set.Add(v);
+                    }
+                    isFavorite = set.Contains(id);
+                }
+                catch { }
+            }
+
             // determine showEcom as before
             var showEcom = false;
             if (!string.IsNullOrEmpty(source))
@@ -620,17 +701,15 @@ namespace WebUI.Controllers.Student
                 }
             }
 
-            // related offers
+            // related offers (same company)
             var related = new List<OfferSelectViewModel>();
-
-            // Do not load related offers for company users — company should only see its own offer details
             if (!User.IsInRole("Company") && offer.CompanyId > 0)
             {
                 var companyOffers = await _offerService.GetOffersByCompanyIdAsync(offer.CompanyId);
                 related = companyOffers
                     .Where(o => o.Id != offer.Id && o.IsActive)
-                    .OrderBy(o => Guid.NewGuid()) // randomize order so it won't always show the same items
-                    .Take(5) // limit to 5 items
+                    .OrderBy(o => Guid.NewGuid())
+                    .Take(6)
                     .Select(o => new OfferSelectViewModel
                     {
                         OfferId = o.Id,
@@ -640,6 +719,32 @@ namespace WebUI.Controllers.Student
                         Field = o.Field ?? "",
                         ApplicationDeadline = o.ApplicationDeadline
                     }).ToList();
+            }
+
+            // other companies' offers (prioritize same field/city)
+            var otherCompanyOffers = new List<OfferSelectViewModel>();
+            if (!User.IsInRole("Company"))
+            {
+                try
+                {
+                    var allActive = await _offerService.GetAllActiveOffersAsync();
+                    var others = allActive.Where(o => o.CompanyId != offer.CompanyId && o.IsActive);
+                    others = others
+                        .OrderByDescending(o => (o.Field ?? "").Equals(offer.Field ?? "", StringComparison.OrdinalIgnoreCase))
+                        .ThenByDescending(o => (o.City ?? "").Equals(offer.City ?? "", StringComparison.OrdinalIgnoreCase))
+                        .ThenBy(o => Guid.NewGuid());
+
+                    otherCompanyOffers = others.Take(8).Select(o => new OfferSelectViewModel
+                    {
+                        OfferId = o.Id,
+                        Title = o.Title,
+                        CompanyName = o.Company?.CompanyName ?? "",
+                        City = o.City ?? "",
+                        Field = o.Field ?? "",
+                        ApplicationDeadline = o.ApplicationDeadline
+                    }).ToList();
+                }
+                catch { }
             }
 
             var model = new OfferDetailsViewModel
@@ -668,8 +773,11 @@ namespace WebUI.Controllers.Student
                 Salary = offer.MonthlySalary,
                 SalaryCurrency = offer.MonthlySalaryCurrency,
                 RelatedOffers = related,
+                OtherCompanyOffers = otherCompanyOffers,
                 ShowEcommerceMode = showEcom,
-                CompanyDescription = offer.Company?.Description ?? ""
+                CompanyDescription = offer.Company?.Description ?? "",
+                HasApplied = hasApplied,
+                IsFavorite = isFavorite
             };
 
             return View("~/Views/Student/Application/OfferDetails.cshtml", model);
@@ -729,6 +837,40 @@ namespace WebUI.Controllers.Student
                 TempData["ErrorMessage"] = "Başvuru silinirken hata oluştu.";
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Favorites()
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToAction("Index");
+
+            // Session key PublicOffersController ile aynı formatta
+            var userKey = $"FavOffers:{userId}";
+            var raw = HttpContext.Session.GetString(userKey) ?? string.Empty;
+            var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                         .Select(s => int.TryParse(s, out var v) ? v : 0)
+                         .Where(v => v > 0)
+                         .ToHashSet();
+
+            var favorites = new List<OfferSelectViewModel>();
+            if (ids.Count > 0)
+            {
+                var all = await _offerService.GetAllActiveOffersAsync();
+                favorites = all.Where(o => ids.Contains(o.Id))
+                               .Select(o => new OfferSelectViewModel
+                               {
+                                   OfferId = o.Id,
+                                   Title = o.Title,
+                                   CompanyName = o.Company?.CompanyName ?? string.Empty,
+                                   City = o.City ?? string.Empty,
+                                   Field = o.Field ?? string.Empty,
+                                   ApplicationDeadline = o.ApplicationDeadline
+                               }).ToList();
+            }
+
+            var vm = new FavoritesListViewModel { Favorites = favorites };
+            return View("~/Views/Student/Application/Favorites.cshtml", vm);
         }
     }
 

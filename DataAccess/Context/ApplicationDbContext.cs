@@ -34,6 +34,7 @@ namespace DataAccess.Context
         public DbSet<DiaryEntry> DiaryEntries { get; set; } = null!;
         public DbSet<InternshipDiary> InternshipDiaries { get; set; } = null!;
         public DbSet<InternshipPeriodStudent> InternshipPeriodStudents { get; set; } = null!;
+        public DbSet<OfferFavorite> OfferFavorites { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -387,6 +388,21 @@ namespace DataAccess.Context
                       .WithMany(p => p.Universities)
                       .HasForeignKey(e => e.ProvinceId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<OfferFavorite>(entity =>
+            {
+                entity.ToTable("OfferFavorites");
+                entity.HasKey(f => f.Id);
+                entity.HasIndex(f => new { f.StudentId, f.OfferId }).IsUnique();
+                entity.HasOne(f => f.Student)
+                      .WithMany()
+                      .HasForeignKey(f => f.StudentId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(f => f.Offer)
+                      .WithMany()
+                      .HasForeignKey(f => f.OfferId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
 

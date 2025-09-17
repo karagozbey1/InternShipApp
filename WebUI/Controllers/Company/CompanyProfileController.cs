@@ -7,6 +7,7 @@ using Business.Interfaces.UserRepose;
 using Core.Entity;
 using System.Security.Claims;
 using WebUI.Models.ViewModels.Account;
+using System.Text;
 
 namespace WebUI.Controllers.Company
 {
@@ -17,17 +18,20 @@ namespace WebUI.Controllers.Company
         private readonly IInternshipOfferService _offerService;
         private readonly IInternshipApplicationService _applicationService;
         private readonly IIUserService _userService;
+        private readonly IWebHostEnvironment _env;
 
         public CompanyProfileController(
             IICompanyService companyService,
             IInternshipOfferService offerService,
             IInternshipApplicationService applicationService,
-            IIUserService userService)
+            IIUserService userService,
+            IWebHostEnvironment env)
         {
             _companyService = companyService;
             _offerService = offerService;
             _applicationService = applicationService;
             _userService = userService;
+            _env = env;
         }
 
         private int GetCurrentUserId()
@@ -47,7 +51,6 @@ namespace WebUI.Controllers.Company
         public async Task<IActionResult> Index()
         {
             var companyId = await GetCurrentCompanyIdAsync();
-            // Tüm iliþkili verilerle birlikte þirketi çek
             var company = await _companyService.GetCompanyWithDetailsAsync(companyId);
             var companyUser = company?.CompanyUsers?.FirstOrDefault();
             var user = companyUser?.User;
@@ -87,10 +90,15 @@ namespace WebUI.Controllers.Company
             }
             if (LogoFile != null && LogoFile.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "company-logos");
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", "company-logos");
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
-                var fileName = $"company_{company.CompanyId}_{DateTime.Now.Ticks}{Path.GetExtension(LogoFile.FileName)}";
+
+                // eski logolarý temizle
+                foreach (var old in Directory.GetFiles(uploadsFolder, $"company_{company.CompanyId}_*"))
+                    System.IO.File.Delete(old);
+
+                var fileName = $"company_{company.CompanyId}_{DateTime.UtcNow.Ticks}{Path.GetExtension(LogoFile.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -109,10 +117,96 @@ namespace WebUI.Controllers.Company
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveLogo(int CompanyId)
+        {
+            var company = await _companyService.GetCompanyByIdAsync(CompanyId);
+            if (company == null)
+            {
+                TempData["ErrorMessage"] = "Þirket bulunamadý.";
+                return RedirectToAction("Index");
+            }
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(company.LogoPath))
+                {
+                    var physical = Path.Combine(_env.WebRootPath, company.LogoPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(physical))
+                    {
+                        System.IO.File.Delete(physical);
+                    }
+                    company.LogoPath = null;
+                    await _companyService.UpdateCompanyAsync(company);
+                }
+                TempData["SuccessMessage"] = "Logo kaldýrýldý.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Logo kaldýrýlýrken hata oluþtu: " + ex.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logo(int? id = null)
+        {
+            Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+            try
+            {
+                int companyId = id ?? await GetCurrentCompanyIdAsync();
+                var company = await _companyService.GetCompanyByIdAsync(companyId);
+                if (company != null && !string.IsNullOrWhiteSpace(company.LogoPath))
+                {
+                    var path = Path.Combine(_env.WebRootPath, company.LogoPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    var contentType = GetContentTypeByExtension(Path.GetExtension(path));
+                    if (System.IO.File.Exists(path))
+                        return PhysicalFile(path, contentType);
+                }
+                var initials = GetInitials(company?.CompanyName ?? "?");
+                var svg = GenerateAvatarSvg(initials);
+                return File(Encoding.UTF8.GetBytes(svg), "image/svg+xml");
+            }
+            catch
+            {
+                var svg = GenerateAvatarSvg("?");
+                return File(Encoding.UTF8.GetBytes(svg), "image/svg+xml");
+            }
+        }
+
+        private static string GetInitials(string name)
+        {
+            var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) return "?";
+            if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpperInvariant();
+            return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpperInvariant();
+        }
+
+        private static string GenerateAvatarSvg(string initials)
+        {
+            var bg = "url(#g)";
+            return $"<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#3b82f6'/><stop offset='100%' stop-color='#9333ea'/></linearGradient></defs><circle cx='48' cy='48' r='48' fill='{bg}'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='Inter,Arial' font-size='36' fill='#fff' font-weight='700'>{System.Net.WebUtility.HtmlEncode(initials)}</text></svg>";
+        }
+
+        private static string GetContentTypeByExtension(string ext)
+        {
+            return ext.ToLowerInvariant() switch
+            {
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                ".svg" => "image/svg+xml",
+                _ => "application/octet-stream"
+            };
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(CompanyProfileViewModel model)
         {
             var companyId = await GetCurrentCompanyIdAsync();
-            // Ýliþkili verilerle birlikte þirketi çek
             var company = await _companyService.GetCompanyWithDetailsAsync(companyId);
             var companyUser = company?.CompanyUsers?.FirstOrDefault();
             var user = companyUser?.User;
@@ -123,7 +217,6 @@ namespace WebUI.Controllers.Company
                 return RedirectToAction("Index");
             }
 
-            // Þirket alanlarý
             if (!string.IsNullOrWhiteSpace(model.CompanyName)) company.CompanyName = model.CompanyName;
             if (!string.IsNullOrWhiteSpace(model.Sector)) company.Sector = model.Sector;
             if (!string.IsNullOrWhiteSpace(model.Phone)) company.Phone = model.Phone;
@@ -135,7 +228,6 @@ namespace WebUI.Controllers.Company
             if (model.EstablishedDate.HasValue)
                 company.EstablishedDate = DateTime.SpecifyKind(model.EstablishedDate.Value, DateTimeKind.Utc);
 
-            // Kullanýcý alanlarý
             if (!string.IsNullOrWhiteSpace(model.UserFullName)) user.FullName = model.UserFullName;
             if (!string.IsNullOrWhiteSpace(model.Email)) user.Email = model.Email;
 

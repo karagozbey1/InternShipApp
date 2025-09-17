@@ -43,6 +43,7 @@ namespace DataAccess.Unit.Repose
             Universities = new UniversityRepository(_context);
             DiaryRepository = new DiaryRepository(_context);
             DiaryEntries = new DiaryRepository(_context);
+            OfferFavorites = new OfferFavoriteRepository(_context);
         }
 
         public IDiaryRepository DiaryRepository { get; }
@@ -65,6 +66,7 @@ namespace DataAccess.Unit.Repose
         public ISliderItemRepository SliderItems { get; }
         public IProvinceRepository Provinces { get; private set; }
         public IUniversityRepository Universities { get; private set; }
+        public IOfferFavoriteRepository OfferFavorites { get; }
 
         public async Task<int> SaveAsync()
         {

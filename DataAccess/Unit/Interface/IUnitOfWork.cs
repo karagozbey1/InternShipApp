@@ -33,6 +33,7 @@ namespace DataAccess.Unit.Interface
         ISliderItemRepository SliderItems { get; }
         IProvinceRepository Provinces { get; }
         IUniversityRepository Universities { get; }
+        IOfferFavoriteRepository OfferFavorites { get; }
         Task<int> SaveAsync();
     }
 }

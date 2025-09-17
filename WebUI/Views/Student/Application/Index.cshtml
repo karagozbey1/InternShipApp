@@ -1,0 +1,8 @@
+@using WebUI.Models.ViewModels.Student
+@model WebUI.Models.ViewModels.Student.ApplicationListViewModel
+@{
+    ViewData["Title"] = "Baþvurularým";
+    Layout = "_AppLayout";
+}
+
+@await Html.PartialAsync("~/Views/Student/ApplicationView.cshtml", Model)
