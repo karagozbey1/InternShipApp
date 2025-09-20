@@ -8,15 +8,43 @@ using AppEntity = Core.Entity;
 
 namespace WebUI.Controllers.Student
 {
+    /// <summary>
+    /// Öğrenci Başvuru Controller'ı
+    /// Öğrencilerin staj başvurularını yönetmek için kullanılır
+    /// Başvuru listeleme, oluşturma, detay görüntüleme ve iptal işlemlerini kapsar
+    /// </summary>
     [Authorize(Roles = "Student")]
     public class ApplicationController : Controller
     {
+        /// <summary>
+        /// Staj başvuru işlemleri servisi - başvuru CRUD işlemleri
+        /// </summary>
         private readonly IInternshipApplicationService _applicationService;
+        
+        /// <summary>
+        /// Staj teklifleri/ilanlar servisi - mevcut ilanları getirmek için
+        /// </summary>
         private readonly IInternshipOfferService _offerService;
+        
+        /// <summary>
+        /// Belge yönetimi servisi - başvurulara belge ekleme/çıkarma
+        /// </summary>
         private readonly IInternshipDocumentService _documentService;
+        
+        /// <summary>
+        /// Staj onay formu servisi - onay formu oluşturma kontrolleri
+        /// </summary>
         private readonly IInternshipApprovalService _approvalService;
+        
+        /// <summary>
+        /// Staj defteri servisi - onaylanmış başvurular için defter oluşturma
+        /// </summary>
         private readonly IInternshipDiaryService _internshipDiaryService;
 
+        /// <summary>
+        /// ApplicationController constructor
+        /// Dependency injection ile gerekli servisleri alır
+        /// </summary>
         public ApplicationController(
             IInternshipApplicationService applicationService,
             IInternshipOfferService offerService,
@@ -31,12 +59,20 @@ namespace WebUI.Controllers.Student
             _internshipDiaryService = internshipDiaryService;
         }
 
+        /// <summary>
+        /// Öğrencinin başvuru listesini görüntüler
+        /// Arama ve filtreleme işlevleri ile birlikte
+        /// </summary>
+        /// <param name="searchTerm">Şirket adı veya pozisyon araması</param>
+        /// <param name="statusFilter">Durum filtresi (Pending, Approved, Rejected)</param>
+        /// <returns>Başvuru listesi sayfası</returns>
         [HttpGet]
         public async Task<IActionResult> Index(string? searchTerm, string? statusFilter)
         {
             var userId = GetCurrentUserId();
             var apps = await _applicationService.GetApplicationsByStudentIdAsync(userId);
 
+            // Arama filtresi - şirket adı veya pozisyon başlığında arama
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 apps = apps
@@ -46,6 +82,7 @@ namespace WebUI.Controllers.Student
                     .ToList();
             }
 
+            // Durum filtresi - başvuru durumuna göre filtreleme
             if (!string.IsNullOrWhiteSpace(statusFilter))
             {
                 apps = apps.Where(a => a.Status.ToString().Equals(statusFilter, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -61,7 +98,11 @@ namespace WebUI.Controllers.Student
             return View("~/Views/Student/Application/Index.cshtml", vm);
         }
 
+        /// <summary>
         /// Aktif staj ilanlarını listeler - Yeni başvuru oluştur butonuna tıklandığında açılır
+        /// Öğrencilerin başvurabileceği mevcut ilanları gösterir
+        /// </summary>
+        /// <returns>İlan göz atma sayfası</returns>
         [HttpGet]
         public async Task<IActionResult> Browse()
         {
@@ -74,6 +115,12 @@ namespace WebUI.Controllers.Student
             return View("~/Views/Student/Application/Browse.cshtml", vm);
         }
 
+        /// <summary>
+        /// Yeni başvuru oluşturma formunu gösterir
+        /// Belirli bir ilan için direkt başvuru veya genel başvuru formu
+        /// </summary>
+        /// <param name="offerId">Başvuru yapılacak ilanın ID'si (opsiyonel)</param>
+        /// <returns>Başvuru oluşturma formu</returns>
         [HttpGet]
         public async Task<IActionResult> Create(int? offerId)
         {
@@ -86,7 +133,8 @@ namespace WebUI.Controllers.Student
                 CompanyName = o.Company?.CompanyName ?? ""
             }).ToList();
 
-            // If an offerId was provided but it's not present in active offers (e.g. expired), fetch it and include so form can show it
+            // Eğer belirli bir ilan ID'si verilmişse ama aktif ilanlar arasında değilse
+            // (örn: süresi dolmuş), onu da listeye ekle ki form gösterebilsin
             if (offerId.HasValue && offerId.Value > 0 && !available.Any(a => a.OfferId == offerId.Value))
             {
                 var extra = await _offerService.GetByIdAsync(offerId.Value);
@@ -110,6 +158,12 @@ namespace WebUI.Controllers.Student
             return View("~/Views/Student/Application/Create.cshtml", vm);
         }
 
+        /// <summary>
+        /// Yeni başvuru oluşturma POST işlemi
+        /// Form validasyonu, iş kuralları kontrolü ve başvuru kaydetme
+        /// </summary>
+        /// <param name="model">Başvuru formu verileri</param>
+        /// <returns>Başarılıysa liste sayfasına yönlendirir, hatalıysa formu tekrar gösterir</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ApplicationCreateViewModel model)
@@ -118,6 +172,7 @@ namespace WebUI.Controllers.Student
             {
                 if (!ModelState.IsValid)
                 {
+                    // Model state geçersizse, dropdown'ları yeniden doldur
                     model.AvailableOffers = (await _offerService.GetAllActiveOffersAsync())
                         .Select(o => new OfferSelectViewModel
                         {
@@ -131,7 +186,7 @@ namespace WebUI.Controllers.Student
 
                 var userId = GetCurrentUserId();
 
-                // Server-side date validation to avoid DB out-of-range errors
+                // Server-side tarih validasyonu - SQL Server tarih aralığı kontrolü
                 var minSqlDate = new DateTime(1753, 1, 1);
                 if (model.StartDate == default || model.EndDate == default)
                 {
@@ -173,7 +228,7 @@ namespace WebUI.Controllers.Student
                     return View("~/Views/Student/Application/Create.cshtml", model);
                 }
 
-                // Offer kontrolü
+                // İlan geçerliliği kontrolü
                 var offer = await _offerService.GetByIdAsync(model.SelectedOfferId);
                 if (offer == null || !offer.IsActive || (offer.ApplicationDeadline.HasValue && offer.ApplicationDeadline.Value < DateTime.UtcNow))
                 {
@@ -188,7 +243,7 @@ namespace WebUI.Controllers.Student
                     return View("~/Views/Student/Application/Create.cshtml", model);
                 }
 
-                // Check if user already applied to this offer
+                // Dublicate başvuru kontrolü - aynı ilana daha önce başvuru yapılmış mı?
                 var existingApplications = await _applicationService.GetApplicationsByStudentIdAsync(userId);
                 if (existingApplications.Any(a => a.InternshipOfferId == model.SelectedOfferId))
                 {
@@ -196,11 +251,12 @@ namespace WebUI.Controllers.Student
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Yeni başvuru entity'si oluştur
                 var app = new AppEntity.InternshipApplication
                 {
                     StudentId = userId,
                     InternshipOfferId = model.SelectedOfferId,
-                    // Ensure dates are UTC to satisfy PostgreSQL timestamp with time zone
+                    // PostgreSQL timestamp with time zone için UTC olarak belirtle
                     StartDate = DateTime.SpecifyKind(model.StartDate, DateTimeKind.Utc),
                     EndDate = DateTime.SpecifyKind(model.EndDate, DateTimeKind.Utc),
                     Status = InternshipApplicationStatus.Pending,
@@ -213,7 +269,7 @@ namespace WebUI.Controllers.Student
 
                 Console.WriteLine($"Creating application: StudentId={app.StudentId}, OfferId={app.InternshipOfferId}");
 
-                // Başvuruyu oluştur
+                // Başvuruyu veritabanına kaydet
                 await _applicationService.AddApplicationAsync(app);
 
                 Console.WriteLine($"Application created with ID: {app.Id}");
@@ -246,7 +302,7 @@ namespace WebUI.Controllers.Student
             }
             catch (Exception ex)
             {
-                // Log full exception server-side to temp file for debugging
+                // Detaylı hata loglaması - geçici dosyaya debug için yaz
                 try
                 {
                     var logPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "CreateApplication_Error.log");
@@ -257,10 +313,10 @@ namespace WebUI.Controllers.Student
                 Console.WriteLine($"Application creation error: {ex}");
                 Console.WriteLine($"Inner exception: {ex.InnerException}");
 
-                // Provide detailed error to view in development
+                // Development'da detaylı hata bilgisi sağla
                 ViewData["DetailedError"] = ex.ToString();
 
-                // Detaylı hata mesajı
+                // Kullanıcı dostu hata mesajı oluştur
                 var errorMessage = "Başvuru oluşturulurken bir hata oluştu.";
                 if (ex.InnerException != null)
                 {
@@ -285,7 +341,7 @@ namespace WebUI.Controllers.Student
 
                 TempData["ErrorMessage"] = errorMessage;
 
-                // Model'i yeniden doldur
+                // Model'i yeniden doldur ve formu tekrar göster
                 model.AvailableOffers = (await _offerService.GetAllActiveOffersAsync())
                     .Select(o => new OfferSelectViewModel
                     {
@@ -298,6 +354,12 @@ namespace WebUI.Controllers.Student
             }
         }
 
+        /// <summary>
+        /// Başvuru detay sayfasını gösterir
+        /// Başvuru bilgileri, durumu, belgeler ve ilgili işlemler
+        /// </summary>
+        /// <param name="id">Görüntülenecek başvuru ID'si</param>
+        /// <returns>Başvuru detay sayfası</returns>
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -308,6 +370,12 @@ namespace WebUI.Controllers.Student
             return View("~/Views/Student/Application/Details.cshtml", vm);
         }
 
+        /// <summary>
+        /// Başvuruyu geri çeker (iptal eder)
+        /// Sadece Pending durumundaki başvurular geri çekilebilir
+        /// </summary>
+        /// <param name="id">Geri çekilecek başvuru ID'si</param>
+        /// <returns>Liste sayfasına yönlendirir</returns>
         [HttpPost]
         public async Task<IActionResult> Withdraw(int id)
         {
@@ -316,6 +384,13 @@ namespace WebUI.Controllers.Student
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Başvuruya belge ekleme AJAX endpoint'i
+        /// Mevcut başvuruya yeni belgeler ilişkilendirir
+        /// </summary>
+        /// <param name="applicationId">Belge eklenecek başvuru ID'si</param>
+        /// <param name="documentIds">Eklenecek belge ID'leri listesi</param>
+        /// <returns>JSON response veya redirect</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddDocumentsToApplication(int applicationId, List<int> documentIds)
@@ -336,7 +411,7 @@ namespace WebUI.Controllers.Student
                     return RedirectToAction("Details", new { id = applicationId });
                 }
                 
-                // Başvurunun kullanıcıya ait olduğunu kontrol et
+                // Güvenlik kontrolü - başvurunun kullanıcıya ait olduğunu doğrula
                 var application = await _applicationService.GetApplicationWithDetailsAsync(applicationId);
                 if (application == null || application.StudentId != userId)
                 {
@@ -344,7 +419,7 @@ namespace WebUI.Controllers.Student
                     return RedirectToAction("Index");
                 }
 
-                // Belgelerin kullanıcıya ait olduğunu kontrol et
+                // Belgelerin kullanıcıya ait olduğunu kontrol et ve ilişkilendir
                 foreach (var docId in documentIds)
                 {
                     var document = await _documentService.GetDocumentByIdAsync(docId);
@@ -370,6 +445,9 @@ namespace WebUI.Controllers.Student
             }
         }
 
+        /// <summary>
+        /// Başvuruya ait belgeleri JSON olarak döndürür - AJAX endpoint
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetApplicationDocuments(int applicationId)
         {
@@ -377,7 +455,7 @@ namespace WebUI.Controllers.Student
             {
                 var userId = GetCurrentUserId();
                 
-                // Başvurunun kullanıcıya ait olduğunu kontrol et
+                // Güvenlik kontrolü
                 var application = await _applicationService.GetApplicationWithDetailsAsync(applicationId);
                 if (application == null || application.StudentId != userId)
                 {
@@ -405,8 +483,139 @@ namespace WebUI.Controllers.Student
             }
         }
 
-        // ---------------- Helpers ----------------
+        /// <summary>
+        /// Onaylanmış başvuru için staj defteri oluşturur
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateDiary(int id)
+        {
+            var userId = GetCurrentUserId();
+            var app = await _applicationService.GetApplicationWithDetailsAsync(id);
+            if (app == null || app.StudentId != userId)
+            {
+                TempData["ErrorMessage"] = "Başvuru bulunamadı veya yetkiniz yok.";
+                return RedirectToAction(nameof(Index));
+            }
 
+            if (app.Status != InternshipApplicationStatus.Approved)
+            {
+                TempData["ErrorMessage"] = "Sadece onaylanmış başvurular için defter oluşturulabilir.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            // Mevcut defter kontrolü
+            var diaries = await _internshipDiaryService.GetDiariesByStudentIdAsync(userId);
+            var linked = diaries.FirstOrDefault(d => d.ApplicationId.HasValue && d.ApplicationId.Value == id);
+            if (linked != null)
+            {
+                return RedirectToAction("Detail", "DiaryNotebook", new { id = linked.Id });
+            }
+
+            // Yeni defter oluştur
+            var newDiary = new Core.Entity.InternshipDiary
+            {
+                StudentId = userId,
+                Title = app.InternshipOffer?.Title ?? "Staj Defteri",
+                CompanyName = app.InternshipOffer?.Company?.CompanyName,
+                Department = app.InternshipOffer?.Field,
+                InternshipStartDate = app.StartDate,
+                InternshipEndDate = app.EndDate,
+                ApplicationId = app.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsRequired = true,
+                IsCompleted = false
+            };
+
+            var created = await _internshipDiaryService.CreateDiaryAsync(newDiary);
+            if (created != null)
+            {
+                return RedirectToAction("Detail", "DiaryNotebook", new { id = created.Id });
+            }
+
+            TempData["ErrorMessage"] = "Defter oluşturulurken hata oluştu.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        /// <summary>
+        /// Başvuruyu kalıcı olarak siler - sadece geri çekilmiş başvurular
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var app = await _applicationService.GetByIdAsync(id);
+                if (app == null || app.StudentId != userId)
+                {
+                    TempData["ErrorMessage"] = "Başvuru bulunamadı veya yetkiniz yok.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (app.Status != InternshipApplicationStatus.Rejected)
+                {
+                    TempData["ErrorMessage"] = "Sadece geri çekilmiş başvurular silinebilir.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await _applicationService.DeleteApplicationAsync(id);
+                TempData["SuccessMessage"] = "Başvuru başarıyla silindi.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Delete application error: {ex}");
+                TempData["ErrorMessage"] = "Başvuru silinirken hata oluştu.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        /// <summary>
+        /// Favori ilanları listeler - session'da saklanan favoriler
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Favorites()
+        {
+            var userId = GetCurrentUserId();
+            if (userId <= 0) return RedirectToAction("Index");
+
+            // Session'dan favori ilan ID'lerini al
+            var userKey = $"FavOffers:{userId}";
+            var raw = HttpContext.Session.GetString(userKey) ?? string.Empty;
+            var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                         .Select(s => int.TryParse(s, out var v) ? v : 0)
+                         .Where(v => v > 0)
+                         .ToHashSet();
+
+            var favorites = new List<OfferSelectViewModel>();
+            if (ids.Count > 0)
+            {
+                var all = await _offerService.GetAllActiveOffersAsync();
+                favorites = all.Where(o => ids.Contains(o.Id))
+                               .Select(o => new OfferSelectViewModel
+                               {
+                                   OfferId = o.Id,
+                                   Title = o.Title,
+                                   CompanyName = o.Company?.CompanyName ?? string.Empty,
+                                   City = o.City ?? string.Empty,
+                                   Field = o.Field ?? string.Empty,
+                                   ApplicationDeadline = o.ApplicationDeadline
+                               }).ToList();
+            }
+
+            var vm = new FavoritesListViewModel { Favorites = favorites };
+            return View("~/Views/Student/Application/Favorites.cshtml", vm);
+        }
+
+        // -------------------- Helper Metodlar --------------------
+
+        /// <summary>
+        /// InternshipApplication entity'sini ApplicationItemVM'ye dönüştürür
+        /// Liste sayfasında gösterim için özet bilgileri hazırlar
+        /// </summary>
         private async Task<ApplicationItemVM> MapToItemVm(AppEntity.InternshipApplication a)
         {
             var docCount = 0;
@@ -427,7 +636,7 @@ namespace WebUI.Controllers.Student
             {
                 if (a.Advisor != null)
                 {
-                    // User entity'de FirstName/LastName yoksa Username kullan
+                    // User entity'de FirstName/LastName yoksa FullName kullan
                     var first = a.Advisor.GetType().GetProperty("FirstName")?.GetValue(a.Advisor)?.ToString();
                     var last = a.Advisor.GetType().GetProperty("LastName")?.GetValue(a.Advisor)?.ToString();
                     if (!string.IsNullOrWhiteSpace(first) || !string.IsNullOrWhiteSpace(last))
@@ -455,6 +664,10 @@ namespace WebUI.Controllers.Student
             };
         }
 
+        /// <summary>
+        /// InternshipApplication entity'sini ApplicationDetailsViewModel'e dönüştürür
+        /// Detay sayfasında tam bilgileri göstermek için
+        /// </summary>
         private async Task<ApplicationDetailsViewModel> MapToDetailsVm(AppEntity.InternshipApplication a)
         {
             var canCreateApprovalForm = await _approvalService.CanCreateApprovalFormAsync(a.Id);
@@ -471,6 +684,7 @@ namespace WebUI.Controllers.Student
 
             var offer = a.InternshipOffer ?? (a.InternshipOfferId > 0 ? await _offerService.GetByIdAsync(a.InternshipOfferId) : null);
 
+            // İlan detaylarını hazırla
             var offerDetails = offer == null ? null : new OfferDetailsViewModel
             {
                 Id = offer.Id,
@@ -495,6 +709,7 @@ namespace WebUI.Controllers.Student
                 OtherCompanyOffers = new List<OfferSelectViewModel>()
             };
 
+            // İlgili ilanları hazırla (aynı şirket ve benzeri)
             if (offerDetails != null)
             {
                 // Aynı şirketin diğer ilanları
@@ -573,75 +788,9 @@ namespace WebUI.Controllers.Student
             };
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateDiary(int id)
-        {
-            var userId = GetCurrentUserId();
-            var app = await _applicationService.GetApplicationWithDetailsAsync(id);
-            if (app == null || app.StudentId != userId)
-            {
-                TempData["ErrorMessage"] = "Başvuru bulunamadı veya yetkiniz yok.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            if (app.Status != InternshipApplicationStatus.Approved)
-            {
-                TempData["ErrorMessage"] = "Sadece onaylanmış başvurular için defter oluşturulabilir.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
-
-            // Check existing diary
-            var diaries = await _internshipDiaryService.GetDiariesByStudentIdAsync(userId);
-            var linked = diaries.FirstOrDefault(d => d.ApplicationId.HasValue && d.ApplicationId.Value == id);
-            if (linked != null)
-            {
-                return RedirectToAction("Detail", "DiaryNotebook", new { id = linked.Id });
-            }
-
-            // Create diary
-            var newDiary = new Core.Entity.InternshipDiary
-            {
-                StudentId = userId,
-                Title = app.InternshipOffer?.Title ?? "Staj Defteri",
-                CompanyName = app.InternshipOffer?.Company?.CompanyName,
-                Department = app.InternshipOffer?.Field,
-                InternshipStartDate = app.StartDate,
-                InternshipEndDate = app.EndDate,
-                ApplicationId = app.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsRequired = true,
-                IsCompleted = false
-            };
-
-            var created = await _internshipDiaryService.CreateDiaryAsync(newDiary);
-            if (created != null)
-            {
-                return RedirectToAction("Detail", "DiaryNotebook", new { id = created.Id });
-            }
-
-            TempData["ErrorMessage"] = "Defter oluşturulurken hata oluştu.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-
-        private static InternshipApplicationStatus? ParseCoreStatus(string? status)
-        {
-            return (status ?? "").ToLowerInvariant() switch
-            {
-                "approved" => InternshipApplicationStatus.Approved,
-                "rejected" => InternshipApplicationStatus.Rejected,
-                "pending" => InternshipApplicationStatus.Pending,
-                _ => null
-            };
-        }
-
-        private int GetCurrentUserId()
-        {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
-        }
-
+        /// <summary>
+        /// İlan detayları sayfası - hem giriş yapmış hem misafir kullanıcılar erişebilir
+        /// </summary>
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> OfferDetails(int id, string? source)
@@ -685,7 +834,7 @@ namespace WebUI.Controllers.Student
                 catch { }
             }
 
-            // determine showEcom as before
+            // E-ticaret modu belirleme (Home veya Student sayfalarından gelenler için)
             var showEcom = false;
             if (!string.IsNullOrEmpty(source))
             {
@@ -701,7 +850,7 @@ namespace WebUI.Controllers.Student
                 }
             }
 
-            // related offers (same company)
+            // İlgili ilanları hazırla (aynı şirket)
             var related = new List<OfferSelectViewModel>();
             if (!User.IsInRole("Company") && offer.CompanyId > 0)
             {
@@ -721,7 +870,7 @@ namespace WebUI.Controllers.Student
                     }).ToList();
             }
 
-            // other companies' offers (prioritize same field/city)
+            // Diğer şirketlerin ilanları (aynı alan/şehir öncelikli)
             var otherCompanyOffers = new List<OfferSelectViewModel>();
             if (!User.IsInRole("Company"))
             {
@@ -783,6 +932,10 @@ namespace WebUI.Controllers.Student
             return View("~/Views/Student/Application/OfferDetails.cshtml", model);
         }
 
+        /// <summary>
+        /// API endpoint - ilan bilgilerini JSON olarak döndürür
+        /// JavaScript tarafından dinamik form güncellemeleri için
+        /// </summary>
         [HttpGet]
         [AllowAnonymous]
         [Route("api/offers/{id}")]
@@ -807,74 +960,34 @@ namespace WebUI.Controllers.Student
             return Json(data);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        /// <summary>
+        /// String durum değerini InternshipApplicationStatus enum'una dönüştürür
+        /// </summary>
+        private static InternshipApplicationStatus? ParseCoreStatus(string? status)
         {
-            try
+            return (status ?? "").ToLowerInvariant() switch
             {
-                var userId = GetCurrentUserId();
-                var app = await _applicationService.GetByIdAsync(id);
-                if (app == null || app.StudentId != userId)
-                {
-                    TempData["ErrorMessage"] = "Başvuru bulunamadı veya yetkiniz yok.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                if (app.Status != InternshipApplicationStatus.Rejected)
-                {
-                    TempData["ErrorMessage"] = "Sadece geri çekilmiş başvurular silinebilir.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                await _applicationService.DeleteApplicationAsync(id);
-                TempData["SuccessMessage"] = "Başvuru başarıyla silindi.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Delete application error: {ex}");
-                TempData["ErrorMessage"] = "Başvuru silinirken hata oluştu.";
-                return RedirectToAction(nameof(Index));
-            }
+                "approved" => InternshipApplicationStatus.Approved,
+                "rejected" => InternshipApplicationStatus.Rejected,
+                "pending" => InternshipApplicationStatus.Pending,
+                _ => null
+            };
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Favorites()
+        /// <summary>
+        /// Mevcut kullanıcının ID'sini Claims'den alır
+        /// BaseAppController'dan farklı olarak bu Controller'da local implementation
+        /// </summary>
+        private int GetCurrentUserId()
         {
-            var userId = GetCurrentUserId();
-            if (userId <= 0) return RedirectToAction("Index");
-
-            // Session key PublicOffersController ile aynı formatta
-            var userKey = $"FavOffers:{userId}";
-            var raw = HttpContext.Session.GetString(userKey) ?? string.Empty;
-            var ids = raw.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(s => int.TryParse(s, out var v) ? v : 0)
-                         .Where(v => v > 0)
-                         .ToHashSet();
-
-            var favorites = new List<OfferSelectViewModel>();
-            if (ids.Count > 0)
-            {
-                var all = await _offerService.GetAllActiveOffersAsync();
-                favorites = all.Where(o => ids.Contains(o.Id))
-                               .Select(o => new OfferSelectViewModel
-                               {
-                                   OfferId = o.Id,
-                                   Title = o.Title,
-                                   CompanyName = o.Company?.CompanyName ?? string.Empty,
-                                   City = o.City ?? string.Empty,
-                                   Field = o.Field ?? string.Empty,
-                                   ApplicationDeadline = o.ApplicationDeadline
-                               }).ToList();
-            }
-
-            var vm = new FavoritesListViewModel { Favorites = favorites };
-            return View("~/Views/Student/Application/Favorites.cshtml", vm);
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
         }
     }
 
-    // AJAX request model
+    /// <summary>
+    /// AJAX belgeler ekleme request modeli
+    /// </summary>
     public class AddDocumentsRequest
     {
         public int ApplicationId { get; set; }
