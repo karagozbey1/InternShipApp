@@ -5,105 +5,99 @@ using DataAccess.Unit.Interface;
 
 namespace Business.Services.Internship;
 
-/// <summary>
-/// Staj belgeleri yönetim servisi
-/// Öğrenci belgelerinin yüklenmesi, güncellenmesi, silinmesi ve listelenmesi işlemlerini yürütür
-/// </summary>
+// Staj belgeleri yönetim servisi - document management ve file handling
+// Öğrenci belgelerinin yüklenmesi, güncellenmesi, silinmesi işlemlerini koordine eder
+// File system operations ile database consistency'sini sağlar
+// Multi-entity document support: Student, Company, Application bazlı dosya yönetimi
 public class InternshipDocumentService : IInternshipDocumentService
 {
-    // Veritabanı işlemleri için unit of work pattern
+    // Unit of Work pattern - transaction yönetimi ve repository koordinasyonu
+    // File operations ile database operations'ın atomik yapılması için kritik
     private readonly IUnitOfWork _unitOfWork;
 
-    /// <summary>
-    /// Constructor - dependency injection ile UnitOfWork'ü al
-    /// </summary>
-    /// <param name="unitOfWork">Veritabanı işlemleri için unit of work</param>
+    // Dependency injection constructor - service lifetime management
+    // Scoped registration ile HttpContext bazında instance control
     public InternshipDocumentService(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    /// <summary>
-    /// Belge ID'sine göre tek bir belge getir
-    /// </summary>
-    /// <param name="documentId">Aranacak belgenin ID'si</param>
-    /// <returns>Bulunan belge veya null</returns>
+    // ID ile tek belge getirme - file detail view ve download operations için
+    // Null-safe return - calling code'da existence check gerekli
+    // Primary key lookup - en performanslı query tipi
     public async Task<InternshipDocument?> GetDocumentByIdAsync(int documentId)
     {
+        // Input validation repository seviyesinde yapılır
+        // Entity framework change tracking ile memory'de cache'lenir
         return await _unitOfWork.InternshipDocuments.GetByIdAsync(documentId);
     }
 
-    /// <summary>
-    /// Belirli bir başvuruya ait tüm belgeleri getir
-    /// </summary>
-    /// <param name="applicationId">Başvuru ID'si</param>
-    /// <returns>Başvuruya ait belgeler listesi</returns>
+    // Başvuruya bağlı belgeleri getirme - application detail sayfası için
+    // Foreign key relationship ile filtered query
+    // Include operations ile related data loading possibility
     public async Task<List<InternshipDocument>> GetDocumentsByApplicationIdAsync(int applicationId)
     {
+        // WHERE ApplicationId = @applicationId query
+        // Index usage için ApplicationId column'ında index önerilisr
         return await _unitOfWork.InternshipDocuments.GetDocumentsByApplicationIdAsync(applicationId);
     }
 
-    /// <summary>
-    /// Belirli bir öğrenciye ait tüm belgeleri getir
-    /// </summary>
-    /// <param name="studentId">Öğrenci ID'si</param>
-    /// <returns>Öğrenciye ait belgeler listesi</returns>
+    // Öğrenciye ait tüm belgeleri getirme - student document management
+    // Personal document library ve file history için kullanılır
+    // Pagination wrapper ile kullanılması large datasets için önerilisr
     public async Task<List<InternshipDocument>> GetDocumentsByStudentIdAsync(int studentId)
     {
-        // Parametre validasyonu
+        // Parameter validation - defensive programming approach
         if (studentId <= 0)
             throw new ArgumentException("Geçersiz öğrenci ID", nameof(studentId));
 
+        // Student ownership based filtering
+        // Chronological ordering (UploadedAt DESC) ile son yüklenenler önce
         return await _unitOfWork.InternshipDocuments.GetDocumentsByStudentIdAsync(studentId);
     }
 
-    /// <summary>
-    /// Öğrencinin başvuruya bağlı olmayan (bağımsız) belgelerini getir
-    /// Profil belgeleri, CV, transkript gibi genel belgeler
-    /// </summary>
-    /// <param name="studentId">Öğrenci ID'si</param>
-    /// <returns>Bağımsız belgeler listesi</returns>
+    // Öğrencinin genel belgelerini getirme - başvuru-bağımsız dosyalar
+    // CV, transcript, certificate gibi reusable documents için
+    // Application linking öncesi available documents listesi
     public async Task<List<InternshipDocument>> GetIndependentDocumentsByStudentIdAsync(int studentId)
     {
+        // Input validation consistency
         if (studentId <= 0)
             throw new ArgumentException("Geçersiz öğrenci ID", nameof(studentId));
 
+        // WHERE StudentId = @studentId AND ApplicationId IS NULL query
+        // Independent documents - reusable across multiple applications
         return await _unitOfWork.InternshipDocuments.GetIndependentDocumentsByStudentIdAsync(studentId);
     }
 
-    /// <summary>
-    /// Bir belgeyi onay formuna bağla
-    /// Danışman onay sürecinde kullanılır
-    /// </summary>
-    /// <param name="documentId">Belge ID'si</param>
-    /// <param name="approvalFormId">Onay formu ID'si</param>
+    // Belgeyi onay formuna bağlama - approval workflow integration
+    // Danışman onay sürecinde document selection için kullanılır
+    // Many-to-many relationship management through junction operations
     public async Task LinkDocumentToApprovalAsync(int documentId, int approvalFormId)
     {
-        // Parametre validasyonları
+        // Parameter validation - business rule enforcement
         if (documentId <= 0)
             throw new ArgumentException("Geçersiz belge ID", nameof(documentId));
         
         if (approvalFormId <= 0)
             throw new ArgumentException("Geçersiz onay formu ID", nameof(approvalFormId));
 
-        // Belgeyi onay formuna bağla
+        // Repository method ile junction table management
+        // Many-to-many relationship implementation
         await _unitOfWork.InternshipDocuments.LinkDocumentToApprovalAsync(documentId, approvalFormId);
         await _unitOfWork.SaveAsync();
     }
 
-    /// <summary>
-    /// Yeni belge ekleme metodu
-    /// Dosya yükleme işleminden sonra veritabanına kaydetmek için kullanılır
-    /// </summary>
-    /// <param name="document">Eklenecek belge entity'si</param>
-    /// <returns>Eklenen belge (ID ile birlikte)</returns>
+    // Yeni belge ekleme - file upload completion sonrası database registration
+    // File system storage ile database record sync işlemi
+    // Comprehensive validation ile data integrity assurance
     public async Task<InternshipDocument> AddDocumentAsync(InternshipDocument document)
     {
-        // Null kontrolü
+        // Null protection - defensive programming
         if (document == null)
             throw new ArgumentNullException(nameof(document));
 
-        // Zorunlu alanların kontrolü
+        // Required field validations - business rule enforcement
         if (string.IsNullOrWhiteSpace(document.FileName))
             throw new ArgumentException("Dosya adı boş olamaz", nameof(document.FileName));
 
@@ -113,7 +107,8 @@ public class InternshipDocumentService : IInternshipDocumentService
         if (string.IsNullOrWhiteSpace(document.DocumentType))
             throw new ArgumentException("Dosya türü boş olamaz", nameof(document.DocumentType));
 
-        // Alan uzunluk kontrolleri (veritabanı limit aşımı önlemi)
+        // Database column length validations - constraint violation prevention
+        // Prevents SQL exception ve improves user experience
         if (document.FileName.Length > 500)
             throw new ArgumentException("Dosya adı çok uzun (max 500 karakter)", nameof(document.FileName));
 
@@ -123,7 +118,7 @@ public class InternshipDocumentService : IInternshipDocumentService
         if (document.DocumentType.Length > 100)
             throw new ArgumentException("Dosya türü çok uzun (max 100 karakter)", nameof(document.DocumentType));
 
-        // Opsiyonel alanların uzunluk kontrolü
+        // Optional field length validations - consistency maintenance
         if (!string.IsNullOrEmpty(document.Description) && document.Description.Length > 1000)
             throw new ArgumentException("Açıklama çok uzun (max 1000 karakter)", nameof(document.Description));
 
@@ -133,242 +128,233 @@ public class InternshipDocumentService : IInternshipDocumentService
         if (!string.IsNullOrEmpty(document.Status) && document.Status.Length > 50)
             throw new ArgumentException("Status çok uzun (max 50 karakter)", nameof(document.Status));
 
-        // En az bir sahiplik ID'si olmalı (hangi entity'ye ait olduğu)
+        // Ownership validation - business rule: her document bir entity'ye ait olmalı
+        // StudentId, ApplicationId veya CompanyId'den en az biri set olmalı
         if (!document.StudentId.HasValue && !document.ApplicationId.HasValue && !document.CompanyId.HasValue)
             throw new ArgumentException("En az bir ID (StudentId, ApplicationId veya CompanyId) belirtilmelidir");
 
         try
         {
-            // Yüklenme zamanını sistem zamanı olarak ayarla
+            // Timestamp assignment - audit trail için kritik
             document.UploadedAt = DateTime.UtcNow;
             
-            // Veritabanına ekle
+            // Repository pattern ile entity addition
             await _unitOfWork.InternshipDocuments.AddAsync(document);
             await _unitOfWork.SaveAsync();
             
-            return document;
+            return document; // Auto-generated ID ile return
         }
         catch (Exception ex)
         {
-            // Veritabanı hatası durumunda anlamlı hata mesajı fırlat
+            // Database error wrapping - user-friendly error messaging
+            // Original exception preserved for debugging
             throw new InvalidOperationException("Belge veritabanına kaydedilirken bir hata oluştu.", ex);
         }
     }
 
-    /// <summary>
-    /// Mevcut belgeyi güncelleme metodu
-    /// Belge adı, açıklama gibi meta verileri güncellemek için
-    /// </summary>
-    /// <param name="document">Güncellenecek belge</param>
+    // Belge metadata güncelleme - file properties modification
+    // Physical file değişmez, sadece database record'u update edilir
+    // Title, description, status gibi meta fields için
     public async Task UpdateDocumentAsync(InternshipDocument document)
     {
+        // Null safety check
         if (document == null)
             throw new ArgumentNullException(nameof(document));
 
         try
         {
-            // Belgeyi güncelle ve değişiklikleri kaydet
+            // Change tracking ile modified properties detection
             _unitOfWork.InternshipDocuments.Update(document);
             await _unitOfWork.SaveAsync();
         }
         catch (Exception ex)
         {
+            // Exception wrapping ile meaningful error message
             throw new InvalidOperationException("Belge güncellenirken bir hata oluştu.", ex);
         }
     }
 
-    /// <summary>
-    /// Belge silme metodu
-    /// Hem veritabanından hem de fiziksel dosyayı silmek için kullanılır
-    /// </summary>
-    /// <param name="documentId">Silinecek belgenin ID'si</param>
+    // Belge silme - both database record ve physical file cleanup
+    // Two-phase deletion: database removal then file system cleanup
+    // Orphaned file prevention için dikkatli implementation gerekli
     public async Task DeleteDocumentAsync(int documentId)
     {
-        // Belgeyi veritabanından bul
+        // Entity existence check - null-safe deletion
         var document = await _unitOfWork.InternshipDocuments.GetByIdAsync(documentId);
         if (document != null)
         {
-            // Belgeyi sil ve değişiklikleri kaydet
+            // Database record removal - foreign key constraints handled
             _unitOfWork.InternshipDocuments.Remove(document);
             await _unitOfWork.SaveAsync();
             
-            // NOT: Fiziksel dosya silme işlemi burada yapılabilir
-            // File.Delete(document.FilePath) gibi
+            // Physical file cleanup notification
+            // Actual file deletion burada yapılabilir veya background service'e delegate edilebilir
+            // File.Delete(document.FilePath) - filesystem operation
+            // Error handling gerekli: file may be locked, permissions, etc.
         }
     }
 
-    /// <summary>
-    /// Şirketin yüklediği belgeleri getir
-    /// Şirket profil belgeleri, sözleşmeler vb.
-    /// </summary>
-    /// <param name="companyId">Şirket ID'si</param>
-    /// <returns>Şirkete ait belgeler listesi</returns>
+    // Şirket belgelerini getirme - company document management
+    // Corporate documents, contracts, certificates için
+    // Company profile ve legal document storage
     public async Task<List<InternshipDocument>> GetCompanyDocumentsAsync(int companyId)
     {
+        // Parameter validation consistency
         if (companyId <= 0)
             throw new ArgumentException("Geçersiz şirket ID", nameof(companyId));
 
+        // Company ownership filtering
+        // WHERE CompanyId = @companyId query
         return await _unitOfWork.InternshipDocuments.GetCompanyDocumentsAsync(companyId);
     }
 
-    /// <summary>
-    /// Şirket adına yeni belge ekleme
-    /// Şirket sözleşmeleri, profil dokümanları için
-    /// </summary>
-    /// <param name="companyId">Şirket ID'si</param>
-    /// <param name="fileName">Dosya adı</param>
-    /// <param name="description">Belge açıklaması</param>
+    // Şirket adına belge ekleme - corporate document upload
+    // Company contracts, policies, legal documents için
+    // Automatic path generation ile organized file structure
     public async Task AddCompanyDocumentAsync(int companyId, string fileName, string description)
     {
-        // Parametre validasyonları
+        // Parameter validation - required fields
         if (companyId <= 0)
             throw new ArgumentException("Geçersiz şirket ID", nameof(companyId));
         if (string.IsNullOrWhiteSpace(fileName))
             throw new ArgumentException("Dosya adı boş olamaz", nameof(fileName));
 
-        // Şirketin varlığını kontrol et
+        // Company existence validation - referential integrity
         var company = await _unitOfWork.Companies.GetByIdAsync(companyId);
         if (company == null)
             throw new InvalidOperationException("Şirket bulunamadı");
 
-        // Dosya uzantısını çıkar
+        // File extension extraction - type determination
         var fileExtension = Path.GetExtension(fileName)?.TrimStart('.');
         
-        // Yeni belge entity'si oluştur
+        // Entity construction - organized file structure
         var doc = new InternshipDocument
         {
             CompanyId = companyId,
             FileName = fileName,
-            FilePath = Path.Combine("uploads", "companies", companyId.ToString(), fileName), // Şirket klasörü
-            ContentType = "application/octet-stream", // Genel content type
+            // Hierarchical folder structure: uploads/companies/{companyId}/filename
+            FilePath = Path.Combine("uploads", "companies", companyId.ToString(), fileName),
+            ContentType = "application/octet-stream", // Default MIME type
             Description = description,
             UploadedAt = DateTime.UtcNow,
-            DocumentType = fileExtension ?? string.Empty
+            DocumentType = fileExtension ?? string.Empty // File type classification
         };
 
-        // Veritabanına ekle
+        // Database persistence
         await _unitOfWork.InternshipDocuments.AddAsync(doc);
         await _unitOfWork.SaveAsync();
     }
 
-    /// <summary>
-    /// Öğrencinin staj defteri girişlerini getir
-    /// Günlük staj aktiviteleri ve raporlar
-    /// </summary>
-    /// <param name="studentId">Öğrenci ID'si</param>
-    /// <returns>Staj defteri girişleri listesi</returns>
+    // Staj defteri girişlerini getirme - internship diary entries
+    // Daily activity reports, progress tracking için
+    // Student's internship journey documentation
     public async Task<List<InternshipDocument>> GetStudentDiaryEntriesAsync(int studentId)
     {
+        // Input validation
         if (studentId <= 0)
             throw new ArgumentException("Geçersiz öğrenci ID", nameof(studentId));
 
+        // Specialized repository method - diary type filtering
+        // WHERE StudentId = @studentId AND DocumentType = 'Diary'
         return await _unitOfWork.InternshipDocuments
             .GetDiaryEntriesByStudentIdAsync(studentId);
     }
 
-    /// <summary>
-    /// Yeni staj defteri girişi oluştur
-    /// Öğrencinin günlük aktivite kayıtları için
-    /// </summary>
-    /// <param name="entry">Staj defteri girişi</param>
-    /// <returns>İşlem başarılı mı?</returns>
+    // Yeni staj defteri girişi oluşturma - daily progress entry
+    // Student activity logging ve progress tracking
+    // Structured diary entry creation ile consistent format
     public async Task<bool> CreateDiaryEntryAsync(InternshipDocument entry)
     {
-        // Null kontrolü
+        // Null safety
         if (entry == null)
             throw new ArgumentNullException(nameof(entry));
 
-        // Öğrenci ID kontrolü
+        // ID validation - student ownership requirement
         if (entry.Id <= 0)
             throw new ArgumentException("Geçersiz öğrenci ID", nameof(entry.Id));
 
-        // Dosya adı kontrolü
+        // Required field validation
         if (string.IsNullOrWhiteSpace(entry.FileName))
             throw new ArgumentException("Dosya adı boş olamaz", nameof(entry.FileName));
 
-        // Meta verileri ayarla
+        // Metadata standardization - consistent diary entry format
         entry.UploadedAt = DateTime.UtcNow;
-        entry.DocumentType = "Diary"; // Staj defteri girdisi olarak işaretle
+        entry.DocumentType = "Diary"; // Type classification for filtering
         
-        // Veritabanına ekle
+        // Persistence operation
         await _unitOfWork.InternshipDocuments.AddAsync(entry);
         await _unitOfWork.SaveAsync();
         
-        return true;
+        return true; // Success indicator
     }
 
-    /// <summary>
-    /// Öğrencinin staj defteri girişlerini getir (alternatif metod)
-    /// </summary>
-    /// <param name="studentId">Öğrenci ID'si</param>
-    /// <returns>Staj defteri girişleri</returns>
+    // Staj defteri girişleri - alternative method signature
+    // Method overloading ile API flexibility
+    // Delegate pattern ile code duplication prevention
     public Task<List<InternshipDocument>> GetDiaryEntriesByStudentIdAsync(int studentId)
     {
+        // Direct repository call - no additional business logic
+        // Thin service layer approach
         return _unitOfWork.InternshipDocuments.GetDiaryEntriesByStudentIdAsync(studentId);
     }
 
-    /// <summary>
-    /// Onay formuna ait belgeleri getir
-    /// Danışman onay sürecinde hangi belgelerin ekli olduğunu görmek için
-    /// </summary>
-    /// <param name="approvalFormId">Onay formu ID'si</param>
-    /// <returns>Onay formuna bağlı belgeler</returns>
+    // Onay formuna ait belgeleri getirme - approval process document listing
+    // Danışman onay sürecinde attached documents review için
+    // Document verification ve approval workflow support
     public async Task<List<InternshipDocument>> GetDocumentsByApprovalFormIdAsync(int approvalFormId)
     {
+        // Parameter validation
         if (approvalFormId <= 0)
             throw new ArgumentException("Geçersiz onay formu ID", nameof(approvalFormId));
         
+        // Junction table query - many-to-many relationship resolution
+        // ApprovalForm-Document relationship navigation
         return await _unitOfWork.InternshipDocuments.GetDocumentsByApprovalFormIdAsync(approvalFormId);
     }
 
-    /// <summary>
-    /// Bir belgeyi başvuruya bağla
-    /// Öğrenci başvuru yaparken belgelerini eklemek için kullanılır
-    /// </summary>
-    /// <param name="documentId">Belge ID'si</param>
-    /// <param name="applicationId">Başvuru ID'si</param>
+    // Belgeyi başvuruya bağlama - application document attachment
+    // Student application process'inde document inclusion
+    // Foreign key relationship establishment
     public async Task LinkDocumentToApplicationAsync(int documentId, int applicationId)
     {
-        // Parametre validasyonları
+        // Parameter validation
         if (documentId <= 0)
             throw new ArgumentException("Geçersiz belge ID", nameof(documentId));
         
         if (applicationId <= 0)
             throw new ArgumentException("Geçersiz başvuru ID", nameof(applicationId));
 
-        // Belgeyi veritabanından getir
+        // Entity retrieval ve relationship update
         var document = await _unitOfWork.InternshipDocuments.GetByIdAsync(documentId);
         if (document != null)
         {
-            // Belgeyi başvuruya bağla
+            // Foreign key assignment - relationship establishment
             document.ApplicationId = applicationId;
             _unitOfWork.InternshipDocuments.Update(document);
             await _unitOfWork.SaveAsync();
         }
     }
 
-    /// <summary>
-    /// Bir belgenin başvuru ile bağlantısını kaldır
-    /// Öğrenci belgesini başvurudan çıkarmak istediğinde kullanılır
-    /// </summary>
-    /// <param name="documentId">Belge ID'si</param>
-    /// <param name="applicationId">Başvuru ID'si</param>
+    // Belge-başvuru bağlantısını kaldırma - document detachment
+    // Application modification process'inde document removal
+    // Foreign key nullification ile relationship termination
     public async Task UnlinkDocumentFromApplicationAsync(int documentId, int applicationId)
     {
-        // Parametre validasyonları
+        // Parameter validation
         if (documentId <= 0)
             throw new ArgumentException("Geçersiz belge ID", nameof(documentId));
         
         if (applicationId <= 0)
             throw new ArgumentException("Geçersiz başvuru ID", nameof(applicationId));
 
-        // Belgeyi veritabanından getir
+        // Entity retrieval ve relationship verification
         var document = await _unitOfWork.InternshipDocuments.GetByIdAsync(documentId);
         
-        // Belge var ve doğru başvuruya bağlıysa bağlantıyı kaldır
+        // Conditional unlinking - safety check for correct relationship
+        // Only unlink if document is actually linked to specified application
         if (document != null && document.ApplicationId == applicationId)
         {
-            document.ApplicationId = null; // Bağlantıyı kaldır
+            document.ApplicationId = null; // Relationship termination
             _unitOfWork.InternshipDocuments.Update(document);
             await _unitOfWork.SaveAsync();
         }
