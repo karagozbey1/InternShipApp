@@ -1,537 +1,289 @@
-@model WebUI.Models.Student.EditApprovalViewModel
+@* Staj onay düzenleme sayfasý - danýþman tarafýndan kullanýlýr *@
+@model WebUI.Models.ViewModels.Student.ApprovalEditViewModel
+
 @{
-    ViewData["Title"] = "Onay Formu Düzenle";
-    Layout = "_AppLayout";
+    ViewData["Title"] = "Staj Onayý Düzenle";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/approval-edit-modern.css" />
-}
+@* Modern CSS stilleri için link *@
+<link rel="stylesheet" href="~/css/approval-edit-modern.css" asp-append-version="true" />
 
-<div class="edit-container">
-    <!-- Header -->
-    <div class="page-header">
-        <h1 class="page-title">
-            <i class="fas fa-edit"></i> Onay Formu Düzenle
-        </h1>
-        <p class="page-subtitle">
-            Danýþmanýnýzýn revizyon notlarýný inceleyip belge ve ön yazýnýzý güncelleyin
-        </p>
-    </div>
-
-    <!-- Revision Banner (if exists) -->
-    @if (!string.IsNullOrEmpty(Model.RevisionNote))
-    {
-        <div class="revision-banner">
-            <div class="revision-icon">
-                <i class="fas fa-exclamation-triangle"></i>
+@* Ana container *@
+<div class="approval-edit-container">
+    <div class="approval-edit-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1 class="page-title">
+                    <i class="fas fa-edit" aria-hidden="true"></i>
+                    Staj Onayý Düzenle
+                </h1>
+                <p class="page-subtitle">@Model.Student.FullName - @Model.Student.StudentNumber</p>
             </div>
-            <div class="revision-content">
-                <h5>Revizyon Gerekli</h5>
-                <p>@Model.RevisionNote</p>
+            <div class="header-actions">
+                <a asp-controller="Advisor" asp-action="Approval" asp-route-area="" 
+                   class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Geri Dön
+                </a>
             </div>
         </div>
-    }
+    </div>
 
-    <!-- Main Form Card -->
-    <div class="edit-card">
-        <form asp-action="Edit" method="post" id="editForm">
-            @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="CompanyName" />
-            <input type="hidden" asp-for="StartDate" />
-            <input type="hidden" asp-for="EndDate" />
-            <input type="hidden" asp-for="WeeklyWorkHours" />
-            <input type="hidden" asp-for="InternshipDescription" />
+    @* Form baþlangýcý *@
+    <form asp-controller="Advisor" asp-action="UpdateApproval" method="post" id="editForm" class="approval-form">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Student.Id" />
 
-            <!-- Firma Bilgileri Section -->
-            <div class="form-section">
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-building"></i>
+        <div class="form-grid">
+            @* Sol kolon - form alanlarý *@
+            <div class="form-column">
+                <div class="form-card">
+                    <h3 class="card-title">
+                        <i class="fas fa-info-circle"></i>
+                        Onay Bilgileri
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label asp-for="StudentNote" class="form-label required">Danýþman Notu</label>
+                        <textarea asp-for="StudentNote" id="studentNote" class="form-control" rows="4" 
+                                  placeholder="Öðrencinin staj performansý ve deðerlendirmeniz hakkýnda notlarýnýzý yazýn..."></textarea>
+                        <span asp-validation-for="StudentNote" class="text-danger"></span>
                     </div>
-                    <h3 class="section-title">Firma Bilgileri</h3>
-                </div>
-                
-                <div class="company-info-grid">
-                    <div class="info-item">
-                        <span class="info-label">ÞÝRKET ADI</span>
-                        <span class="info-value">@Model.CompanyName</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">POZÝSYON</span>
-                        <span class="info-value">@Model.Position</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">BAÞLANGIÇ TARÝHÝ</span>
-                        <span class="info-value">@Model.StartDate.ToString("dd MMMM yyyy")</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">BÝTÝÞ TARÝHÝ</span>
-                        <span class="info-value">@Model.EndDate.ToString("dd MMMM yyyy")</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Staj Detaylarý Section -->
-            <div class="form-section">
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-tree"></i>
+                    <div class="form-group">
+                        <label asp-for="AdvisorApprovalStatus" class="form-label required">Onay Durumu</label>
+                        <select asp-for="AdvisorApprovalStatus" class="form-control">
+                            <option value="">Seçiniz</option>
+                            <option value="Pending">Beklemede</option>
+                            <option value="Approved">Onaylý</option>
+                            <option value="Rejected">Reddedildi</option>
+                            <option value="NeedsRevision">Revizyon Gerekli</option>
+                        </select>
+                        <span asp-validation-for="AdvisorApprovalStatus" class="text-danger"></span>
                     </div>
-                    <h3 class="section-title">Staj Detaylarý</h3>
-                </div>
-                
-                <div class="date-row">
-                    <div class="date-field">
-                        <label>Baþlangýç</label>
-                        <input type="date" value="@Model.StartDate.ToString("yyyy-MM-dd")" readonly />
-                    </div>
-                    <div class="date-field">
-                        <label>Bitiþ</label>
-                        <input type="date" value="@Model.EndDate.ToString("yyyy-MM-dd")" readonly />
-                    </div>
-                </div>
 
-                <div class="form-field">
-                    <label>Haftalýk Saat</label>
-                    <input type="number" value="@Model.WeeklyWorkHours" readonly />
-                </div>
-
-                <div class="form-field">
-                    <label>Staj Açýklamasý</label>
-                    <textarea readonly>@Model.InternshipDescription</textarea>
-                </div>
-            </div>
-
-            <!-- Öðrenci Notu Section -->
-            <div class="form-section">
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-sticky-note"></i>
-                    </div>
-                    <h3 class="section-title">Öðrenci Notu</h3>
-                </div>
-                
-                <div class="note-section">
-                    <div class="note-header">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>NOT / AÇIKLAMA</span>
-                    </div>
-                    <textarea asp-for="StudentNote" id="studentNote" placeholder="Hocam onayýnýzý bekliyorum"></textarea>
-                </div>
-            </div>
-
-            <!-- Revizyon Belgeleri Section -->
-            <div class="form-section">
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fas fa-folder"></i>
-                    </div>
-                    <h3 class="section-title">Revizyon Belgeleri</h3>
-                </div>
-
-                <div class="documents-info-bar">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Ýlk yükleme sonucudan; ardýndan AJAX ile senkron.</span>
-                    <div class="document-count">
-                        <i class="fas fa-file"></i>
-                        <span id="documentCount">@(Model.AvailableDocuments?.Count ?? 0)</span> belge
-                    </div>
-                </div>
-
-                <div class="documents-layout">
-                    <!-- Left Column - Linked Documents -->
-                    <div class="doc-column">
-                        <div class="column-header">
-                            <i class="fas fa-link"></i>
-                            <span>BAÐLI BELGELER</span>
-                            <span id="linkedCount" class="ml-2 text-xs">(@(Model.SelectedDocumentIds?.Count ?? 0))</span>
-                        </div>
-                        <div class="document-list linked-docs">
-                            @if (Model.AvailableDocuments != null && Model.AvailableDocuments.Any())
+                    <div class="form-group">
+                        <label class="form-label">Ýlgili Belgeler</label>
+                        <div class="documents-container" id="documentsContainer">
+                            @* Mevcut belgeler burada gösterilecek *@
+                            @if (Model.Documents != null && Model.Documents.Any())
                             {
-                                foreach (var doc in Model.AvailableDocuments.Where(d => Model.SelectedDocumentIds.Contains(d.Id)))
+                                @foreach (var document in Model.Documents)
                                 {
-                                    <div class="doc-item linked" data-id="@doc.Id">
-                                        <div class="doc-avatar red">@doc.Title?.Substring(0, 1).ToUpper()</div>
-                                        <div class="doc-details">
-                                            <div class="doc-name">@doc.Title</div>
-                                            <div class="doc-size">@(doc.FileSize > 1024 * 1024 ? $"{doc.FileSize / (1024 * 1024):F1} MB" : $"{doc.FileSize / 1024:F0} KB")</div>
+                                    <div class="document-item" data-document-id="@document.Id">
+                                        <div class="document-info">
+                                            <i class="fas fa-file-pdf text-danger"></i>
+                                            <span class="document-name">@document.Title</span>
+                                            <small class="document-size">
+                                                (@(document.FileSize / 1024)KB)
+                                            </small>
                                         </div>
-                                        <button type="button" class="remove-btn" onclick="removeDocument(@doc.Id)">
-                                            <i class="fas fa-times"></i> Kaldýr
-                                        </button>
-                                    </div>
-                                }
-                            }
-                        </div>
-                    </div>
-
-                    <!-- Right Column - Available Documents -->
-                    <div class="doc-column">
-                        <div class="column-header">
-                            <i class="fas fa-folder-open"></i>
-                            <span>BELGELERÝM</span>
-                            <span id="availableCount" class="ml-2 text-xs">(@(Model.AvailableDocuments?.Count(d => !Model.SelectedDocumentIds.Contains(d.Id)) ?? 0))</span>
-                        </div>
-                        <div class="document-list available-docs">
-                            @if (Model.AvailableDocuments != null && Model.AvailableDocuments.Any())
-                            {
-                                foreach (var doc in Model.AvailableDocuments.Where(d => !Model.SelectedDocumentIds.Contains(d.Id)))
-                                {
-                                    <div class="doc-item available" data-id="@doc.Id">
-                                        <div class="doc-avatar blue">@doc.Title?.Substring(0, 1).ToUpper()</div>
-                                        <div class="doc-details">
-                                            <div class="doc-name">@doc.Title</div>
-                                            <div class="doc-size">@(doc.FileSize > 1024 * 1024 ? $"{doc.FileSize / (1024 * 1024):F1} MB" : $"{doc.FileSize / 1024:F0} KB")</div>
+                                        <div class="document-actions">
+                                            <label class="document-checkbox">
+                                                <input type="checkbox" name="documentCheck" value="@document.Id" />
+                                                <span class="checkmark"></span>
+                                            </label>
                                         </div>
-                                        <button type="button" class="add-btn" onclick="addDocument(@doc.Id)">
-                                            <i class="fas fa-plus"></i> Ekle
-                                        </button>
                                     </div>
                                 }
                             }
                             else
                             {
-                                <div class="empty-state">
-                                    <i class="fas fa-folder-open"></i>
-                                    <p>Belge bulunamadý</p>
-                                </div>
+                                <p class="no-documents">Henüz belge yüklenmemiþ.</p>
                             }
                         </div>
                     </div>
                 </div>
-
-                <!-- Hidden inputs container for selected documents -->
-                <div id="hiddenInputsContainer">
-                    @foreach (var docId in Model.SelectedDocumentIds)
-                    {
-                        <input type="hidden" name="SelectedDocumentIds" value="@docId" class="selected-doc-input" />
-                    }
-                </div>
             </div>
 
-            <!-- Action Section -->
-            <div class="action-section">
-                <div class="action-info">
-                    <i class="fas fa-sync-alt"></i>
-                    <span>Kaydedildiðinde form yeniden danýþman onayýna gidecek.</span>
+            @* Sað kolon - özet ve eylemler *@
+            <div class="summary-column">
+                <div class="summary-card">
+                    <h3 class="card-title">
+                        <i class="fas fa-user"></i>
+                        Öðrenci Bilgileri
+                    </h3>
+                    <div class="student-info">
+                        <div class="info-item">
+                            <strong>Ad Soyad:</strong>
+                            <span>@Model.Student.FullName</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Öðrenci No:</strong>
+                            <span>@Model.Student.StudentNumber</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>E-posta:</strong>
+                            <span>@Model.Student.Email</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="action-buttons">
-                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn-cancel">
-                        <i class="fas fa-times"></i>
-                        Ýptal
-                    </a>
-                    <button type="submit" class="btn-submit" id="submitBtn">
-                        <i class="fas fa-save"></i>
-                        Kaydet & Gönder
-                    </button>
+
+                <div class="actions-card">
+                    <h3 class="card-title">
+                        <i class="fas fa-cogs"></i>
+                        Ýþlemler
+                    </h3>
+                    <div class="action-buttons">
+                        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+                            <i class="fas fa-save"></i>
+                            Kaydet
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-block" onclick="previewChanges()">
+                            <i class="fas fa-eye"></i>
+                            Önizleme
+                        </button>
+                        <a asp-controller="Advisor" asp-action="Approval" 
+                           class="btn btn-outline-secondary btn-block">
+                            <i class="fas fa-times"></i>
+                            Ýptal
+                        </a>
+                    </div>
                 </div>
             </div>
-        </form>
-    </div>
+        </div>
+
+        @* Seçili dokümanlar için hidden inputlar *@
+        <div id="selectedDocumentsInputs">
+            @* JavaScript ile dinamik olarak oluþturulacak *@
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @* Form validasyonu için partial view *@
+    <partial name="_ValidationScriptsPartial" />
+    
+    @* Approval edit için özel JavaScript *@
+    <script src="~/js/approval-edit-modern.js" asp-append-version="true"></script>
+    
     <script>
-        // Debug: Test if script loads
-        console.log('?? EDIT PAGE SCRIPT LOADED');
-        
-        // Global variables
+        // Seçili dokümanlarý takip eden set
         let selectedDocuments = new Set();
-        
-        // Initialize page
+
+        // Sayfa yüklendiðinde çalýþacak fonksiyonlar
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('?? Edit page DOM loaded');
+            // Doküman seçimi iþlevselliðini baþlat
+            initializeDocumentSelection();
             
-            // Test form element
-            const form = document.getElementById('editForm');
-            const submitBtn = document.getElementById('submitBtn');
-            
-            console.log('?? Form element:', form);
-            console.log('?? Submit button:', submitBtn);
-            
-            if (!form) {
-                console.error('? FORM NOT FOUND!');
-                return;
-            }
-            
-            if (!submitBtn) {
-                console.error('? SUBMIT BUTTON NOT FOUND!');
-                return;
-            }
-            
-            initializeSelectedDocuments();
+            // Form gönderimi iþlevselliðini baþlat
             setupFormSubmission();
-            logCurrentState();
         });
 
-        // Initialize selected documents from server data
-        function initializeSelectedDocuments() {
-            console.log('?? Initializing documents...');
+        // Doküman seçim iþlevselliðini baþlatma
+        function initializeDocumentSelection() {
+            // Tüm doküman checkbox'larýný seç
+            const checkboxes = document.querySelectorAll('input[name="documentCheck"]');
             
-            const hiddenInputs = document.querySelectorAll('input[name="SelectedDocumentIds"]');
-            console.log('?? Found hidden inputs:', hiddenInputs.length);
-            
-            selectedDocuments.clear();
-            
-            hiddenInputs.forEach(input => {
-                const docId = parseInt(input.value);
-                console.log('?? Processing document ID:', docId);
-                if (docId) {
-                    selectedDocuments.add(docId);
-                }
+            // Her checkbox için event listener ekle
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const documentId = parseInt(this.value);
+                    
+                    if (this.checked) {
+                        // Doküman seçildiyse set'e ekle
+                        selectedDocuments.add(documentId);
+                    } else {
+                        // Doküman seçimi kaldýrýldýysa set'ten çýkar
+                        selectedDocuments.delete(documentId);
+                    }
+                    
+                    // Hidden inputlarý güncelle
+                    updateHiddenInputs();
+                    
+                    // Seçim durumunu görsel olarak güncelle
+                    updateDocumentSelectionUI();
+                });
             });
-            
-            console.log('?? Initialized with documents:', Array.from(selectedDocuments));
-            updateCounts();
         }
 
-        // Document management functions
-        function addDocument(docId) {
-            console.log('? Adding document:', docId);
-            
-            const availableCard = document.querySelector(`.available-docs .doc-item[data-id="${docId}"]`);
-            const linkedContainer = document.querySelector('.linked-docs');
-            
-            if (availableCard && linkedContainer) {
-                // Clone and modify
-                const linkedCard = availableCard.cloneNode(true);
-                linkedCard.classList.remove('available');
-                linkedCard.classList.add('linked');
-                
-                // Change avatar color and button
-                const avatar = linkedCard.querySelector('.doc-avatar');
-                if (avatar) {
-                    avatar.classList.remove('blue');
-                    avatar.classList.add('red');
-                }
-                
-                const button = linkedCard.querySelector('.add-btn');
-                if (button) {
-                    button.innerHTML = '<i class="fas fa-times"></i> Kaldýr';
-                    button.className = 'remove-btn';
-                    button.onclick = () => removeDocument(docId);
-                }
-                
-                // Move to linked section
-                linkedContainer.appendChild(linkedCard);
-                availableCard.remove();
-                
-                // Update selected set and hidden inputs
-                selectedDocuments.add(docId);
-                updateHiddenInputs();
-                updateCounts();
-                
-                console.log('? Document added, current selection:', Array.from(selectedDocuments));
-            } else {
-                console.error('? Could not find elements for document:', docId);
-            }
-        }
-        
-        function removeDocument(docId) {
-            console.log('? Removing document:', docId);
-            
-            const linkedCard = document.querySelector(`.linked-docs .doc-item[data-id="${docId}"]`);
-            const availableContainer = document.querySelector('.available-docs');
-            
-            if (linkedCard && availableContainer) {
-                // Clone and modify
-                const availableCard = linkedCard.cloneNode(true);
-                availableCard.classList.remove('linked');
-                availableCard.classList.add('available');
-                
-                // Change avatar color and button
-                const avatar = availableCard.querySelector('.doc-avatar');
-                if (avatar) {
-                    avatar.classList.remove('red');
-                    avatar.classList.add('blue');
-                }
-                
-                const button = availableCard.querySelector('.remove-btn');
-                if (button) {
-                    button.innerHTML = '<i class="fas fa-plus"></i> Ekle';
-                    button.className = 'add-btn';
-                    button.onclick = () => addDocument(docId);
-                }
-                
-                // Move to available section
-                availableContainer.appendChild(availableCard);
-                linkedCard.remove();
-                
-                // Update selected set and hidden inputs
-                selectedDocuments.delete(docId);
-                updateHiddenInputs();
-                updateCounts();
-                
-                console.log('? Document removed, current selection:', Array.from(selectedDocuments));
-            } else {
-                console.error('? Could not find elements for document:', docId);
-            }
-        }
-
-        // Update hidden inputs to match selected documents
+        // Hidden inputlarý güncelleme fonksiyonu
         function updateHiddenInputs() {
-            console.log('?? Updating hidden inputs...');
-            
-            const container = document.getElementById('hiddenInputsContainer');
-            if (!container) {
-                console.error('? Hidden inputs container not found!');
-                return;
-            }
-            
-            // Clear existing inputs
+            const container = document.getElementById('selectedDocumentsInputs');
+            // Mevcut inputlarý temizle
             container.innerHTML = '';
             
-            // Add new inputs for selected documents
-            selectedDocuments.forEach(docId => {
+            // Seçili her doküman için hidden input oluþtur
+            selectedDocuments.forEach(documentId => {
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'SelectedDocumentIds';
-                input.value = docId;
-                input.className = 'selected-doc-input';
+                input.value = documentId;
                 container.appendChild(input);
-                console.log('? Added hidden input for document:', docId);
             });
-            
-            console.log('?? Updated hidden inputs:', selectedDocuments.size, 'documents');
         }
 
-        // Update document counts in UI
-        function updateCounts() {
-            const linkedCount = selectedDocuments.size;
-            const totalAvailable = @(Model.AvailableDocuments?.Count ?? 0);
-            const availableCount = totalAvailable - linkedCount;
+        // Doküman seçimi UI güncellemesi
+        function updateDocumentSelectionUI() {
+            const selectedCount = selectedDocuments.size;
             
-            const linkedCountEl = document.getElementById('linkedCount');
-            const availableCountEl = document.getElementById('availableCount');
-            
-            if (linkedCountEl) {
-                linkedCountEl.textContent = `(${linkedCount})`;
+            // Seçili doküman sayýsýný güncelleyici bir element varsa güncelle
+            const countElement = document.querySelector('.selected-count');
+            if (countElement) {
+                countElement.textContent = `${selectedCount} belge seçili`;
             }
-            
-            if (availableCountEl) {
-                availableCountEl.textContent = `(${availableCount})`;
-            }
-            
-            console.log('?? Updated counts - Linked:', linkedCount, 'Available:', availableCount);
         }
 
-        // Setup form submission with validation and logging
+        // Form gönderimi ayarlama fonksiyonu
         function setupFormSubmission() {
-            console.log('?? Setting up form submission...');
-            
             const form = document.getElementById('editForm');
             const submitBtn = document.getElementById('submitBtn');
             
             if (!form || !submitBtn) {
-                console.error('? Form or submit button not found!');
                 return;
             }
             
-            // Remove any existing listeners
-            form.onsubmit = null;
-            
+            // Form gönderim eventi
             form.addEventListener('submit', function(e) {
-                console.log('?? FORM SUBMISSION STARTED!');
-                console.log('?? Event:', e);
-                
-                // Validate student note
+                // Öðrenci notu validasyonu
                 const studentNote = document.getElementById('studentNote');
                 if (!studentNote) {
-                    console.error('? Student note field not found!');
                     e.preventDefault();
                     alert('Öðrenci notu alaný bulunamadý!');
                     return false;
                 }
                 
                 const noteValue = studentNote.value.trim();
-                console.log('?? Student note value:', noteValue);
                 
                 if (noteValue.length === 0) {
-                    console.log('? Empty student note, preventing submission');
                     e.preventDefault();
-                    alert('Lütfen öðrenci notunu doldurun.');
+                    alert('Lütfen danýþman notunu doldurun.');
                     return false;
                 }
                 
-                // Log form data
-                logFormSubmission();
+                // Hidden inputlarý son kez güncelle
+                updateHiddenInputs();
                 
-                // Show loading state
+                // Yükleniyor durumu göster
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
-                
-                console.log('? Form validation passed, submitting...');
-                // Form will submit normally
             });
-            
-            console.log('? Form submission event listener added');
         }
 
-        // Log current state for debugging
-        function logCurrentState() {
-            console.log('?? === CURRENT STATE DEBUG ===');
-            console.log('- Form ID:', @Model.Id);
+        // Deðiþiklikleri önizleme fonksiyonu
+        function previewChanges() {
+            const studentNote = document.getElementById('studentNote').value;
+            const approvalStatus = document.querySelector('select[name="AdvisorApprovalStatus"]').value;
+            const selectedDocCount = selectedDocuments.size;
             
-            const studentNoteEl = document.getElementById('studentNote');
-            console.log('- Student Note Element:', studentNoteEl);
-            console.log('- Student Note Value:', studentNoteEl ? studentNoteEl.value : 'ELEMENT NOT FOUND');
-            console.log('- Selected Documents:', Array.from(selectedDocuments));
-            console.log('- Hidden Inputs Count:', document.querySelectorAll('input[name="SelectedDocumentIds"]').length);
-            
-            // Log all form inputs
-            const formData = new FormData(document.getElementById('editForm'));
-            console.log('?? All form data:');
-            for (let [key, value] of formData.entries()) {
-                console.log(`  - ${key}: ${value}`);
-            }
+            // Önizleme modal'ý veya alert'i göster
+            alert(`Önizleme:\n\nDanýþman Notu: ${studentNote}\nOnay Durumu: ${approvalStatus}\nSeçili Belgeler: ${selectedDocCount}`);
         }
 
-        // Log form submission data
-        function logFormSubmission() {
-            console.log('?? === FORM SUBMISSION DATA ===');
+        // Hata mesajlarý için Toast notification
+        function showToast(message, type = 'info') {
+            // Toast notification gösterici (gelecekte geniþletilebilir)
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
             
-            const formData = new FormData(document.getElementById('editForm'));
+            // Toast'u sayfaya ekle
+            document.body.appendChild(toast);
             
-            console.log('- Form ID:', formData.get('Id'));
-            console.log('- Student Note:', formData.get('StudentNote'));
-            
-            const docIds = formData.getAll('SelectedDocumentIds');
-            console.log('- Selected Document IDs:', docIds);
-            console.log('- Document Count:', docIds.length);
-            
-            // Validate data consistency
-            if (docIds.length !== selectedDocuments.size) {
-                console.warn('?? MISMATCH: Hidden inputs count differs from selected documents!');
-                console.warn('- Hidden inputs:', docIds.length);
-                console.warn('- Selected set:', selectedDocuments.size);
-            }
-            
-            console.log('?? === END SUBMISSION DATA ===');
+            // 3 saniye sonra kaldýr
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
         }
-
-        // Debug function - can be called from browser console
-        window.debugEditForm = function() {
-            logCurrentState();
-            return {
-                selectedDocuments: Array.from(selectedDocuments),
-                hiddenInputs: Array.from(document.querySelectorAll('input[name="SelectedDocumentIds"]')).map(i => i.value),
-                formData: new FormData(document.getElementById('editForm'))
-            };
-        };
-        
-        // Test function to manually trigger form submission
-        window.testSubmit = function() {
-            console.log('?? TEST SUBMIT TRIGGERED');
-            const form = document.getElementById('editForm');
-            if (form) {
-                form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            } else {
-                console.error('? Form not found for test submit');
-            }
-        };
     </script>
 }
