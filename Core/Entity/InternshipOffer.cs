@@ -8,244 +8,187 @@ using System.Threading.Tasks;
 
 namespace Core.Entity
 {
-    /// <summary>
-    /// Staj süre türünü belirten enum
-    /// Stajın ne kadar süreceğini ve çalışma düzenini gösterir
-    /// </summary>
+    // Staj süre türünü belirten enum
+    // Stajın ne kadar süreceğini ve çalışma düzenini tanımlar
+    // UI'da dropdown menülerde gösterilir
     public enum OfferDurationType
     {
-        /// <summary>
-        /// Kısa süreli staj - Genellikle 1-2 ay
-        /// </summary>
+        // Kısa süreli staj - Genellikle 1-2 ay arası
+        // Yazlık stajlar veya deneme amaçlı stajlar için
         [Display(Name = "Kısa")]
         Kisa = 1,
         
-        /// <summary>
-        /// Uzun süreli staj - Genellikle 3-6 ay
-        /// </summary>
+        // Uzun süreli staj - Genellikle 3-6 ay arası
+        // Zorunlu stajlar ve kapsamlı projeler için
         [Display(Name = "Uzun")]
         Uzun = 2,
         
-        /// <summary>
-        /// Yarı zamanlı çalışma - Günde 4-5 saat
-        /// </summary>
+        // Yarı zamanlı çalışma düzeni - Günde 4-5 saat
+        // Eğitimle birlikte yapılabilen esnek çalışma
         [Display(Name = "Yarı zamanlı")]
         YariZamanli = 3,
         
-        /// <summary>
-        /// Tam zamanlı çalışma - Günde 8 saat
-        /// </summary>
+        // Tam zamanlı çalışma düzeni - Günde 8 saat
+        // Normal çalışma saatleri, tam mesai
         [Display(Name = "Tam zamanlı")]
         TamZamanli = 4
     }
 
-    /// <summary>
-    /// İş teklifi türünü belirten enum
-    /// Staj mı yoksa tam zamanlı iş mi olduğunu gösterir
-    /// </summary>
+    // İş teklifi türünü belirten enum
+    // Pozisyonun staj mı iş mi yoksa her ikisi mi olduğunu gösterir
     public enum OfferJobType
     {
-        /// <summary>
-        /// Sadece staj pozisyonu
-        /// </summary>
+        // Sadece staj pozisyonu - geçici, eğitim amaçlı
         Internship = 1,
         
-        /// <summary>
-        /// Sadece iş pozisyonu
-        /// </summary>
+        // Sadece iş pozisyonu - kalıcı istihdam
         Job = 2,
         
-        /// <summary>
-        /// Hem staj hem iş imkanı
-        /// </summary>
+        // Hem staj hem iş imkanı - staj sonrası kalma fırsatı
         Both = 3
     }
 
-    /// <summary>
-    /// Para birimi türünü belirten enum
-    /// Maaş ödemelerinde kullanılan para birimi
-    /// </summary>
+    // Para birimi türlerini tanımlayan enum
+    // Maaş ödemelerinde hangi para biriminin kullanıldığını belirtir
+    // Uluslararası şirketler için çoklu para birimi desteği
     public enum CurrencyType
     {
-        /// <summary>
-        /// Türk Lirası
-        /// </summary>
+        // Türk Lirası - yerel para birimi
         [Display(Name = "₺ - TL")]
         TRY = 1,
         
-        /// <summary>
-        /// Amerikan Doları
-        /// </summary>
+        // Amerikan Doları - uluslararası standart
         [Display(Name = "$ - USD")]
         USD = 2,
         
-        /// <summary>
-        /// Euro
-        /// </summary>
+        // Euro - Avrupa para birimi
         [Display(Name = "€ - EUR")]
         EUR = 3
     }
 
-    /// <summary>
-    /// Tarih seçim modunu belirten enum
-    /// Şirketin tarihleri nasıl belirlediğini gösterir
-    /// </summary>
+    // Tarih seçim modunu belirten enum
+    // Şirketin staj tarihlerini nasıl belirlediğini gösterir
+    // Öğrencinin tarih seçme esnekliğini kontrol eder
     public enum DateSelectionMode
     {
-        /// <summary>
-        /// Şirket önceden tanımlanmış bir dönem seçmiş
-        /// Öğrenci tarihleri değiştiremez
-        /// </summary>
+        // Şirket önceden tanımlanmış bir dönem belirlemiş
+        // Öğrenci bu tarih aralığını değiştiremez
+        // Academic calendar ile uyumlu dönemler için
         Period = 1,
         
-        /// <summary>
-        /// Şirket sabit başlangıç/bitiş tarihleri vermiş
-        /// Öğrenci tarihleri değiştiremez
-        /// </summary>
+        // Şirket kesin başlangıç ve bitiş tarihlerini vermiş
+        // Sabit tarih aralığı, değiştirilemez
+        // Belirli proje dönemleri için
         FixedRange = 2,
         
-        /// <summary>
-        /// Şirket tarih kısıtlaması getirmemiş
-        /// Öğrenci istediği tarihleri girebilir
-        /// </summary>
+        // Şirket tarih kısıtlaması getirmemiş
+        // Öğrenci kendi uygun tarihlerini seçebilir
+        // Esnek staj programları için
         Open = 3
     }
 
-    /// <summary>
-    /// Staj teklifi entity'si
-    /// Şirketlerin öğrencilere sunduğu staj pozisyonlarını temsil eder
-    /// İş tanımı, şartlar, süreler ve başvuru kriterlerini içerir
-    /// </summary>
+    // Staj teklifi entity - şirketlerin staj ilanlarını temsil eder
+    // Bu sınıf veritabanında InternshipOffers tablosuna karşılık gelir
+    // Öğrencilerin başvurabileceği pozisyonları tanımlar
     public class InternshipOffer
     {
-        /// <summary>
-        /// Staj teklifinin benzersiz tanımlayıcısı
-        /// Primary key olarak kullanılır
-        /// </summary>
+        // Primary key - benzersiz teklif tanımlayıcısı
+        // Auto-increment, database tarafından otomatik atanır
         public int Id { get; set; }
         
-        /// <summary>
-        /// Staj teklifinin başlığı
-        /// Öğrencilerin göreceği ana başlık (örn: "Yazılım Geliştirici Stajyeri")
-        /// Zorunlu alan
-        /// </summary>
+        // İlan başlığı - öğrencilerin ilk göreceği bilgi
+        // Pozisyon adını net bir şekilde belirtmeli
+        // Not null - zorunlu alan, boş olamaz
         public string Title { get; set; } = null!;
 
-        /// <summary>
-        /// Staj pozisyonunun detaylı açıklaması
-        /// İş tanımı, sorumluluklar, beklentiler
-        /// Opsiyonel alan
-        /// </summary>
+        // Detaylı iş açıklaması - pozisyonun kapsamlı tanımı
+        // Sorumluluklar, beklentiler ve yapılacak işler
+        // Nullable - opsiyonel, kısa ilanlar için boş olabilir
         public string? Description { get; set; }
         
-        /// <summary>
-        /// Başvuru için gerekli şartlar
-        /// Teknik beceriler, deneyim, eğitim seviyesi
-        /// Opsiyonel alan
-        /// </summary>
+        // Başvuru için gerekli şartlar ve nitelikler
+        // Teknik beceriler, deneyim seviyesi, eğitim gereksinimleri
+        // Öğrencilerin self-assessment yapabilmesi için önemli
         public string? Requirements { get; set; }
         
-        /// <summary>
-        /// Stajın yapılacağı şehir
-        /// Öğrencilerin konum bazlı filtreleme yapabilmesi için
-        /// Zorunlu alan
-        /// </summary>
+        // Stajın yapılacağı şehir bilgisi
+        // Konum bazlı filtreleme için kritik
+        // Uzaktan çalışma durumunda "Remote" yazılabilir
         public string City { get; set; } = null!;
         
-        /// <summary>
-        /// Stajın alanı/sektörü
-        /// Yazılım, Pazarlama, İnsan Kaynakları vb.
-        /// Zorunlu alan
-        /// </summary>
+        // Staj alanı/sektörü - kategorik sınıflandırma
+        // "Yazılım", "Pazarlama", "İnsan Kaynakları" gibi
+        // Öğrencilerin alan bazlı arama yapabilmesi için
         public string Field { get; set; } = null!;
      
-        /// <summary>
-        /// Mevcut pozisyon sayısı
-        /// Kaç öğrenci alınacağını belirtir
-        /// 0 ise kontenjan dolmuş demektir
-        /// </summary>
+        // Kaç öğrenci alınacağını belirten kontenjan
+        // 0 değeri kontenjan dolduğunu veya unlimited'i belirtebilir
+        // Başvuru kontrolünde kullanılır
         public int AvailablePositions { get; set; } = 0;
         
-        /// <summary>
-        /// Teklifin aktif olup olmadığını belirtir
-        /// False ise başvuru alınmaz
-        /// </summary>
+        // İlanın aktif durumu - yayında mı yoksa pasif mi
+        // false olduğunda öğrenciler başvuru yapamaz
+        // Soft delete pattern için de kullanılabilir
         public bool IsActive { get; set; } = true;
         
-        /// <summary>
-        /// Teklifin oluşturulma tarihi
-        /// Otomatik olarak şu anki zaman atanır
-        /// </summary>
+        // İlan oluşturulma zamanı - audit trail için
+        // Otomatik olarak şu anki UTC zamanı atanır
+        // Sıralama ve filtreleme işlemlerinde kullanılır
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        /// <summary>
-        /// Başvuru son tarihi
-        /// Bu tarihten sonra başvuru kabul edilmez
-        /// Opsiyonel - null ise süresiz
-        /// </summary>
+        // Başvuru kabul edilen son tarih - deadline kontrolü
+        // null olduğunda süresiz başvuru kabul edilir
+        // Business logic'te tarih kontrolü için kullanılır
         public DateTime? ApplicationDeadline { get; set; }
         
-        /// <summary>
-        /// Teklifi veren şirketin ID'si
-        /// Company entity'sine foreign key
-        /// </summary>
+        // Foreign key - bu ilanı veren şirketin ID'si
+        // Company tablosu ile one-to-many ilişki
+        // Referential integrity için önemli
         public int CompanyId { get; set; }
         
-        /// <summary>
-        /// Teklifi veren şirket
-        /// Navigation property - şirket bilgilerine erişim için
-        /// </summary>
+        // Navigation property - ilişkili şirket entity'si
+        // EF Core tarafından lazy loading ile doldurulur
+        // Include() ile eager loading yapılabilir
         public Company? Company { get; set; }
 
-        /// <summary>
-        /// Staj döneminin ID'si
-        /// InternshipPeriod entity'sine bağlantı
-        /// Başlangıç/bitiş tarihleri bu dönemden alınır
-        /// </summary>
+        // Foreign key - hangi staj dönemine ait olduğu
+        // Academic calendar ile entegrasyon için
+        // Tarih yönetimini merkezi hale getirir
         public int PeriodId { get; set; }
         
-        /// <summary>
-        /// Staj dönemi
-        /// Navigation property - dönem bilgilerine erişim için
-        /// </summary>
+        // Navigation property - staj dönemi bilgileri
+        // Dönem başlangıç/bitiş tarihleri buradan alınır
+        // Çoklu ilanların aynı dönemde gruplandırılmasını sağlar
         public InternshipPeriod? Period { get; set; }
 
-        /// <summary>
-        /// Stajın süre türü
-        /// Kısa, Uzun, Yarı zamanlı veya Tam zamanlı
-        /// </summary>
+        // Staj süre türü - enum değeri
+        // Kısa/Uzun/Yarı/Tam zamanlı seçenekleri
+        // Default olarak "Kısa" atanır
         public OfferDurationType Duration { get; set; } = OfferDurationType.Kisa;
 
-        /// <summary>
-        /// İş teklifi türü
-        /// Staj, İş veya Her ikisi
-        /// </summary>
+        // İş türü kategorisi - enum değeri  
+        // Staj/İş/Her ikisi seçenekleri
+        // Öğrencilerin hedef türüne göre filtreleme yapar
         public OfferJobType JobType { get; set; } = OfferJobType.Internship;
 
-        /// <summary>
-        /// Aylık maaş miktarı
-        /// Opsiyonel - null ise maaş belirtilmemiş
-        /// </summary>
+        // Aylık maaş miktarı - opsiyonel finansal bilgi
+        // null olduğunda "maaş belirtilmemiş" anlamına gelir
+        // decimal türü para hesaplamaları için precision sağlar
         public decimal? MonthlySalary { get; set; }
 
-        /// <summary>
-        /// Maaş para birimi
-        /// TRY, USD veya EUR olabilir
-        /// </summary>
+        // Maaş para birimi - enum değeri
+        // TRY/USD/EUR seçenekleri mevcut
+        // Default Türk Lirası olarak ayarlanmış
         public CurrencyType MonthlySalaryCurrency { get; set; } = CurrencyType.TRY;
 
-        /// <summary>
-        /// Bu teklife yapılan başvurular koleksiyonu
-        /// Navigation property - başvuru listesine erişim için
-        /// </summary>
+        // Navigation property - bu ilana yapılan başvurular
+        // One-to-many ilişki, bir ilan birden fazla başvuru alabilir
+        // Collection lazy loading ile doldurulur
         public ICollection<InternshipApplication>? InternshipApplications { get; set; }
 
-        /// <summary>
-        /// Tarihlerin nasıl seçildiğini belirtir
-        /// Period: Önceden tanımlı dönem
-        /// FixedRange: Sabit tarih aralığı
-        /// Open: Öğrenci tarihleri seçebilir
-        /// </summary>
+        // Tarih seçim modu - öğrencinin tarih esnekliği
+        // Period/FixedRange/Open seçenekleri
+        // Başvuru formunda tarih alanlarının davranışını kontrol eder
         public DateSelectionMode DateMode { get; set; } = DateSelectionMode.Period;
     }
 }

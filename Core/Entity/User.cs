@@ -3,212 +3,165 @@ using System.Collections.Generic;
 
 namespace Core.Entity
 {
-    /// <summary>
-    /// Kullanıcı rolünü belirten enum
-    /// Sistemdeki farklı kullanıcı türlerini tanımlar
-    /// </summary>
+    // Kullanıcı rollerini tanımlayan enum
+    // Sistemdeki farklı kullanıcı tiplerini ve yetkilerini belirler
+    // Role-based access control (RBAC) için temel yapı
     public enum UserRole 
     { 
-        /// <summary>
-        /// Öğrenci - Staj arayan üniversite öğrencileri
-        /// </summary>
+        // Öğrenci rolü - staj arayan üniversite öğrencileri
+        // Başvuru yapma, belge yükleme, staj takip yetkilerine sahip
         Student, 
         
-        /// <summary>
-        /// Danışman - Akademik personel, öğrenci danışmanları
-        /// </summary>
+        // Akademik danışman - öğrenci danışmanları ve akademik personel  
+        // Onay süreçleri, değerlendirme ve mentörlük yetkilerine sahip
         Advisor, 
         
-        /// <summary>
-        /// Şirket - Staj pozisyonu sunan kurumların temsilcileri
-        /// </summary>
+        // Şirket temsilcisi - staj pozisyonu sunan kurum çalışanları
+        // İlan yayınlama, başvuru değerlendirme yetkilerine sahip
         Company, 
         
-        /// <summary>
-        /// Admin - Sistem yöneticileri
-        /// </summary>
+        // Sistem yöneticisi - platform yöneticileri
+        // Tüm sistem işlemlerine ve kullanıcı yönetimine sahip
         Admin 
     }
 
-    /// <summary>
-    /// Kullanıcı entity'si - Sistemdeki tüm kullanıcı türlerini temsil eder
-    /// Öğrenci, danışman, şirket temsilcisi ve admin hesapları için ortak alan
-    /// Role alanına göre farklı özellikler ve yetkiler aktif olur
-    /// </summary>
+    // Ana kullanıcı entity'si - tüm sistem kullanıcılarının ortak bilgileri
+    // Authentication, authorization ve profile management için temel sınıf
+    // Polymorphic davranış sergiler - role göre farklı özelliklere sahip
     public class User
     {
-        /// <summary>
-        /// Kullanıcının benzersiz tanımlayıcısı
-        /// Primary key olarak kullanılır
-        /// </summary>
+        // Primary key - kullanıcının benzersiz sistem tanımlayıcısı
+        // Auto-increment, tüm ilişkisel tablolarda foreign key olarak kullanılır
         public int Id { get; set; }
         
-        /// <summary>
-        /// Kullanıcının tam adı
-        /// Profilde ve listelerde görünecek isim
-        /// Zorunlu alan
-        /// </summary>
+        // Kullanıcının görünen tam adı - UI'da gösterilecek isim
+        // "Ad Soyad" formatında, profil ve listelerde kullanılır
+        // Authentication'dan ayrı tutulan display name
         public string FullName { get; set; } = null!;
         
-        /// <summary>
-        /// Kullanıcının e-posta adresi
-        /// Giriş yaparken kullanılan benzersiz kimlik
-        /// Zorunlu alan
-        /// </summary>
+        // Unique email adresi - sistem giriş kimliği
+        // Username yerine email kullanılır, daha user-friendly
+        // Notification ve communication için de kullanılır
         public string Email { get; set; } = null!;
         
-        /// <summary>
-        /// Kullanıcının hash'lenmiş şifresi
-        /// Güvenlik için düz metin olarak saklanmaz
-        /// Zorunlu alan
-        /// </summary>
+        // Hash'lenmiş şifre - güvenlik için plain text saklanmaz
+        // Salt ile birlikte hash'lenir, rainbow table attack'lerden korunur
+        // BCrypt, Argon2 gibi strong hashing algorithm'ları kullanılmalı
         public string PasswordHash { get; set; } = null!;
         
-        /// <summary>
-        /// Hesabın aktif olup olmadığını belirtir
-        /// False ise kullanıcı giriş yapamaz
-        /// E-posta doğrulaması sonrası true olur
-        /// </summary>
+        // Hesap aktivasyon durumu - email verification kontrolü
+        // false: hesap kullanılamaz, giriş yapamaz
+        // Email onayı veya admin approval sonrası true olur
         public bool IsActive { get; set; } = false;
         
-        /// <summary>
-        /// E-posta aktivasyon kodu
-        /// Hesap doğrulaması için kullanılır
-        /// Opsiyonel - aktivasyon sonrası null olabilir
-        /// </summary>
+        // Email aktivasyon kodu - hesap doğrulama için
+        // Rastgele generate edilen unique token
+        // Single-use, expire time'ı olan güvenli kod
         public string? ActivationCode { get; set; }
         
-        /// <summary>
-        /// Aktivasyon kodunun son geçerlilik tarihi
-        /// Bu tarihten sonra kod geçersiz olur
-        /// </summary>
+        // Aktivasyon kodunun son geçerlilik tarihi
+        // Security measure - eski kodların kullanımını engeller
+        // Genellikle 24-48 saat arası expire time
         public DateTime? ActivationCodeExpireAt { get; set; }
         
-        /// <summary>
-        /// Kullanıcının sistem içindeki rolü
-        /// Student, Advisor, Company veya Admin
-        /// Yetkileri bu role göre belirlenir
-        /// </summary>
+        // Kullanıcının sistem rolü - authorization'da kullanılır
+        // Enum değeri, middleware'larda role-based filtering için
+        // Claims-based authentication'da claim olarak eklenir
         public UserRole Role { get; set; }
         
-        /// <summary>
-        /// Kullanıcının bağlı olduğu üniversitenin ID'si
-        /// Sadece öğrenci ve danışmanlar için gerekli
-        /// Opsiyonel - şirket kullanıcıları için null
-        /// </summary>
+        // Foreign key - bağlı olunan üniversite (öğrenci/danışman için)
+        // Nullable - şirket kullanıcıları için geçerli değil
+        // Academic institution binding için kritik
         public int? UniversityId { get; set; }
         
-        /// <summary>
-        /// Kullanıcının bağlı olduğu üniversite
-        /// Navigation property - üniversite bilgilerine erişim için
-        /// </summary>
+        // Navigation property - üniversite bilgileri
+        // Lazy loading veya explicit loading ile doldurulur
+        // Academic context ve reporting için kullanılır
         public University? University { get; set; }
         
-        /// <summary>
-        /// Hesabın oluşturulma tarihi
-        /// Otomatik olarak şu anki zaman atanır
-        /// </summary>
+        // Hesap oluşturulma zamanı - audit trail için
+        // Registration timestamp, user analytics için değerli
+        // UTC format'ında saklanmalı
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        /// <summary>
-        /// Kullanıcının telefon numarası
-        /// İletişim için opsiyonel bilgi
-        /// </summary>
+        // İletişim telefon numarası - opsiyonel contact bilgisi
+        // Emergency contact veya verification için kullanılabilir
+        // Format validation yapılmalı (+90 555 123 45 67)
         public string? Phone { get; set; }
 
-        /// <summary>
-        /// Kullanıcının bölümü/departmanı
-        /// Öğrenciler için: Okudukları bölüm
-        /// Danışmanlar için: Çalıştıkları bölüm
-        /// </summary>
+        // Akademik/mesleki departman bilgisi
+        // Öğrenciler için: okudukları bölüm ("Bilgisayar Mühendisliği")
+        // Danışmanlar için: çalıştıkları department
         public string? Department { get; set; }
         
-        /// <summary>
-        /// Kullanıcının unvanı/title'ı
-        /// Danışmanlar için: Dr., Prof., Doç. vb.
-        /// Diğer roller için opsiyonel
-        /// </summary>
+        // Akademik veya mesleki unvan
+        // "Dr.", "Prof.", "Doç.", "Öğr. Gör." gibi akademik unvanlar
+        // Professional title'lar için de kullanılabilir
         public string? Title { get; set; }
 
-        /// <summary>
-        /// Öğrenci numarası
-        /// Sadece öğrenciler için gerekli
-        /// Üniversite tarafından verilen benzersiz numara
-        /// </summary>
+        // Öğrenci numarası - sadece Student rolü için
+        // Üniversite tarafından verilen unique identifier
+        // Academic transcript ve official documentation için
         public string? StudentNumber { get; set; }
         
-        /// <summary>
-        /// Öğrencinin sınıf/grade bilgisi
-        /// 1, 2, 3, 4. sınıf veya yüksek lisans
-        /// Sadece öğrenciler için kullanılır
-        /// </summary>
+        // Akademik sınıf seviyesi - öğrenci için grade info
+        // 1,2,3,4 (lisans) veya 5,6 (yüksek lisans) değerleri
+        // Staj eligibility kontrolünde kullanılır
         public int? Grade { get; set; }
 
-        /// <summary>
-        /// Şifre sıfırlama token'ı
-        /// "Şifremi Unuttum" işlemi için kullanılır
-        /// Geçici olarak saklanır
-        /// </summary>
+        // Şifre sıfırlama token'ı - "forgot password" işlemi için
+        // Temporary, single-use, time-limited güvenli token
+        // Email ile gönderilen reset link'inde kullanılır
         public string? PasswordResetToken { get; set; }
         
-        /// <summary>
-        /// Şifre sıfırlama token'ının son geçerlilik tarihi
-        /// Bu tarihten sonra token geçersiz olur
-        /// </summary>
+        // Reset token'ının expiry zamanı - güvenlik önlemi
+        // Genellikle 1-2 saat gibi kısa süre
+        // Expired token'lar invalid sayılır
         public DateTime? PasswordResetTokenExpireAt { get; set; }
 
-        /// <summary>
-        /// Kullanıcının öğrenci olarak yaptığı başvurular
-        /// Navigation property - öğrenci başvuru listesi
-        /// </summary>
+        // Navigation property - öğrenci olarak yapılan başvurular
+        // One-to-many relationship, bir öğrenci birçok başvuru yapabilir
+        // Student dashboard'da başvuru geçmişi için kullanılır
         public ICollection<InternshipApplication>? StudentApplications { get; set; }
         
-        /// <summary>
-        /// Kullanıcının danışman olarak değerlendirdiği başvurular
-        /// Navigation property - danışman değerlendirme listesi
-        /// </summary>
+        // Navigation property - danışman olarak değerlendirilen başvurular
+        // Academic supervision relationship
+        // Approval workflow'unda advisor assignment için
         public ICollection<InternshipApplication>? AdvisorApplications { get; set; }
         
-        /// <summary>
-        /// Kullanıcının gönderdiği yorumlar
-        /// Navigation property - tüm yorum listesi
-        /// </summary>
+        // Navigation property - gönderilen yorumlar ve mesajlar
+        // Communication history tracking
+        // User'ın platform içi aktivite geçmişi
         public ICollection<InternshipComment>? SentComments { get; set; }
         
-        /// <summary>
-        /// Kullanıcıya gelen bildirimler
-        /// Navigation property - bildirim listesi
-        /// </summary>
+        // Navigation property - alınan sistem bildirimleri
+        // Push notifications, email alerts, in-app messages
+        // User engagement ve communication için kritik
         public ICollection<Notification>? Notifications { get; set; }
         
-        /// <summary>
-        /// Kullanıcının üye olduğu sohbet odaları
-        /// Navigation property - chat odası listesi
-        /// </summary>
+        // Navigation property - katılınan chat odaları
+        // Many-to-many relationship via UserChatRoom junction table
+        // Real-time messaging functionality için
         public ICollection<UserChatRoom>? ChatRooms { get; set; }
         
-        /// <summary>
-        /// Kullanıcının gönderdiği mesajlar
-        /// Navigation property - mesaj listesi
-        /// </summary>
+        // Navigation property - gönderilen chat mesajları
+        // Message history ve communication tracking
+        // Moderation ve audit için gerekli
         public ICollection<ChatMessage>? SentMessages { get; set; }
         
-        /// <summary>
-        /// Kullanıcının şirket ilişkileri
-        /// Şirket temsilcileri için company-user bağlantıları
-        /// </summary>
+        // Navigation property - şirket bağlantıları
+        // Company representatives için company-user many-to-many
+        // Multiple company affiliation desteği
         public ICollection<CompanyUser>? CompanyUsers { get; set; }
         
-        /// <summary>
-        /// Kullanıcının tanımladığı staj dönemleri
-        /// Genellikle danışmanlar tarafından oluşturulur
-        /// </summary>
+        // Navigation property - oluşturulan staj dönemleri
+        // Academic calendar management
+        // Genellikle advisor'lar tarafından manage edilir
         public ICollection<InternshipPeriod>? InternshipPeriods { get; set; }
         
-        /// <summary>
-        /// Kullanıcının katıldığı staj dönemleri
-        /// Öğrenciler hangi dönemlere kayıt olmuş
-        /// </summary>
+        // Navigation property - katılınan staj dönemleri  
+        // Student enrollment in academic periods
+        // Many-to-many via InternshipPeriodStudent junction
         public ICollection<InternshipPeriodStudent>? InternshipPeriodStudents { get; set; }
     }
 }
