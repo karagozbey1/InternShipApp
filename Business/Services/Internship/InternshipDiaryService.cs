@@ -5,15 +5,19 @@ using DataAccess.Unit.Interface;
 
 namespace Business.Services.Internship
 {
+    // Staj defteri servisi
     public class InternshipDiaryService : IInternshipDiaryService
     {
+        // Veritabaný iþlemleri
         private readonly IUnitOfWork _unitOfWork;
 
+        // Kurucu metod
         public InternshipDiaryService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        // Defter oluþturur
         public async Task<InternshipDiary> CreateDiaryAsync(InternshipDiary diary)
         {
             if (diary == null)
@@ -44,21 +48,25 @@ namespace Business.Services.Internship
             return diary;
         }
 
+        // Öðrenci defterlerini getirir
         public async Task<List<InternshipDiary>> GetDiariesByStudentIdAsync(int studentId)
         {
             return await _unitOfWork.InternshipDiaries.GetDiariesByStudentIdAsync(studentId);
         }
 
+        // Defter ve giriþlerini getirir
         public async Task<InternshipDiary?> GetDiaryWithEntriesAsync(int diaryId)
         {
             return await _unitOfWork.InternshipDiaries.GetDiaryWithEntriesAsync(diaryId);
         }
 
+        // Üniversite defterlerini getirir
         public async Task<List<InternshipDiary>> GetDiariesByUniversityAsync(int universityId)
         {
             return await _unitOfWork.InternshipDiaries.GetDiariesByUniversityAsync(universityId);
         }
 
+        // Defter günceller
         public async Task<bool> UpdateDiaryAsync(InternshipDiary diary)
         {
             if (diary == null)
@@ -71,6 +79,7 @@ namespace Business.Services.Internship
             return true;
         }
 
+        // Defter siler
         public async Task<bool> DeleteDiaryAsync(int diaryId)
         {
             var diary = await _unitOfWork.InternshipDiaries.GetByIdAsync(diaryId);
@@ -82,11 +91,13 @@ namespace Business.Services.Internship
             return true;
         }
 
+        // Defter durumu günceller
         public async Task<bool> UpdateDiaryStatusAsync(int diaryId, bool isCompleted)
         {
             return await _unitOfWork.InternshipDiaries.UpdateDiaryStatusAsync(diaryId, isCompleted);
         }
 
+        // Deftere giriþ ekler
         public async Task<DiaryEntry> AddEntryToDiaryAsync(DiaryEntry entry)
         {
             if (entry == null)
@@ -122,6 +133,7 @@ namespace Business.Services.Internship
             return entry;
         }
 
+        // Giriþ günceller
         public async Task<bool> UpdateEntryAsync(DiaryEntry entry)
         {
             if (entry == null)
@@ -146,6 +158,7 @@ namespace Business.Services.Internship
             return true;
         }
 
+        // Giriþ siler
         public async Task<bool> DeleteEntryAsync(int entryId)
         {
             var entry = await _unitOfWork.DiaryEntries.GetByIdAsync(entryId);
