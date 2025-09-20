@@ -4,13 +4,11 @@ namespace WebUI.Models.ViewModels.Home
 {
     public class HomeIndexViewModel
     {
-        public List<Core.Entity.News> News { get; set; } = new();
         public List<Core.Entity.InternshipOffer> RecentOffers { get; set; } = new();
         public int TotalStudents { get; set; }
         public int TotalCompanies { get; set; }
         public int TotalInternships { get; set; }
         public int ActiveOffers { get; set; }
-        public List<Core.Entity.SliderItem> SliderItems { get; set; } = new();
         public bool IsAuthenticated { get; set; }
         public string? UserRole { get; set; }
 

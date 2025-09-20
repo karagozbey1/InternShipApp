@@ -378,6 +378,12 @@ namespace DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<DateTime?>("RevisedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RevisionNote")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -753,45 +759,6 @@ namespace DataAccess.Migrations
                     b.ToTable("MessageAttachment");
                 });
 
-            modelBuilder.Entity("Core.Entity.News", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Link")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("PublishDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SourceLogoUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("SourceName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Category", "PublishDate");
-
-                    b.ToTable("News");
-                });
-
             modelBuilder.Entity("Core.Entity.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -907,58 +874,6 @@ namespace DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("iller", (string)null);
-                });
-
-            modelBuilder.Entity("Core.Entity.SliderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("EndDisplay")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Link")
-                        .HasColumnType("text");
-
-                    b.Property<int>("SliderId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("StartDisplay")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Subtitle")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("TargetId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TargetType")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SliderId");
-
-                    b.ToTable("SliderItems");
                 });
 
             modelBuilder.Entity("Core.Entity.University", b =>
@@ -1088,32 +1003,6 @@ namespace DataAccess.Migrations
                     b.HasIndex("ChatRoomId");
 
                     b.ToTable("UserChatRooms");
-                });
-
-            modelBuilder.Entity("Slider", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Sliders");
                 });
 
             modelBuilder.Entity("Core.Entity.ChatMessage", b =>
@@ -1398,17 +1287,6 @@ namespace DataAccess.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("Core.Entity.SliderItem", b =>
-                {
-                    b.HasOne("Slider", "Slider")
-                        .WithMany("Items")
-                        .HasForeignKey("SliderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Slider");
-                });
-
             modelBuilder.Entity("Core.Entity.University", b =>
                 {
                     b.HasOne("Core.Entity.Province", "Province")
@@ -1525,11 +1403,6 @@ namespace DataAccess.Migrations
                     b.Navigation("SentMessages");
 
                     b.Navigation("StudentApplications");
-                });
-
-            modelBuilder.Entity("Slider", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

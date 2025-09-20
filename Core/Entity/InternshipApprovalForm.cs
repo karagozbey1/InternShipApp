@@ -54,11 +54,15 @@ namespace Core.Entity
         [Display(Name = "Danýþman Notu")]
         public string? AdvisorNote { get; set; }
         
+        [Display(Name = "Revizyon Notu")]
+        public string? RevisionNote { get; set; }
+        
         public InternshipApprovalStatus Status { get; set; } = InternshipApprovalStatus.Pending;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ApprovedAt { get; set; }
         public DateTime? RejectedAt { get; set; }
+        public DateTime? RevisedAt { get; set; }
         
         [Display(Name = "Red Nedeni")]
         public string? RejectionReason { get; set; }
@@ -73,6 +77,9 @@ namespace Core.Entity
         Approved = 1,
         
         [Display(Name = "Reddedildi")]
-        Rejected = 2
+        Rejected = 2,
+        
+        [Display(Name = "Revizyonda")]
+        Revision = 3
     }
 }

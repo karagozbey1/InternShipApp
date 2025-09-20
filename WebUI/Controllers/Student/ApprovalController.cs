@@ -5,6 +5,7 @@ using Core.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebUI.Models.ViewModels.Student;
+using WebUI.Models.Student;
 using WebUI.Controllers; 
 
 namespace WebUI.Controllers.Student
@@ -33,12 +34,52 @@ namespace WebUI.Controllers.Student
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // Mevcut onay formlarýný listele
-            var userId = GetCurrentUserId();
-            var approvals = await _approvalService.GetApprovalFormsByStudentIdAsync(userId);
-            
-            // Explicitly return the view under Views/Student/Approval to match project layout
-            return View("~/Views/Student/Approval/Index.cshtml", approvals);
+            try
+            {
+                var userId = GetCurrentUserId();
+                var forms = await _approvalService.GetApprovalFormsByStudentIdAsync(userId);
+
+                var vm = new Models.Student.ApprovalFormListViewModel();
+                vm.ApprovalForms = new List<Models.Student.ApprovalFormItemVM>();
+
+                foreach (var f in forms.OrderByDescending(x => x.CreatedAt))
+                {
+                    var item = new Models.Student.ApprovalFormItemVM
+                    {
+                        Id = f.Id,
+                        CompanyName = f.CompanyName ?? string.Empty,
+                        Position = f.InternshipDescription ?? f.Application?.InternshipOffer?.Title ?? string.Empty,
+                        StartDate = f.StartDate,
+                        EndDate = f.EndDate,
+                        AdvisorName = f.Advisor?.FullName ?? string.Empty,
+                        Status = f.Status.ToString(),
+                        CreatedAt = f.CreatedAt,
+                        StudentNote = f.StudentNote ?? string.Empty,
+                        AdvisorComment = f.AdvisorNote ?? string.Empty,
+                        DocumentCount = 0 // Bu ayrý bir sorgu gerektirir, þimdilik 0
+                    };
+
+                    vm.ApprovalForms.Add(item);
+                }
+
+                // Ýstatistikleri hesapla
+                vm.Stats = new Models.Student.ApprovalFormStatsVM
+                {
+                    TotalCount = vm.ApprovalForms.Count,
+                    PendingCount = vm.ApprovalForms.Count(a => a.Status == "Pending"),
+                    ApprovedCount = vm.ApprovalForms.Count(a => a.Status == "Approved"),
+                    RejectedCount = vm.ApprovalForms.Count(a => a.Status == "Rejected"),
+                    DraftCount = 0 // Draft durumu varsa buraya eklenebilir
+                };
+
+                return View("~/Views/Student/Approval/Index.cshtml", vm);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Index error: {ex}");
+                TempData["ErrorMessage"] = "Onay formlarý yüklenirken hata oluþtu.";
+                return View("~/Views/Student/Approval/Index.cshtml", new Models.Student.ApprovalFormListViewModel());
+            }
         }
 
         // New: SentForms - show student's sent approval forms with modern UI
@@ -50,8 +91,8 @@ namespace WebUI.Controllers.Student
                 var userId = GetCurrentUserId();
                 var forms = await _approvalService.GetApprovalFormsByStudentIdAsync(userId);
 
-                var vm = new ApprovalFormListViewModel();
-                vm.ApprovalForms = new List<ApprovalFormViewModel>();
+                var vm = new WebUI.Models.ViewModels.Student.ApprovalFormListViewModel();
+                vm.ApprovalForms = new List<WebUI.Models.ViewModels.Student.ApprovalFormViewModel>();
 
                 foreach (var f in forms.OrderByDescending(x => x.CreatedAt))
                 {
@@ -69,7 +110,7 @@ namespace WebUI.Controllers.Student
                         }
                     }
 
-                    var docs = docEntities.Select(d => new DocumentVM
+                    var docs = docEntities.Select(d => new WebUI.Models.ViewModels.Student.DocumentVM
                     {
                         Id = d.Id,
                         Title = d.Title ?? d.FileName ?? "",
@@ -79,7 +120,7 @@ namespace WebUI.Controllers.Student
                         UploadedAt = d.UploadedAt
                     }).ToList();
 
-                    var item = new ApprovalFormViewModel
+                    var item = new WebUI.Models.ViewModels.Student.ApprovalFormViewModel
                     {
                         Id = f.Id,
                         CompanyName = f.CompanyName ?? string.Empty,
@@ -475,14 +516,26 @@ namespace WebUI.Controllers.Student
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, long? t = null)
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var forms = await _approvalService.GetApprovalFormsByStudentIdAsync(userId);
-                var form = forms.FirstOrDefault(x => x.Id == id);
-                if (form == null) return NotFound();
+                
+                // Fresh data almak için GetApprovalFormWithDetailsAsync kullan
+                var form = await _approvalService.GetApprovalFormWithDetailsAsync(id);
+                
+                if (form == null || form.StudentId != userId)
+                {
+                    return NotFound();
+                }
+
+                System.Diagnostics.Debug.WriteLine($"?? Details - Fresh Form Data:");
+                System.Diagnostics.Debug.WriteLine($"   - Form ID: {form.Id}");
+                System.Diagnostics.Debug.WriteLine($"   - Status: {form.Status}");
+                System.Diagnostics.Debug.WriteLine($"   - StudentNote: '{form.StudentNote}'");
+                System.Diagnostics.Debug.WriteLine($"   - RevisionNote: '{form.RevisionNote}'");
+                System.Diagnostics.Debug.WriteLine($"   - RejectionReason: '{form.RejectionReason}'");
 
                 List<InternshipDocument> docEntities = new List<InternshipDocument>();
                 if (form.ApplicationId > 0)
@@ -490,11 +543,16 @@ namespace WebUI.Controllers.Student
                     try
                     {
                         docEntities = await _documentService.GetDocumentsByApplicationIdAsync(form.ApplicationId);
+                        System.Diagnostics.Debug.WriteLine($"?? Found {docEntities.Count} documents for ApplicationId: {form.ApplicationId}");
                     }
-                    catch { docEntities = new List<InternshipDocument>(); }
+                    catch (Exception ex) 
+                    { 
+                        System.Diagnostics.Debug.WriteLine($"? Document loading error: {ex.Message}");
+                        docEntities = new List<InternshipDocument>(); 
+                    }
                 }
 
-                var vm = new ApprovalFormViewModel
+                var vm = new WebUI.Models.ViewModels.Student.ApprovalFormViewModel
                 {
                     Id = form.Id,
                     CompanyName = form.CompanyName ?? "",
@@ -513,6 +571,8 @@ namespace WebUI.Controllers.Student
                     AdvisorDepartment = form.Advisor?.Department ?? "",
                     ApprovedAt = form.ApprovedAt,
                     RejectedAt = form.RejectedAt,
+                    RevisionNote = form.RevisionNote ?? "",
+                    RevisedAt = form.RevisedAt,
                     Documents = docEntities.Select(d => new DocumentVM
                     {
                         Id = d.Id,
@@ -560,18 +620,275 @@ namespace WebUI.Controllers.Student
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"? Error loading student/advisor info: {ex.Message}");
                     // ignore student/advisor loading failure
                 }
+
+                System.Diagnostics.Debug.WriteLine($"?? Details ViewModel Created:");
+                System.Diagnostics.Debug.WriteLine($"   - VM Status: {vm.Status}");
+                System.Diagnostics.Debug.WriteLine($"   - VM StudentNote: '{vm.StudentNote}'");
+                System.Diagnostics.Debug.WriteLine($"   - VM RevisionNote: '{vm.RevisionNote}'");
+                System.Diagnostics.Debug.WriteLine($"   - VM Documents Count: {vm.Documents.Count}");
 
                 return View("~/Views/Student/Approval/Details.cshtml", vm);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Details error: {ex}");
-                TempData["ErrorMessage"] = "Onay formu detaylarý yüklenirken hata oluþtu.";
+                TempData["ErrorMessage"] = "Onay formu detaylar? y?klenirken hata olu?tu.";
                 return RedirectToAction("SentForms");
+            }
+        }
+
+        // REVISION EDIT ACTIONS
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var forms = await _approvalService.GetApprovalFormsByStudentIdAsync(userId);
+                var form = forms.FirstOrDefault(x => x.Id == id);
+                
+                if (form == null)
+                    return NotFound();
+                
+                // Revision durumunu kontrol et (hem yeni hem eski format)
+                bool isNewRevision = form.Status == InternshipApprovalStatus.Revision;
+                bool isLegacyRevision = !string.IsNullOrEmpty(form.RejectionReason) && form.RejectionReason.StartsWith("REVISION:");
+                
+                if (!isNewRevision && !isLegacyRevision)
+                {
+                    TempData["ErrorMessage"] = "Bu form düzenlenemez.";
+                    return RedirectToAction("Details", new { id });
+                }
+
+                // Mevcut belgeleri getir
+                List<InternshipDocument> docEntities = new List<InternshipDocument>();
+                if (form.ApplicationId > 0)
+                {
+                    try
+                    {
+                        docEntities = await _documentService.GetDocumentsByApplicationIdAsync(form.ApplicationId);
+                    }
+                    catch { docEntities = new List<InternshipDocument>(); }
+                }
+
+                // Öðrencinin tüm belgelerini getir (belge eklemek için)
+                var allDocs = await _documentService.GetDocumentsByStudentIdAsync(userId);
+
+                // Legacy revision notunu çýkar
+                string revisionNote = "";
+                if (isNewRevision && !string.IsNullOrEmpty(form.RevisionNote))
+                {
+                    revisionNote = form.RevisionNote;
+                }
+                else if (isLegacyRevision)
+                {
+                    revisionNote = form.RejectionReason.Substring("REVISION:".Length).Trim();
+                }
+
+                var vm = new Models.Student.EditApprovalViewModel
+                {
+                    Id = form.Id,
+                    CompanyName = form.CompanyName ?? "",
+                    Position = form.InternshipDescription ?? "",
+                    StartDate = form.StartDate,
+                    EndDate = form.EndDate,
+                    WeeklyWorkHours = form.WeeklyWorkHours,
+                    InternshipDescription = form.InternshipDescription ?? "",
+                    StudentNote = form.StudentNote ?? "",
+                    Status = form.Status.ToString(),
+                    CanEdit = isNewRevision || isLegacyRevision,
+                    RevisionNote = revisionNote,
+                    
+                    // Mevcut belgeler
+                    CurrentDocuments = docEntities.Select(d => new DocumentViewM
+                    {
+                        Id = d.Id,
+                        Title = d.Title ?? d.FileName ?? "",
+                        FileName = d.FileName ?? "",
+                        FilePath = d.FilePath ?? "",
+                        FileSize = d.FileSize ?? 0,
+                        DocumentType = d.DocumentType?.ToString() ?? "",
+                        UploadedAt = d.UploadedAt
+                    }).ToList(),
+                    
+                    // Tüm belgeler (seçim için)
+                    AvailableDocuments = allDocs.Select(d => new DocumentViewM
+                    {
+                        Id = d.Id,
+                        Title = d.Title ?? d.FileName ?? "",
+                        FileName = d.FileName ?? "",
+                        DocumentType = d.DocumentType?.ToString() ?? "",
+                        FileSize = d.FileSize ?? 0,
+                        UploadedAt = d.UploadedAt
+                    }).ToList(),
+                    
+                    SelectedDocumentIds = docEntities.Select(d => d.Id).ToList()
+                };
+
+                return View("~/Views/Student/Approval/Edit.cshtml", vm);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Edit error: {ex}");
+                TempData["ErrorMessage"] = "Düzenleme sayfasý yüklenirken hata oluþtu.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditApprovalViewModel model)
+        {
+            System.Diagnostics.Debug.WriteLine("?? ==========EDIT POST STARTED========");
+            System.Diagnostics.Debug.WriteLine($"?? Form ID: {model.Id}");
+            System.Diagnostics.Debug.WriteLine($"?? Student Note: '{model.StudentNote}'");
+            System.Diagnostics.Debug.WriteLine($"?? Selected Document IDs: [{string.Join(", ", model.SelectedDocumentIds ?? new List<int>())}]");
+            System.Diagnostics.Debug.WriteLine($"?? Document Count: {model.SelectedDocumentIds?.Count ?? 0}");
+            
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    System.Diagnostics.Debug.WriteLine("? ModelState is invalid!");
+                    foreach (var error in ModelState)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"   - {error.Key}: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
+                    }
+                    
+                    // Model yeniden doldur
+                    var currentUserId = GetCurrentUserId();
+                    var allDocs = await _documentService.GetDocumentsByStudentIdAsync(currentUserId);
+                    model.AvailableDocuments = allDocs.Select(d => new DocumentViewM
+                    {
+                        Id = d.Id,
+                        Title = d.Title ?? d.FileName ?? "",
+                        FileName = d.FileName ?? "",
+                        DocumentType = d.DocumentType?.ToString() ?? "",
+                        FileSize = d.FileSize ?? 0,
+                        UploadedAt = d.UploadedAt
+                    }).ToList();
+
+                    return View("~/Views/Student/Approval/Edit.cshtml", model);
+                }
+
+                var userId = GetCurrentUserId();
+                System.Diagnostics.Debug.WriteLine($"?? Current User ID: {userId}");
+                
+                var forms = await _approvalService.GetApprovalFormsByStudentIdAsync(userId);
+                var form = forms.FirstOrDefault(x => x.Id == model.Id);
+                
+                if (form == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("? Form not found!");
+                    return NotFound();
+                }
+
+                System.Diagnostics.Debug.WriteLine($"?? Form found - Status: {form.Status}, ApplicationId: {form.ApplicationId}");
+
+                // Revision durumunu kontrol et (hem yeni hem eski format)
+                bool isNewRevision = form.Status == InternshipApprovalStatus.Revision;
+                bool isLegacyRevision = !string.IsNullOrEmpty(form.RejectionReason) && form.RejectionReason.StartsWith("REVISION:");
+                
+                System.Diagnostics.Debug.WriteLine($"?? Revision Status - New: {isNewRevision}, Legacy: {isLegacyRevision}");
+                
+                if (!isNewRevision && !isLegacyRevision)
+                {
+                    System.Diagnostics.Debug.WriteLine("? Form cannot be edited!");
+                    TempData["ErrorMessage"] = "Bu form d?zenlenemez.";
+                    return RedirectToAction("Details", new { id = model.Id });
+                }
+
+                // BEFORE UPDATE - Log current state
+                System.Diagnostics.Debug.WriteLine($"?? BEFORE UPDATE:");
+                System.Diagnostics.Debug.WriteLine($"   - Current StudentNote: '{form.StudentNote}'");
+                System.Diagnostics.Debug.WriteLine($"   - Current Status: {form.Status}");
+                System.Diagnostics.Debug.WriteLine($"   - Current RevisionNote: '{form.RevisionNote}'");
+
+                // Sadece belgeleri ve student note'u g?ncelle
+                form.StudentNote = model.StudentNote;
+                
+                // Status'u tekrar Pending yap (revizyon sonras?)
+                form.Status = InternshipApprovalStatus.Pending;
+                
+                // Hem yeni hem eski revision format?n? temizle
+                form.RevisionNote = null;
+                form.RevisedAt = null;
+                if (isLegacyRevision)
+                {
+                    form.RejectionReason = null;
+                    form.RejectedAt = null;
+                }
+
+                // AFTER CHANGES - Log new state
+                System.Diagnostics.Debug.WriteLine($"?? AFTER CHANGES:");
+                System.Diagnostics.Debug.WriteLine($"   - New StudentNote: '{form.StudentNote}'");
+                System.Diagnostics.Debug.WriteLine($"   - New Status: {form.Status}");
+                System.Diagnostics.Debug.WriteLine($"   - New RevisionNote: '{form.RevisionNote}'");
+
+                System.Diagnostics.Debug.WriteLine("?? Updating approval form...");
+                await _approvalService.UpdateApprovalFormAsync(form);
+                System.Diagnostics.Debug.WriteLine("? Approval form updated successfully!");
+
+                // Belge g?ncellemelerini yap
+                if (model.SelectedDocumentIds != null && model.SelectedDocumentIds.Any() && form.ApplicationId > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"?? Updating documents for ApplicationId: {form.ApplicationId}");
+                    System.Diagnostics.Debug.WriteLine($"?? New document selection: [{string.Join(", ", model.SelectedDocumentIds)}]");
+                    
+                    try
+                    {
+                        // ?nce mevcut belgeleri kald?r
+                        var existingDocs = await _documentService.GetDocumentsByApplicationIdAsync(form.ApplicationId);
+                        System.Diagnostics.Debug.WriteLine($"?? Found {existingDocs.Count} existing documents");
+                        
+                        foreach (var doc in existingDocs)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"??? Unlinking document: {doc.Id} ({doc.Title})");
+                            await _documentService.UnlinkDocumentFromApplicationAsync(doc.Id, form.ApplicationId);
+                        }
+
+                        // Yeni belgeleri ekle
+                        foreach (var docId in model.SelectedDocumentIds)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"?? Linking document: {docId}");
+                            await _documentService.LinkDocumentToApplicationAsync(docId, form.ApplicationId);
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine("? Document updates completed successfully!");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"? Document update error: {ex.Message}");
+                        System.Diagnostics.Debug.WriteLine($"? Stack trace: {ex.StackTrace}");
+                        // Belge g?ncellemesi ba?ar?s?z olsa da devam et
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("?? No document updates needed (empty selection or invalid ApplicationId)");
+                }
+
+                System.Diagnostics.Debug.WriteLine("?? Edit operation completed successfully!");
+                TempData["SuccessMessage"] = "Onay formu ba?ar?yla g?ncellendi ve tekrar de?erlendirilmeye g?nderildi.";
+                
+                // Normal redirect - cache sorunlarý için gecikmeli redirect deneme
+                return RedirectToAction("Details", new { id = model.Id });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"? CRITICAL ERROR in Edit POST: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"? Stack trace: {ex.StackTrace}");
+                TempData["ErrorMessage"] = "G?ncelleme s?ras?nda hata olu?tu.";
+                return RedirectToAction("Details", new { id = model.Id });
+            }
+            finally
+            {
+                System.Diagnostics.Debug.WriteLine("?? ==========EDIT POST FINISHED========");
             }
         }
     }

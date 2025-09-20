@@ -120,19 +120,74 @@ namespace Business.Services.Internship
             if (form == null)
                 throw new ArgumentNullException(nameof(form));
 
+            System.Diagnostics.Debug.WriteLine($"?? UpdateApprovalFormAsync - Form ID: {form.Id}");
+            System.Diagnostics.Debug.WriteLine($"?? Input Form - StudentNote: '{form.StudentNote}', Status: {form.Status}");
+
+            // Tracking için yeniden veritabanýndan getir (AsNoTracking sorunu çözümü)
             var existingForm = await _unitOfWork.InternshipApprovals.GetByIdAsync(form.Id);
             if (existingForm == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"? Existing form not found for ID: {form.Id}");
                 throw new InvalidOperationException("Onay formu bulunamadý");
+            }
 
-            if (existingForm.Status != InternshipApprovalStatus.Pending)
-                throw new InvalidOperationException("Sadece beklemede olan formlar güncellenebilir");
+            System.Diagnostics.Debug.WriteLine($"?? Existing Form BEFORE - StudentNote: '{existingForm.StudentNote}', Status: {existingForm.Status}");
 
-            // Ensure dates remain UTC
-            form.StartDate = DateTime.SpecifyKind(form.StartDate, DateTimeKind.Utc);
-            form.EndDate = DateTime.SpecifyKind(form.EndDate, DateTimeKind.Utc);
+            // Revizyon sonrasý güncelleme için Revision durumundaki formlarý da kabul et
+            if (existingForm.Status != InternshipApprovalStatus.Pending && 
+                existingForm.Status != InternshipApprovalStatus.Revision)
+            {
+                System.Diagnostics.Debug.WriteLine($"? Invalid status for update: {existingForm.Status}");
+                throw new InvalidOperationException("Sadece beklemede olan veya revizyon durumundaki formlar güncellenebilir");
+            }
 
-            _unitOfWork.InternshipApprovals.Update(form);
-            await _unitOfWork.SaveAsync();
+            // Sadece güncellenebilir alanlarý kopyala (tracking yapýldýðýnda üzerine)
+            existingForm.StudentNote = form.StudentNote;
+            existingForm.Status = form.Status;
+            existingForm.RevisionNote = form.RevisionNote;
+            existingForm.RevisedAt = form.RevisedAt;
+            existingForm.RejectionReason = form.RejectionReason;
+            existingForm.RejectedAt = form.RejectedAt;
+            
+            // Tarih alanlarýný güncelle (eðer deðiþtiyse)
+            if (form.StartDate != DateTime.MinValue)
+                existingForm.StartDate = DateTime.SpecifyKind(form.StartDate, DateTimeKind.Utc);
+            if (form.EndDate != DateTime.MinValue)
+                existingForm.EndDate = DateTime.SpecifyKind(form.EndDate, DateTimeKind.Utc);
+
+            // Diðer güncellenebilir alanlar
+            if (!string.IsNullOrEmpty(form.CompanyName))
+                existingForm.CompanyName = form.CompanyName;
+            if (!string.IsNullOrEmpty(form.InternshipDescription))
+                existingForm.InternshipDescription = form.InternshipDescription;
+            if (form.WeeklyWorkHours > 0)
+                existingForm.WeeklyWorkHours = form.WeeklyWorkHours;
+
+            System.Diagnostics.Debug.WriteLine($"?? Existing Form AFTER UPDATE - StudentNote: '{existingForm.StudentNote}', Status: {existingForm.Status}");
+
+            try 
+            {
+                // EF Core otomatik olarak takip ettiði entity'yi güncelleyecek
+                await _unitOfWork.SaveAsync();
+                System.Diagnostics.Debug.WriteLine("?? SaveAsync completed successfully!");
+
+                // Verify the update by re-reading from database
+                var verifyForm = await _unitOfWork.InternshipApprovals.GetByIdAsync(form.Id);
+                if (verifyForm != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"?? VERIFICATION - StudentNote: '{verifyForm.StudentNote}', Status: {verifyForm.Status}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("? VERIFICATION FAILED - Form not found after update!");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"? SaveAsync ERROR: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"? SaveAsync STACK: {ex.StackTrace}");
+                throw;
+            }
         }
 
         public async Task ApproveFormAsync(int formId, string? advisorNote = null)
@@ -243,6 +298,29 @@ namespace Business.Services.Internship
             form.RejectedAt = DateTime.UtcNow;
             form.RejectionReason = rejectionReason;
             form.AdvisorNote = advisorNote;
+
+            _unitOfWork.InternshipApprovals.Update(form);
+            await _unitOfWork.SaveAsync();
+        }
+
+        public async Task ReturnForRevisionAsync(int formId, string revisionNote)
+        {
+            if (formId <= 0)
+                throw new ArgumentException("Geçersiz form ID", nameof(formId));
+
+            if (string.IsNullOrWhiteSpace(revisionNote))
+                throw new ArgumentException("Revizyon notu gerekli", nameof(revisionNote));
+
+            var form = await _unitOfWork.InternshipApprovals.GetByIdAsync(formId);
+            if (form == null)
+                throw new InvalidOperationException("Onay formu bulunamadý");
+
+            if (form.Status != InternshipApprovalStatus.Pending)
+                throw new InvalidOperationException("Sadece beklemede olan formlar revizyona gönderilebilir");
+
+            form.Status = InternshipApprovalStatus.Revision;
+            form.RevisedAt = DateTime.UtcNow;
+            form.RevisionNote = revisionNote;
 
             _unitOfWork.InternshipApprovals.Update(form);
             await _unitOfWork.SaveAsync();

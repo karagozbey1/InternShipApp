@@ -97,18 +97,16 @@ builder.Services.AddScoped<IInternshipDocumentRepository, InternshipDocumentRepo
 builder.Services.AddScoped<IInternshipPeriodRepository, InternshipPeriodRepository>();
 builder.Services.AddScoped<IInternshipApplicationRepository, InternshipApplicationRepository>();
 builder.Services.AddScoped<IInternshipApprovalRepository, InternshipApprovalRepository>();
-builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 builder.Services.AddScoped<ICompanyUserRepository, CompanyUserRepository>();
-builder.Services.AddScoped<ISliderRepository, SliderRepository>();
-builder.Services.AddScoped<ISliderItemRepository, SliderItemRepository>();
 builder.Services.AddScoped<IProvinceRepository, ProvinceRepository>();
 builder.Services.AddScoped<IUniversityRepository, UniversityRepository>();
 builder.Services.AddScoped<IDiaryRepository, DiaryRepository>();
 builder.Services.AddScoped<IInternshipDiaryRepository, InternshipDiaryRepository>();
+builder.Services.AddScoped<DataAccess.Interfaces.Internship.IOfferFavoriteRepository, DataAccess.Repositories.Internship.OfferFavoriteRepository>();
 
 // Services
 builder.Services.AddScoped<IICompanyService, ICompanyService>();
@@ -118,13 +116,10 @@ builder.Services.AddScoped<IInternshipDocumentService, InternshipDocumentService
 builder.Services.AddScoped<IInternshipPeriodService, InternshipPeriodService>();
 builder.Services.AddScoped<IInternshipApplicationService, InternshipApplicationService>();
 builder.Services.AddScoped<IInternshipApprovalService, InternshipApprovalService>();
-builder.Services.AddScoped<IINewsService, INewsService>();
 builder.Services.AddScoped<IINotificationService, INotificationService>();
 builder.Services.AddScoped<IIUserService, UserService>();
 builder.Services.AddScoped<IIChatService, IChatService>();
 builder.Services.AddScoped<IICompanyUserService, ICompanyUserService>();
-builder.Services.AddScoped<IISliderService, ISliderService>();
-builder.Services.AddScoped<IISliderItemService, ISliderItemService>();
 builder.Services.AddScoped<IIProvinceService, ProvinceService>();
 builder.Services.AddScoped<IIUniversityService, UniversityService>();
 builder.Services.AddScoped<IIActivationEmailService, MailKitActivationEmailService>();
@@ -153,25 +148,31 @@ app.UseAuthorization();
 // Attribute-routed API controller'larý etkinleþtir
 app.MapControllers();
 
+// Student controller'lar için özel route (Student namespace'i için)
+app.MapControllerRoute(
+    name: "studentArea",
+    pattern: "Student/{controller}/{action=Index}/{id?}",
+    defaults: new { area = "" }
+);
+
 // Company controller'lar için özel route
 app.MapControllerRoute(
     name: "company",
-    pattern: "{controller}/{action=Index}/{id?}",
-    constraints: new { controller = @"^(Company)$" }
+    pattern: "Company/{controller}/{action=Index}/{id?}",
+    defaults: new { area = "" }
 );
 
 // Advisor controller'lar için özel route
 app.MapControllerRoute(
     name: "advisor",
-    pattern: "{controller}/{action=Index}/{id?}",
-    constraints: new { controller = @"^(AdvisorDashboard|AdvisorProfile|AdvisorApplication|AdvisorDiary|AdvisorStudent|AdvisorNotification|AdvisorReport)$" }
+    pattern: "Advisor/{controller}/{action=Index}/{id?}",
+    defaults: new { area = "" }
 );
 
-// Student controller'lar için özel route 
+// API routes için özel pattern
 app.MapControllerRoute(
-    name: "student",
-    pattern: "{controller}/{action=Index}/{id?}",
-    constraints: new { controller = @"^(Dashboard|Profile|Application|Document|Calendar|Diary|Statistics|Help|Chat|Approval|Notification)$" }
+    name: "api",
+    pattern: "api/{controller}/{action=Index}/{id?}"
 );
 
 // Ana sayfa için default route

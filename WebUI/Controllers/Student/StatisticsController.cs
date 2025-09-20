@@ -39,7 +39,7 @@ namespace WebUI.Controllers.Student
             ViewBag.Rejected = rejected;
             ViewBag.SuccessRate = successRate;
 
-            return View("~/Views/Student/Statistics.cshtml");
+            return View("~/Views/Student/Statistics/Index.cshtml");
         }
     }
 }

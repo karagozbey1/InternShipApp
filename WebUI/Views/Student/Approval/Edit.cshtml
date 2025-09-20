@@ -1,202 +1,537 @@
-@model CreateApprovalFormViewModel
+@model WebUI.Models.Student.EditApprovalViewModel
 @{
-    ViewData["Title"] = "Staj Onay Formu Düzenle";
-    Layout = "_StudentLayout";
-    var formId = ViewBag.FormId;
+    ViewData["Title"] = "Onay Formu Düzenle";
+    Layout = "_AppLayout";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-edit me-2"></i>Staj Onay Formu Düzenle
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Uyarý:</strong> Form düzenlendikten sonra tekrar danýþman onayýna gönderilecektir.
-                    </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/approval-edit-modern.css" />
+}
 
-                    <form asp-action="Edit" asp-route-id="@formId" method="post">
-                        <input type="hidden" asp-for="ApplicationId" />
-                        
-                        <!-- Baþvuru Bilgileri -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-title text-primary">
-                                            <i class="fas fa-file-alt me-2"></i>Baþvuru Bilgileri
-                                        </h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <strong>Baþvuru:</strong> @Model.ApplicationTitle
-                                            </div>
-                                            <div class="col-md-6">
-                                                <strong>Þirket:</strong> @Model.CompanyName
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+<div class="edit-container">
+    <!-- Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-edit"></i> Onay Formu Düzenle
+        </h1>
+        <p class="page-subtitle">
+            Danýþmanýnýzýn revizyon notlarýný inceleyip belge ve ön yazýnýzý güncelleyin
+        </p>
+    </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <!-- Þirket Bilgileri -->
-                                <div class="card mb-4">
-                                    <div class="card-header bg-primary text-white">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-building me-2"></i>Þirket Bilgileri
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label asp-for="CompanyName" class="form-label"></label>
-                                            <input asp-for="CompanyName" class="form-control" readonly />
-                                            <span asp-validation-for="CompanyName" class="text-danger"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="WorkplaceAddress" class="form-label"></label>
-                                            <textarea asp-for="WorkplaceAddress" class="form-control" rows="3" 
-                                                      placeholder="Staj yapacaðýnýz yerin tam adresi"></textarea>
-                                            <span asp-validation-for="WorkplaceAddress" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Koordinatör Bilgileri -->
-                                <div class="card mb-4">
-                                    <div class="card-header bg-info text-white">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-user-tie me-2"></i>Staj Koordinatörü Bilgileri
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label asp-for="InternshipCoordinator" class="form-label"></label>
-                                            <input asp-for="InternshipCoordinator" class="form-control" 
-                                                   placeholder="Koordinatör adý soyadý" />
-                                            <span asp-validation-for="InternshipCoordinator" class="text-danger"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="CoordinatorPhone" class="form-label"></label>
-                                            <input asp-for="CoordinatorPhone" class="form-control" 
-                                                   placeholder="+90 (555) 123 45 67" />
-                                            <span asp-validation-for="CoordinatorPhone" class="text-danger"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="CoordinatorEmail" class="form-label"></label>
-                                            <input asp-for="CoordinatorEmail" class="form-control" 
-                                                   placeholder="koordinator@sirket.com" />
-                                            <span asp-validation-for="CoordinatorEmail" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <!-- Staj Detaylarý -->
-                                <div class="card mb-4">
-                                    <div class="card-header bg-success text-white">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-calendar-alt me-2"></i>Staj Detaylarý
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="StartDate" class="form-label"></label>
-                                                <input asp-for="StartDate" type="date" class="form-control" />
-                                                <span asp-validation-for="StartDate" class="text-danger"></span>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="EndDate" class="form-label"></label>
-                                                <input asp-for="EndDate" type="date" class="form-control" />
-                                                <span asp-validation-for="EndDate" class="text-danger"></span>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="WeeklyWorkHours" class="form-label"></label>
-                                            <div class="input-group">
-                                                <input asp-for="WeeklyWorkHours" type="number" class="form-control" 
-                                                       min="1" max="168" />
-                                                <span class="input-group-text">saat/hafta</span>
-                                            </div>
-                                            <div class="form-text">Maksimum 168 saat (24 saat x 7 gün)</div>
-                                            <span asp-validation-for="WeeklyWorkHours" class="text-danger"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="InternshipDescription" class="form-label"></label>
-                                            <textarea asp-for="InternshipDescription" class="form-control" rows="4"
-                                                      placeholder="Yapacaðýnýz iþlerin detaylý açýklamasý..."></textarea>
-                                            <span asp-validation-for="InternshipDescription" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Öðrenci Notu -->
-                                <div class="card mb-4">
-                                    <div class="card-header bg-warning text-dark">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-sticky-note me-2"></i>Öðrenci Notu
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label asp-for="StudentNote" class="form-label"></label>
-                                            <textarea asp-for="StudentNote" class="form-control" rows="3"
-                                                      placeholder="Danýþmanýnýza iletmek istediðiniz özel notlar..."></textarea>
-                                            <span asp-validation-for="StudentNote" class="text-danger"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Form Butonlarý -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-body text-center">
-                                        <button type="submit" class="btn btn-primary btn-lg me-3">
-                                            <i class="fas fa-save me-2"></i>Kaydet ve Onaya Gönder
-                                        </button>
-                                        <a asp-action="Details" asp-route-id="@formId" class="btn btn-secondary btn-lg">
-                                            <i class="fas fa-times me-2"></i>Ýptal
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+    <!-- Revision Banner (if exists) -->
+    @if (!string.IsNullOrEmpty(Model.RevisionNote))
+    {
+        <div class="revision-banner">
+            <div class="revision-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="revision-content">
+                <h5>Revizyon Gerekli</h5>
+                <p>@Model.RevisionNote</p>
             </div>
         </div>
+    }
+
+    <!-- Main Form Card -->
+    <div class="edit-card">
+        <form asp-action="Edit" method="post" id="editForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CompanyName" />
+            <input type="hidden" asp-for="StartDate" />
+            <input type="hidden" asp-for="EndDate" />
+            <input type="hidden" asp-for="WeeklyWorkHours" />
+            <input type="hidden" asp-for="InternshipDescription" />
+
+            <!-- Firma Bilgileri Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3 class="section-title">Firma Bilgileri</h3>
+                </div>
+                
+                <div class="company-info-grid">
+                    <div class="info-item">
+                        <span class="info-label">ÞÝRKET ADI</span>
+                        <span class="info-value">@Model.CompanyName</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">POZÝSYON</span>
+                        <span class="info-value">@Model.Position</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">BAÞLANGIÇ TARÝHÝ</span>
+                        <span class="info-value">@Model.StartDate.ToString("dd MMMM yyyy")</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">BÝTÝÞ TARÝHÝ</span>
+                        <span class="info-value">@Model.EndDate.ToString("dd MMMM yyyy")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staj Detaylarý Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <h3 class="section-title">Staj Detaylarý</h3>
+                </div>
+                
+                <div class="date-row">
+                    <div class="date-field">
+                        <label>Baþlangýç</label>
+                        <input type="date" value="@Model.StartDate.ToString("yyyy-MM-dd")" readonly />
+                    </div>
+                    <div class="date-field">
+                        <label>Bitiþ</label>
+                        <input type="date" value="@Model.EndDate.ToString("yyyy-MM-dd")" readonly />
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label>Haftalýk Saat</label>
+                    <input type="number" value="@Model.WeeklyWorkHours" readonly />
+                </div>
+
+                <div class="form-field">
+                    <label>Staj Açýklamasý</label>
+                    <textarea readonly>@Model.InternshipDescription</textarea>
+                </div>
+            </div>
+
+            <!-- Öðrenci Notu Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-sticky-note"></i>
+                    </div>
+                    <h3 class="section-title">Öðrenci Notu</h3>
+                </div>
+                
+                <div class="note-section">
+                    <div class="note-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>NOT / AÇIKLAMA</span>
+                    </div>
+                    <textarea asp-for="StudentNote" id="studentNote" placeholder="Hocam onayýnýzý bekliyorum"></textarea>
+                </div>
+            </div>
+
+            <!-- Revizyon Belgeleri Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <h3 class="section-title">Revizyon Belgeleri</h3>
+                </div>
+
+                <div class="documents-info-bar">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Ýlk yükleme sonucudan; ardýndan AJAX ile senkron.</span>
+                    <div class="document-count">
+                        <i class="fas fa-file"></i>
+                        <span id="documentCount">@(Model.AvailableDocuments?.Count ?? 0)</span> belge
+                    </div>
+                </div>
+
+                <div class="documents-layout">
+                    <!-- Left Column - Linked Documents -->
+                    <div class="doc-column">
+                        <div class="column-header">
+                            <i class="fas fa-link"></i>
+                            <span>BAÐLI BELGELER</span>
+                            <span id="linkedCount" class="ml-2 text-xs">(@(Model.SelectedDocumentIds?.Count ?? 0))</span>
+                        </div>
+                        <div class="document-list linked-docs">
+                            @if (Model.AvailableDocuments != null && Model.AvailableDocuments.Any())
+                            {
+                                foreach (var doc in Model.AvailableDocuments.Where(d => Model.SelectedDocumentIds.Contains(d.Id)))
+                                {
+                                    <div class="doc-item linked" data-id="@doc.Id">
+                                        <div class="doc-avatar red">@doc.Title?.Substring(0, 1).ToUpper()</div>
+                                        <div class="doc-details">
+                                            <div class="doc-name">@doc.Title</div>
+                                            <div class="doc-size">@(doc.FileSize > 1024 * 1024 ? $"{doc.FileSize / (1024 * 1024):F1} MB" : $"{doc.FileSize / 1024:F0} KB")</div>
+                                        </div>
+                                        <button type="button" class="remove-btn" onclick="removeDocument(@doc.Id)">
+                                            <i class="fas fa-times"></i> Kaldýr
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Available Documents -->
+                    <div class="doc-column">
+                        <div class="column-header">
+                            <i class="fas fa-folder-open"></i>
+                            <span>BELGELERÝM</span>
+                            <span id="availableCount" class="ml-2 text-xs">(@(Model.AvailableDocuments?.Count(d => !Model.SelectedDocumentIds.Contains(d.Id)) ?? 0))</span>
+                        </div>
+                        <div class="document-list available-docs">
+                            @if (Model.AvailableDocuments != null && Model.AvailableDocuments.Any())
+                            {
+                                foreach (var doc in Model.AvailableDocuments.Where(d => !Model.SelectedDocumentIds.Contains(d.Id)))
+                                {
+                                    <div class="doc-item available" data-id="@doc.Id">
+                                        <div class="doc-avatar blue">@doc.Title?.Substring(0, 1).ToUpper()</div>
+                                        <div class="doc-details">
+                                            <div class="doc-name">@doc.Title</div>
+                                            <div class="doc-size">@(doc.FileSize > 1024 * 1024 ? $"{doc.FileSize / (1024 * 1024):F1} MB" : $"{doc.FileSize / 1024:F0} KB")</div>
+                                        </div>
+                                        <button type="button" class="add-btn" onclick="addDocument(@doc.Id)">
+                                            <i class="fas fa-plus"></i> Ekle
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-folder-open"></i>
+                                    <p>Belge bulunamadý</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden inputs container for selected documents -->
+                <div id="hiddenInputsContainer">
+                    @foreach (var docId in Model.SelectedDocumentIds)
+                    {
+                        <input type="hidden" name="SelectedDocumentIds" value="@docId" class="selected-doc-input" />
+                    }
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div class="action-section">
+                <div class="action-info">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Kaydedildiðinde form yeniden danýþman onayýna gidecek.</span>
+                </div>
+                <div class="action-buttons">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn-cancel">
+                        <i class="fas fa-times"></i>
+                        Ýptal
+                    </a>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-save"></i>
+                        Kaydet & Gönder
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
     <script>
-        $(document).ready(function() {
-            // Tarih alanlarý için minimum tarih ayarla
-            const today = new Date().toISOString().split('T')[0];
-            $('#StartDate').attr('min', today);
+        // Debug: Test if script loads
+        console.log('?? EDIT PAGE SCRIPT LOADED');
+        
+        // Global variables
+        let selectedDocuments = new Set();
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('?? Edit page DOM loaded');
             
-            $('#StartDate').change(function() {
-                const startDate = $(this).val();
-                $('#EndDate').attr('min', startDate);
-            });
+            // Test form element
+            const form = document.getElementById('editForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            console.log('?? Form element:', form);
+            console.log('?? Submit button:', submitBtn);
+            
+            if (!form) {
+                console.error('? FORM NOT FOUND!');
+                return;
+            }
+            
+            if (!submitBtn) {
+                console.error('? SUBMIT BUTTON NOT FOUND!');
+                return;
+            }
+            
+            initializeSelectedDocuments();
+            setupFormSubmission();
+            logCurrentState();
         });
+
+        // Initialize selected documents from server data
+        function initializeSelectedDocuments() {
+            console.log('?? Initializing documents...');
+            
+            const hiddenInputs = document.querySelectorAll('input[name="SelectedDocumentIds"]');
+            console.log('?? Found hidden inputs:', hiddenInputs.length);
+            
+            selectedDocuments.clear();
+            
+            hiddenInputs.forEach(input => {
+                const docId = parseInt(input.value);
+                console.log('?? Processing document ID:', docId);
+                if (docId) {
+                    selectedDocuments.add(docId);
+                }
+            });
+            
+            console.log('?? Initialized with documents:', Array.from(selectedDocuments));
+            updateCounts();
+        }
+
+        // Document management functions
+        function addDocument(docId) {
+            console.log('? Adding document:', docId);
+            
+            const availableCard = document.querySelector(`.available-docs .doc-item[data-id="${docId}"]`);
+            const linkedContainer = document.querySelector('.linked-docs');
+            
+            if (availableCard && linkedContainer) {
+                // Clone and modify
+                const linkedCard = availableCard.cloneNode(true);
+                linkedCard.classList.remove('available');
+                linkedCard.classList.add('linked');
+                
+                // Change avatar color and button
+                const avatar = linkedCard.querySelector('.doc-avatar');
+                if (avatar) {
+                    avatar.classList.remove('blue');
+                    avatar.classList.add('red');
+                }
+                
+                const button = linkedCard.querySelector('.add-btn');
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-times"></i> Kaldýr';
+                    button.className = 'remove-btn';
+                    button.onclick = () => removeDocument(docId);
+                }
+                
+                // Move to linked section
+                linkedContainer.appendChild(linkedCard);
+                availableCard.remove();
+                
+                // Update selected set and hidden inputs
+                selectedDocuments.add(docId);
+                updateHiddenInputs();
+                updateCounts();
+                
+                console.log('? Document added, current selection:', Array.from(selectedDocuments));
+            } else {
+                console.error('? Could not find elements for document:', docId);
+            }
+        }
+        
+        function removeDocument(docId) {
+            console.log('? Removing document:', docId);
+            
+            const linkedCard = document.querySelector(`.linked-docs .doc-item[data-id="${docId}"]`);
+            const availableContainer = document.querySelector('.available-docs');
+            
+            if (linkedCard && availableContainer) {
+                // Clone and modify
+                const availableCard = linkedCard.cloneNode(true);
+                availableCard.classList.remove('linked');
+                availableCard.classList.add('available');
+                
+                // Change avatar color and button
+                const avatar = availableCard.querySelector('.doc-avatar');
+                if (avatar) {
+                    avatar.classList.remove('red');
+                    avatar.classList.add('blue');
+                }
+                
+                const button = availableCard.querySelector('.remove-btn');
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-plus"></i> Ekle';
+                    button.className = 'add-btn';
+                    button.onclick = () => addDocument(docId);
+                }
+                
+                // Move to available section
+                availableContainer.appendChild(availableCard);
+                linkedCard.remove();
+                
+                // Update selected set and hidden inputs
+                selectedDocuments.delete(docId);
+                updateHiddenInputs();
+                updateCounts();
+                
+                console.log('? Document removed, current selection:', Array.from(selectedDocuments));
+            } else {
+                console.error('? Could not find elements for document:', docId);
+            }
+        }
+
+        // Update hidden inputs to match selected documents
+        function updateHiddenInputs() {
+            console.log('?? Updating hidden inputs...');
+            
+            const container = document.getElementById('hiddenInputsContainer');
+            if (!container) {
+                console.error('? Hidden inputs container not found!');
+                return;
+            }
+            
+            // Clear existing inputs
+            container.innerHTML = '';
+            
+            // Add new inputs for selected documents
+            selectedDocuments.forEach(docId => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'SelectedDocumentIds';
+                input.value = docId;
+                input.className = 'selected-doc-input';
+                container.appendChild(input);
+                console.log('? Added hidden input for document:', docId);
+            });
+            
+            console.log('?? Updated hidden inputs:', selectedDocuments.size, 'documents');
+        }
+
+        // Update document counts in UI
+        function updateCounts() {
+            const linkedCount = selectedDocuments.size;
+            const totalAvailable = @(Model.AvailableDocuments?.Count ?? 0);
+            const availableCount = totalAvailable - linkedCount;
+            
+            const linkedCountEl = document.getElementById('linkedCount');
+            const availableCountEl = document.getElementById('availableCount');
+            
+            if (linkedCountEl) {
+                linkedCountEl.textContent = `(${linkedCount})`;
+            }
+            
+            if (availableCountEl) {
+                availableCountEl.textContent = `(${availableCount})`;
+            }
+            
+            console.log('?? Updated counts - Linked:', linkedCount, 'Available:', availableCount);
+        }
+
+        // Setup form submission with validation and logging
+        function setupFormSubmission() {
+            console.log('?? Setting up form submission...');
+            
+            const form = document.getElementById('editForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (!form || !submitBtn) {
+                console.error('? Form or submit button not found!');
+                return;
+            }
+            
+            // Remove any existing listeners
+            form.onsubmit = null;
+            
+            form.addEventListener('submit', function(e) {
+                console.log('?? FORM SUBMISSION STARTED!');
+                console.log('?? Event:', e);
+                
+                // Validate student note
+                const studentNote = document.getElementById('studentNote');
+                if (!studentNote) {
+                    console.error('? Student note field not found!');
+                    e.preventDefault();
+                    alert('Öðrenci notu alaný bulunamadý!');
+                    return false;
+                }
+                
+                const noteValue = studentNote.value.trim();
+                console.log('?? Student note value:', noteValue);
+                
+                if (noteValue.length === 0) {
+                    console.log('? Empty student note, preventing submission');
+                    e.preventDefault();
+                    alert('Lütfen öðrenci notunu doldurun.');
+                    return false;
+                }
+                
+                // Log form data
+                logFormSubmission();
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+                
+                console.log('? Form validation passed, submitting...');
+                // Form will submit normally
+            });
+            
+            console.log('? Form submission event listener added');
+        }
+
+        // Log current state for debugging
+        function logCurrentState() {
+            console.log('?? === CURRENT STATE DEBUG ===');
+            console.log('- Form ID:', @Model.Id);
+            
+            const studentNoteEl = document.getElementById('studentNote');
+            console.log('- Student Note Element:', studentNoteEl);
+            console.log('- Student Note Value:', studentNoteEl ? studentNoteEl.value : 'ELEMENT NOT FOUND');
+            console.log('- Selected Documents:', Array.from(selectedDocuments));
+            console.log('- Hidden Inputs Count:', document.querySelectorAll('input[name="SelectedDocumentIds"]').length);
+            
+            // Log all form inputs
+            const formData = new FormData(document.getElementById('editForm'));
+            console.log('?? All form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  - ${key}: ${value}`);
+            }
+        }
+
+        // Log form submission data
+        function logFormSubmission() {
+            console.log('?? === FORM SUBMISSION DATA ===');
+            
+            const formData = new FormData(document.getElementById('editForm'));
+            
+            console.log('- Form ID:', formData.get('Id'));
+            console.log('- Student Note:', formData.get('StudentNote'));
+            
+            const docIds = formData.getAll('SelectedDocumentIds');
+            console.log('- Selected Document IDs:', docIds);
+            console.log('- Document Count:', docIds.length);
+            
+            // Validate data consistency
+            if (docIds.length !== selectedDocuments.size) {
+                console.warn('?? MISMATCH: Hidden inputs count differs from selected documents!');
+                console.warn('- Hidden inputs:', docIds.length);
+                console.warn('- Selected set:', selectedDocuments.size);
+            }
+            
+            console.log('?? === END SUBMISSION DATA ===');
+        }
+
+        // Debug function - can be called from browser console
+        window.debugEditForm = function() {
+            logCurrentState();
+            return {
+                selectedDocuments: Array.from(selectedDocuments),
+                hiddenInputs: Array.from(document.querySelectorAll('input[name="SelectedDocumentIds"]')).map(i => i.value),
+                formData: new FormData(document.getElementById('editForm'))
+            };
+        };
+        
+        // Test function to manually trigger form submission
+        window.testSubmit = function() {
+            console.log('?? TEST SUBMIT TRIGGERED');
+            const form = document.getElementById('editForm');
+            if (form) {
+                form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            } else {
+                console.error('? Form not found for test submit');
+            }
+        };
     </script>
 }

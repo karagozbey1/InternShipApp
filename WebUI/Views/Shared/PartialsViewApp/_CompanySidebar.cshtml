@@ -26,7 +26,7 @@
             </li>
             <!-- Bildirimler -->
             <li>
-                <a asp-controller="Company" asp-action="Notifications" 
+                <a asp-controller="Notifications" asp-action="Index" 
                    class="company-nav-link flex items-center px-4 py-3 rounded-lg transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-700 hover:to-indigo-800 hover:text-white"
                    style="color: #ede9fe;">
                     <i class="fas fa-bell w-5 h-5 mr-3 text-indigo-200"></i>
@@ -99,7 +99,7 @@
 <script>
     // Dinamik bildirim sayýsýný güncelle
     document.addEventListener('DOMContentLoaded', function() {
-        fetch('/Company/Notification/UnreadCount')
+        fetch('/Company/Notifications/UnreadCount')
             .then(response => response.json())
             .then(data => {
                 const badge = document.getElementById('notificationBadge');

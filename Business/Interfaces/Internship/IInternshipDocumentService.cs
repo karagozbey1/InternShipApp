@@ -18,5 +18,7 @@ namespace Business.Interfaces.Internship
         Task<List<InternshipDocument>> GetIndependentDocumentsByStudentIdAsync(int studentId);
         Task LinkDocumentToApprovalAsync(int documentId, int approvalFormId);
         Task<List<InternshipDocument>> GetDocumentsByApprovalFormIdAsync(int approvalFormId);
+        Task LinkDocumentToApplicationAsync(int documentId, int applicationId);
+        Task UnlinkDocumentFromApplicationAsync(int documentId, int applicationId);
     }
 }

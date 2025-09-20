@@ -75,7 +75,7 @@ namespace WebUI.Controllers.Company
                 SuccessRate = 0,
                 MembershipYear = company?.EstablishedDate?.Year ?? DateTime.Now.Year
             };
-            return View("~/Views/Company/Profile.cshtml", model);
+            return View("~/Views/Company/Profile/Index.cshtml", model);
         }
 
         [HttpPost]

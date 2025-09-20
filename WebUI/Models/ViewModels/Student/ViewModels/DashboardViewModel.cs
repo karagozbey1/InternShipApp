@@ -32,7 +32,6 @@ public class DashboardViewModel
     public int UnreadNotifications { get; set; }
     public int ProgressPercentage { get; set; }
     public List<Core.Entity.Notification> RecentNotifications { get; set; } = new();
-    public List<Core.Entity.News> RecentNews { get; set; } = new();
     public List<string> TodoList { get; set; } = new();
     public List<InternshipFieldStat> InternshipsByField { get; set; } = new();
     public Core.Entity.InternshipApplication? ActiveInternship { get; set; }

@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Ýstatistikler";
+    Layout = "_AppLayout";
+
+    // Mock values if none provided via ViewData
+    int total = ViewBag.TotalApplications as int? ?? 8;
+    int approved = ViewBag.Approved as int? ?? 3;
+    int pending = ViewBag.Pending as int? ?? 2;
+    int rejected = ViewBag.Rejected as int? ?? 3;
+    int successRate = ViewBag.SuccessRate as int? ?? (total == 0 ? 0 : (int)Math.Round(approved * 100.0 / Math.Max(1, approved + rejected)));
+}
+
+<div class="space-y-6">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Ýstatistikler</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="rounded-2xl shadow-sm bg-white/80 dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200/70 dark:border-gray-700">
+                <h2 class="text-gray-700 dark:text-gray-200 font-semibold">Baþvuru Ýstatistikleri</h2>
+            </div>
+            <div class="p-6 space-y-3 text-gray-700 dark:text-gray-200">
+                <div class="flex items-center justify-between py-2">
+                    <span>Toplam Baþvuru</span>
+                    <span class="font-semibold">@total</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <span>Onaylanan</span>
+                    <span class="font-semibold text-green-600">@approved</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <span>Beklemede</span>
+                    <span class="font-semibold text-yellow-500">@pending</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <span>Reddedilen</span>
+                    <span class="font-semibold text-red-600">@rejected</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-2xl shadow-sm bg-white/80 dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700">
+            <div class="px-6 py-4 border-b border-gray-200/70 dark:border-gray-700">
+                <h2 class="text-gray-700 dark:text-gray-200 font-semibold">Baþarý Oraný</h2>
+            </div>
+            <div class="p-8 flex items-center justify-center">
+                <div class="w-56 h-56 relative">
+                    <canvas id="successChart"></canvas>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-xl font-semibold text-gray-700 dark:text-gray-200">@successRate%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('successChart');
+        if (!ctx) return;
+        const rate = @successRate;
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Baþarý', 'Diðer'],
+                datasets: [{
+                    data: [rate, 100 - rate],
+                    backgroundColor: ['#7c3aed', '#e5e7eb'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: { legend: { display: false } },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    });
+</script>
+}

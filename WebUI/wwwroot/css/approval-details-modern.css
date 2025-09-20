@@ -1,0 +1,377 @@
+/* Modern Approval Details Styles */
+:root {
+    --primary-purple: #6366f1;
+    --primary-blue: #3b82f6;
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+    --gradient-hover: linear-gradient(135deg, #5b21b6 0%, #1e40af 100%);
+}
+
+/* Status Display Styles */
+.status-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.status-display:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.status-display i {
+    font-size: 20px;
+}
+
+.status-display.approved {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.status-display.revision {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+}
+
+.status-display.rejected {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.status-display.pending {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+}
+
+.status-date {
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-align: center;
+    margin-top: -8px;
+    font-weight: 500;
+}
+
+/* Modern Edit Button */
+.edit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--gradient-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.edit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.edit-btn:hover::before {
+    left: 100%;
+}
+
+.edit-btn:hover {
+    background: var(--gradient-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.edit-btn:active {
+    transform: translateY(0);
+}
+
+.edit-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+}
+
+.edit-btn:hover i {
+    transform: scale(1.1);
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Revision Card Styles */
+.revision-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-left: 4px solid #f59e0b;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.1);
+    transition: all 0.3s ease;
+}
+
+.revision-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+}
+
+.revision-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.revision-icon {
+    background: #f59e0b;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.revision-title {
+    color: #92400e;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.revision-content {
+    color: #78350f;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.revision-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.revision-edit-btn {
+    background: #f59e0b;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.revision-edit-btn:hover {
+    background: #d97706;
+    color: white;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.revision-help-text {
+    color: #a16207;
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+/* Status Badge Animations */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.status-badge.approved {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.pending {
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.status-badge.revision {
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-badge.rejected {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Hero Section Status Card */
+.hero-status-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.hero-status-text {
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Card Hover Effects */
+.fade-in {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.fade-in:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.fade-in:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.fade-in:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .status-display {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+    
+    .edit-btn {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .revision-card {
+        padding: 16px;
+    }
+    
+    .revision-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hero-status-card {
+        min-width: auto;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .status-display {
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .edit-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+    
+    .revision-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .revision-card {
+        background: linear-gradient(135deg, rgba(254, 243, 199, 0.1) 0%, rgba(253, 230, 138, 0.1) 100%);
+        border-left-color: #f59e0b;
+    }
+    
+    .revision-content {
+        color: #fbbf24;
+    }
+    
+    .revision-help-text {
+        color: #d97706;
+    }
+    
+    .status-date {
+        color: #9ca3af;
+    }
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

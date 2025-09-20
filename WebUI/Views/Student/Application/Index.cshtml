@@ -1,8 +1,371 @@
-@using WebUI.Models.ViewModels.Student
+﻿@using WebUI.Models.ViewModels.Student
+@* WebUI\Views\Application\Index.cshtml *@
 @model WebUI.Models.ViewModels.Student.ApplicationListViewModel
 @{
-    ViewData["Title"] = "Ba�vurular�m";
+    ViewData["Title"] = "Başvurularım";
     Layout = "_AppLayout";
 }
 
-@await Html.PartialAsync("~/Views/Student/ApplicationView.cshtml", Model)
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<!-- CSRF Token -->
+@Html.AntiForgeryToken()
+
+<!-- Search and Filter -->
+<div class="flex justify-between items-center mb-6">
+    <div class="flex gap-4">
+        <form method="get" class="flex gap-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Başvuru ara..." 
+                       class="pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200" />
+            </div>
+
+            <select name="statusFilter" class="px-4 py-2 border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 border-gray-300 dark:border-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800">
+                <option value="">Tüm Durumlar</option>
+                <option value="Pending" selected="@(Model.StatusFilter?.ToString() == "Pending")">Beklemede</option>
+                <option value="Approved" selected="@(Model.StatusFilter?.ToString() == "Approved")">Onaylandı</option>
+                <option value="Rejected" selected="@(Model.StatusFilter?.ToString() == "Rejected")">Reddedildi</option>
+            </select>
+            
+            <button type="submit" class="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-200">
+                <i class="fas fa-filter"></i>
+                Filtrele
+            </button>
+        </form>
+    </div>
+    <div class="flex items-center gap-3">
+        <a asp-action="Favorites" class="flex items-center gap-2 text-blue-600 border border-blue-600 px-4 py-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+            <i class="fas fa-bookmark"></i>
+            Favorilerim
+        </a>
+        <a asp-action="Browse" class="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+            <i class="fas fa-plus"></i>
+            Yeni Başvuru
+        </a>
+    </div>
+</div>
+
+<!-- Applications List -->
+<div class="grid gap-6">
+    @foreach (var application in Model.Applications)
+    {
+        var avatarLetter = !string.IsNullOrWhiteSpace(application.CompanyName) && application.CompanyName.Length >= 1
+            ? application.CompanyName.Substring(0, 1).ToUpper()
+            : "?";
+        <div class="p-6 rounded-2xl bg-white/80 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/60 dark:border-gray-700 transform transition-transform hover:-translate-y-1 hover:shadow-2xl">
+            <div class="flex items-start justify-between mb-4 gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-xl flex items-center justify-content-center text-white font-bold text-2xl" style="background: linear-gradient(135deg,#4f46e5,#06b6d4);">
+                        @avatarLetter
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">@(!string.IsNullOrWhiteSpace(application.CompanyName) ? application.CompanyName : "Bilinmeyen")</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">@application.Position</p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                <i class="fas fa-file-alt text-xs"></i>
+                                @($"{application.DocumentCount} belge")
+                            </span>
+                            <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+                                <i class="fas fa-user text-xs"></i>
+                                @(!string.IsNullOrEmpty(application.AdvisorName) ? application.AdvisorName : "Danışman yok")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-end gap-3">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium 
+                        @(application.Status.ToString() == "Approved" ? "bg-green-100 text-green-800" : 
+                          application.Status.ToString() == "Pending" ? "bg-yellow-100 text-yellow-800" : 
+                          "bg-red-100 text-red-800")">
+                        @(application.Status.ToString() == "Approved" ? "Onaylandı" : 
+                          application.Status.ToString() == "Pending" ? "Beklemede" : "Reddedildi")
+                    </span>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Başvuru Tarihi</div>
+                    <div class="text-sm font-medium text-gray-700 dark:text-gray-200">@application.AppliedDate.ToString("dd.MM.yyyy")</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-4">
+                <div class="p-4 bg-gray-50 rounded-lg dark:bg-gray-900">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Başlangıç</p>
+                    <p class="font-medium text-gray-800 dark:text-gray-200 mt-1">@application.StartDate.ToString("dd.MM.yyyy")</p>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg dark:bg-gray-900">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Bitiş</p>
+                    <p class="font-medium text-gray-800 dark:text-gray-200 mt-1">@application.EndDate.ToString("dd.MM.yyyy")</p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(application.Description))
+            {
+                <div class="mb-4">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-1 font-medium">Açıklama</p>
+                    <p class="text-gray-700 dark:text-gray-300">@application.Description</p>
+                </div>
+            }
+
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Başvuru Tarihi: @application.AppliedDate.ToString("dd.MM.yyyy HH:mm")
+                </p>
+                <div class="flex gap-2 items-center">
+                    <a asp-action="Details" asp-route-id="@application.Id" 
+                       class="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors inline-flex items-center gap-2">
+                        <i class="fas fa-info-circle"></i>
+                        Detaylar
+                    </a>
+                    @if (application.Status.ToString() == "Approved")
+                    {
+                        @if (application.CanCreateApprovalForm)
+                        {
+                            <a asp-controller="Approval" asp-action="Create" asp-route-applicationId="@application.Id" 
+                               class="px-4 py-2 text-green-600 border border-green-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors inline-flex items-center gap-2">
+                                <i class="fas fa-clipboard-check"></i>
+                                Onay Formu Oluştur
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="px-4 py-2 text-gray-500 border border-gray-300 rounded-lg bg-gray-50 inline-flex items-center gap-2">
+                                <i class="fas fa-check-circle"></i>
+                                Onay Formu Mevcut
+                            </span>
+                        }
+                    }
+                    @if (application.Status.ToString() == "Pending")
+                    {
+                        <form asp-action="Withdraw" asp-route-id="@application.Id" method="post" style="display:inline;" 
+                              onsubmit="return confirm('Bu başvuruyu geri çekmek istediğinizden emin misiniz?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                Geri Çek
+                            </button>
+                        </form>
+                    }
+
+                    @if (application.Status.ToString() == "Rejected")
+                    {
+                        <form asp-action="Delete" asp-route-id="@application.Id" method="post" style="display:inline;" 
+                              onsubmit="return confirm('Bu başvuruyu kalıcı olarak silmek istediğinize emin misiniz?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Sil
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!Model.Applications.Any())
+    {
+        <div class="text-center py-12">
+            <i class="fas fa-file-alt text-gray-400 text-6xl mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz başvuru bulunmuyor</h3>
+            <p class="text-gray-500 dark:text-gray-500 mb-6">İlk staj başvurunuzu oluşturmak için aşağıdaki butona tıklayın.</p>
+            <a asp-action="Browse" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                <i class="fas fa-plus"></i>
+                Yeni Başvuru Oluştur
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Belge Seçim Modal -->
+<div id="documentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Belge Seç</h3>
+                <button onclick="closeDocumentModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-96">
+                <div id="modalDocumentsList" class="space-y-3">
+                    <!-- Belgeler buraya yüklenecek -->
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                <button onclick="closeDocumentModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    İptal
+                </button>
+                <button onclick="addSelectedDocuments()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Seçilenleri Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentApplicationId = null;
+        let selectedDocuments = [];
+
+        // Modal açma
+        async function openDocumentModal(applicationId) {
+            currentApplicationId = applicationId;
+            selectedDocuments = [];
+            
+            try {
+                // Belgelerim listesini getir
+                const response = await fetch('@Url.Action("GetStudentDocuments", "Document")');
+                const documents = await response.json();
+                
+                const modalDocumentsList = document.getElementById('modalDocumentsList');
+                
+                if (documents.length === 0) {
+                    modalDocumentsList.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-folder-open text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-gray-500">Henüz belge yüklenmemiş.</p>
+                            <a href="/Document" class="text-blue-500 hover:text-blue-600 text-sm">
+                                Belge yüklemek için tıklayın.
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    modalDocumentsList.innerHTML = documents.map(doc => `
+                        <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="modal_doc_${doc.id}" value="${doc.id}" 
+                                       onchange="toggleModalDocument(${doc.id})" 
+                                       class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <p class="font-medium text-sm">${doc.title || doc.fileName}</p>
+                                    <p class="text-xs text-gray-500">${doc.type} • ${doc.fileSize} • ${doc.uploadDate}</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-file-alt text-blue-500"></i>
+                        </div>
+                    `).join('');
+                }
+                
+                document.getElementById('documentModal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Belgeler yüklenirken hata:', error);
+                alert('Belgeler yüklenirken bir hata oluştu.');
+            }
+        }
+
+        // Modal kapatma
+        function closeDocumentModal() {
+            document.getElementById('documentModal').classList.add('hidden');
+            currentApplicationId = null;
+            selectedDocuments = [];
+        }
+
+        // Belge seçimi
+        function toggleModalDocument(documentId) {
+            const checkbox = document.getElementById(`modal_doc_${documentId}`);
+            
+            if (checkbox.checked) {
+                if (!selectedDocuments.includes(documentId)) {
+                    selectedDocuments.push(documentId);
+                }
+            } else {
+                const index = selectedDocuments.indexOf(documentId);
+                if (index > -1) {
+                    selectedDocuments.splice(index, 1);
+                }
+            }
+        }
+
+        // Seçilen belgeleri başvuruya ekleme
+        async function addSelectedDocuments() {
+            if (selectedDocuments.length === 0) {
+                alert('Lütfen en az bir belge seçin.');
+                return;
+            }
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                
+                const response = await fetch('@Url.Action("AddDocumentsToApplication", "Application")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        applicationId: currentApplicationId,
+                        documentIds: selectedDocuments
+                    })
+                });
+
+                if (response.ok) {
+                    // Başarılı - başvuru belgelerini güncelle
+                    await loadApplicationDocuments(currentApplicationId);
+                    closeDocumentModal();
+                    
+                    // Success message göster
+                    const successDiv = document.createElement('div');
+                    successDiv.className = 'mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg';
+                    successDiv.textContent = 'Belgeler başarıyla eklendi.';
+                    document.body.insertBefore(successDiv, document.body.firstChild);
+                    
+                    // 3 saniye sonra mesajı kaldır
+                    setTimeout(() => {
+                        if (successDiv.parentNode) {
+                            successDiv.parentNode.removeChild(successDiv);
+                        }
+                    }, 3000);
+                } else {
+                    alert('Belgeler eklenirken bir hata oluştu.');
+                }
+                
+            } catch (error) {
+                console.error('Belge ekleme hatası:', error);
+                alert('Belgeler eklenirken bir hata oluştu.');
+            }
+        }
+
+        // Başvuruya ait belgeleri yükleme
+        async function loadApplicationDocuments(applicationId) {
+            try {
+                const response = await fetch(`@Url.Action("GetApplicationDocuments", "Application")?applicationId=${applicationId}`);
+                const documents = await response.json();
+                
+                const container = document.getElementById(`applicationDocuments_${applicationId}`);
+                
+                if (documents.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-gray-500">Henüz belge eklenmemiş</p>';
+                } else {
+                    container.innerHTML = documents.map(doc => `
+                        <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-file-alt text-blue-500 text-sm"></i>
+                                <span class="text-sm">${doc.title || doc.fileName}</span>
+                            </div>
+                            <a href="${doc.filePath}" target="_blank" class="text-blue-500 hover:text-blue-600 text-xs">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    `).join('');
+                }
+                
+            } catch (error) {
+                console.error('Başvuru belgeleri yüklenirken hata:', error);
+            }
+        }
+
+        // Sayfa yüklendiğinde başvuru belgelerini yükle
+        document.addEventListener('DOMContentLoaded', function() {
+            @foreach (var application in Model.Applications)
+            {
+                @:loadApplicationDocuments(@application.Id);
+            }
+        });
+    </script>
+}

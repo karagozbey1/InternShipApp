@@ -151,3 +151,85 @@
 .job-posting-card .rounded-lg {
     background-clip: padding-box;
 }
+
+/* Geri Dön Butonu Stilleri */
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-back:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
+}
+
+/* Alternatif geri dön butonu - daha koyu */
+.btn-back-dark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(31, 41, 55, 0.3);
+}
+
+.btn-back-dark:hover {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(31, 41, 55, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* Geri dön butonu - outline versiyonu */
+.btn-back-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    color: #6b7280;
+    border: 2px solid #6b7280;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-back-outline:hover {
+    background: #6b7280;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2);
+    text-decoration: none;
+}

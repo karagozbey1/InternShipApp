@@ -3,9 +3,7 @@ using DataAccess.Context;
 using DataAccess.GenericRepository.Repository;
 using DataAccess.Interfaces.Internship;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace DataAccess.Repositories.Internship
 {
@@ -28,8 +26,7 @@ namespace DataAccess.Repositories.Internship
                 .Include(f => f.Advisor)
                 .Where(f => f.StudentId == studentId)
                 .OrderByDescending(f => f.CreatedAt)
-                .AsNoTracking() // Performans için tracking kapatýldý
-                .ToListAsync();
+                .ToListAsync(); // AsNoTracking kald?r?ld? - fresh data i?in
         }
 
         public async Task<List<InternshipApprovalForm>> GetApprovalFormsByAdvisorIdAsync(int advisorId)
@@ -45,8 +42,7 @@ namespace DataAccess.Repositories.Internship
                 .Include(f => f.Advisor)
                 .Where(f => f.AdvisorId == advisorId)
                 .OrderByDescending(f => f.CreatedAt)
-                .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync(); // AsNoTracking kald?r?ld?
         }
 
         public async Task<List<InternshipApprovalForm>> GetApprovalFormsByStatusAsync(InternshipApprovalStatus status)
@@ -59,7 +55,7 @@ namespace DataAccess.Repositories.Internship
                 .Include(f => f.Advisor)
                 .Where(f => f.Status == status)
                 .OrderByDescending(f => f.CreatedAt)
-                .AsNoTracking()
+                .AsNoTracking() // Sadece okuma i?in AsNoTracking kals?n
                 .ToListAsync();
         }
 
@@ -74,8 +70,7 @@ namespace DataAccess.Repositories.Internship
                         .ThenInclude(o => o!.Company)
                 .Include(f => f.Student)
                 .Include(f => f.Advisor)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(f => f.Id == formId);
+                .FirstOrDefaultAsync(f => f.Id == formId); // AsNoTracking kald?r?ld? - fresh data i?in
         }
 
         public async Task<InternshipApprovalForm?> GetApprovalFormByApplicationIdAsync(int applicationId)
@@ -89,7 +84,7 @@ namespace DataAccess.Repositories.Internship
                         .ThenInclude(o => o!.Company)
                 .Include(f => f.Student)
                 .Include(f => f.Advisor)
-                .AsNoTracking()
+                .AsNoTracking() // Sadece kontrol i?in AsNoTracking kals?n
                 .FirstOrDefaultAsync(f => f.ApplicationId == applicationId);
         }
 
@@ -103,8 +98,8 @@ namespace DataAccess.Repositories.Internship
                 .Include(f => f.Advisor)
                 .Where(f => f.Status == InternshipApprovalStatus.Pending)
                 .OrderByDescending(f => f.CreatedAt)
-                .AsNoTracking()
+                .AsNoTracking() // Sadece okuma i?in AsNoTracking kals?n
                 .ToListAsync();
         }
     }
-}
+}   

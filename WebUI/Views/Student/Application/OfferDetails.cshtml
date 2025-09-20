@@ -5,6 +5,14 @@
 }
 
 <div class="container-fluid px-4 py-4">
+    <!-- Geri Dön Butonu -->
+    <div class="mb-3">
+        <a asp-action="Browse" class="btn-back">
+            <i class="fas fa-arrow-left"></i>
+            Ýlanlara Dön
+        </a>
+    </div>
+    
     <div class="grid gap-4"
          style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(120px,auto);">
         <!-- Baþlýk + aksiyonlar: tam geniþlik, mor kart -->
@@ -288,12 +296,33 @@
             const storageKey = `favOffers:${userId}`;
 
             function getFavSet(){
-                try{ const raw = localStorage.getItem(storageKey) || ''; return new Set(raw.split(',').filter(x=>x)); }catch{ return new Set(); }
+                try{ 
+                    const raw = localStorage.getItem(storageKey) || ''; 
+                    return new Set(raw.split(',').filter(x=>x)); 
+                } catch { 
+                    return new Set(); 
+                }
             }
-            function saveFavSet(set){ try{ localStorage.setItem(storageKey, Array.from(set).join(',')); }catch{} }
-            function setBtn(saved){ btn.innerHTML = saved? '<i class="fas fa-bookmark me-2"></i>Kaydedildi' : '<i class="fas fa-bookmark me-2"></i>Kaydet'; }
+            
+            function saveFavSet(set){ 
+                try{ 
+                    localStorage.setItem(storageKey, Array.from(set).join(',')); 
+                    
+                    // Dispatch custom event for cross-page communication
+                    window.dispatchEvent(new CustomEvent('favoriteUpdated', {
+                        detail: { userId, favoriteCount: set.size }
+                    }));
+                    
+                    console.log('Dispatched favoriteUpdated event, count:', set.size);
+                } catch {} 
+            }
+            
+            function setBtn(saved){ 
+                btn.innerHTML = saved? '<i class="fas fa-bookmark me-2"></i>Kaydedildi' : '<i class="fas fa-bookmark me-2"></i>Kaydet'; 
+                btn.className = saved ? 'cta-btn cta-secondary cta-lg' : 'cta-btn cta-secondary cta-lg';
+            }
 
-            // Initial sync from localStorage (override server if needed)
+            // Initial sync from localStorage 
             const s = getFavSet();
             setBtn(s.has(offerId));
 
@@ -303,13 +332,52 @@
                     window.location.href = '/Account/Login?returnUrl=' + returnUrl;
                     return;
                 }
+                
                 const set = getFavSet();
                 let willBeFavorite;
-                if(set.has(offerId)){ set.delete(offerId); willBeFavorite = false; } else { set.add(offerId); willBeFavorite = true; }
+                
+                if(set.has(offerId)){ 
+                    set.delete(offerId); 
+                    willBeFavorite = false; 
+                } else { 
+                    set.add(offerId); 
+                    willBeFavorite = true; 
+                }
+                
                 saveFavSet(set);
                 setBtn(willBeFavorite);
-                // Best-effort server sync
-                fetch(`/api/public/offers/${offerId}/favorite`, { method:'POST' }).catch(()=>{});
+                
+                console.log(`Favorite ${willBeFavorite ? 'added' : 'removed'} for offer ${offerId}, total favorites: ${set.size}`);
+                
+                // Server sync with detailed logging
+                fetch(`/api/public/offers/${offerId}/favorite`, { method:'POST' })
+                    .then(response => {
+                        console.log('Server sync response status:', response.status);
+                        if (!response.ok) {
+                            console.warn('Server sync failed:', response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Server sync response data:', data);
+                        // Update button state based on server response if different
+                        if (data.success && data.isFavorite !== willBeFavorite) {
+                            const updatedSet = getFavSet();
+                            if (data.isFavorite) {
+                                updatedSet.add(offerId);
+                            } else {
+                                updatedSet.delete(offerId);
+                            }
+                            saveFavSet(updatedSet);
+                            setBtn(data.isFavorite);
+                            
+                            console.log(`Server corrected favorite state to ${data.isFavorite}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Server sync error:', error);
+                        // Keep local state even if server sync fails
+                    });
             });
         })();
     </script>

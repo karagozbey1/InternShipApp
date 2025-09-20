@@ -1,0 +1,398 @@
+@using WebUI.Models.ViewModels.Student.ViewModels
+@model DiaryListViewModel
+@{
+    ViewData["Title"] = "Staj Defteri";
+    Layout = "_AppLayout";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+<div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+</div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+<div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+    <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+</div>
+}
+
+@if (TempData["InfoMessage"] != null)
+{
+<div class="mb-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg">
+    <i class="fas fa-info-circle me-2"></i>@TempData["InfoMessage"]
+</div>
+}
+
+<!-- Header Section -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                <i class="fas fa-book text-blue-500 me-3"></i>Staj Defteri
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">
+                <i class="fas fa-building me-2"></i>@Model.CompanyName - @Model.Department
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-500">
+                <i class="fas fa-calendar me-2"></i>
+                @Model.InternshipStartDate.ToString("dd MMMM yyyy") - @Model.InternshipEndDate.ToString("dd MMMM yyyy")
+            </p>
+        </div>
+        <div class="flex gap-3">
+            @if (Model.CanCreateDiary)
+            {
+                <button onclick="toggleCreateForm()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-plus me-2"></i>Yeni Girdi
+                </button>
+            }
+            else
+            {
+                <button type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg" disabled title="Staj baþvurunuz onaylanana kadar defter oluþturamazsýnýz">
+                    <i class="fas fa-plus me-2"></i>Yeni Girdi
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Stats Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+                <i class="fas fa-calendar-check text-blue-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Girdi</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.TotalEntries</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+                <i class="fas fa-clock text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Saat</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.TotalHours</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-full">
+                <i class="fas fa-chart-line text-yellow-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Günlük Ortalama</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.AverageDailyHours.ToString("F1")</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+            <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                <i class="fas fa-percentage text-purple-500 text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Tamamlanma</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">@Model.Stats.CompletionPercentage.ToString("F0")%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Form (Hidden by default) -->
+<div id="createForm" class="hidden mb-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-6">
+        <i class="fas fa-edit text-blue-500 me-2"></i>Yeni Staj Defteri Girdisi
+    </h3>
+    
+    <form asp-action="CreateEntry" method="post" class="space-y-4">
+        @Html.AntiForgeryToken()
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label asp-for="CreateModel.Title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-heading me-1"></i>Baþlýk
+                </label>
+                <input asp-for="CreateModel.Title" 
+                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                       placeholder="Bugünkü çalýþma baþlýðý" />
+                <span asp-validation-for="CreateModel.Title" class="text-red-600 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="CreateModel.Date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-calendar me-1"></i>Tarih
+                </label>
+                <input asp-for="CreateModel.Date" type="date"
+                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+                <span asp-validation-for="CreateModel.Date" class="text-red-600 text-sm"></span>
+            </div>
+
+            <div>
+                <label asp-for="CreateModel.Category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-tags me-1"></i>Kategori
+                </label>
+                <select asp-for="CreateModel.Category" 
+                        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                    <option value="1">Günlük Çalýþma</option>
+                    <option value="2">Öðrenme</option>
+                    <option value="3">Toplantý</option>
+                    <option value="4">Proje</option>
+                    <option value="5">Eðitim</option>
+                    <option value="6">Araþtýrma</option>
+                    <option value="7">Problem Çözme</option>
+                    <option value="8">Baþarý</option>
+                </select>
+            </div>
+
+            <div>
+                <label asp-for="CreateModel.WorkingHours" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-clock me-1"></i>Çalýþma Saatleri
+                </label>
+                <input asp-for="CreateModel.WorkingHours" type="number" step="0.5" min="0" max="24"
+                       class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
+            </div>
+        </div>
+
+        <div>
+            <label asp-for="CreateModel.Content" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <i class="fas fa-file-text me-1"></i>Ýçerik
+            </label>
+            <textarea asp-for="CreateModel.Content" rows="4"
+                      class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                      placeholder="Bugün neler yaptýnýz, neler öðrendiniz?"></textarea>
+            <span asp-validation-for="CreateModel.Content" class="text-red-600 text-sm"></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label asp-for="CreateModel.LearnedTopics" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-lightbulb me-1"></i>Öðrenilen Konular
+                </label>
+                <textarea asp-for="CreateModel.LearnedTopics" rows="2"
+                          class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                          placeholder="Yeni öðrendiðiniz teknolojiler, metodlar..."></textarea>
+            </div>
+
+            <div>
+                <label asp-for="CreateModel.Challenges" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="fas fa-exclamation-triangle me-1"></i>Karþýlaþýlan Zorluklar
+                </label>
+                <textarea asp-for="CreateModel.Challenges" rows="2"
+                          class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                          placeholder="Bugün karþýlaþtýðýnýz zorluklar..."></textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors" @(Model.CanCreateDiary ? "" : "disabled")>
+                <i class="fas fa-save me-2"></i>Kaydet
+            </button>
+            <button type="button" onclick="toggleCreateForm()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-times me-2"></i>Ýptal
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Weekly Navigation -->
+<div class="mb-6">
+    <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            <i class="fas fa-calendar-week text-blue-500 me-2"></i>
+            Hafta @(Model.CurrentWeek + 1) / @Model.TotalWeeks
+        </h3>
+        <div class="flex gap-2">
+            @if (Model.CurrentWeek > 0)
+            {
+                <a asp-action="Index" asp-route-week="@(Model.CurrentWeek - 1)" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            }
+            @if (Model.CurrentWeek < Model.TotalWeeks - 1)
+            {
+                <a asp-action="Index" asp-route-week="@(Model.CurrentWeek + 1)" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            }
+            <a asp-action="WeeklyReport" asp-route-week="@Model.CurrentWeek" 
+               class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition-colors">
+                <i class="fas fa-file-alt me-1"></i>Rapor
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Diary Entries -->
+<div class="space-y-6">
+    @if (Model.DiaryEntries.Any())
+    {
+        @foreach (var entry in Model.DiaryEntries.Take(10))
+        {
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-@(entry.CategoryColor)-100 dark:bg-@(entry.CategoryColor)-900 rounded-lg">
+                                <i class="@entry.CategoryIcon text-@(entry.CategoryColor)-500"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">@entry.Title</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    <i class="fas fa-calendar me-1"></i>@entry.Date.ToString("dd MMMM yyyy")
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-clock me-1"></i>@entry.WorkingHours saat
+                                    <span class="mx-2">•</span>
+                                    <span class="bg-@(entry.CategoryColor)-100 text-@(entry.CategoryColor)-800 px-2 py-1 rounded-full text-xs">
+                                        @entry.CategoryDisplayName
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            @if (entry.IsApproved)
+                            {
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                    <i class="fas fa-check me-1"></i>Onaylandý
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+                                    <i class="fas fa-clock me-1"></i>Beklemede
+                                </span>
+                            }
+                            <div class="relative">
+                                <button onclick="toggleDropdown(@entry.Id)" class="text-gray-500 hover:text-gray-700 p-2">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div id="dropdown-@entry.Id" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        <i class="fas fa-edit me-2"></i>Düzenle
+                                    </a>
+                                    <form asp-action="DeleteEntry" asp-route-id="@entry.Id" method="post" class="inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                                                onclick="return confirm('Bu girdiyi silmek istediðinizden emin misiniz?')">
+                                            <i class="fas fa-trash me-2"></i>Sil
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">@entry.Content</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(entry.LearnedTopics) || !string.IsNullOrEmpty(entry.Challenges))
+                    {
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            @if (!string.IsNullOrEmpty(entry.LearnedTopics))
+                            {
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                                        <i class="fas fa-lightbulb text-yellow-500 me-1"></i>Öðrenilenler
+                                    </h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">@entry.LearnedTopics</p>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(entry.Challenges))
+                            {
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                                        <i class="fas fa-exclamation-triangle text-orange-500 me-1"></i>Zorluklar
+                                    </h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">@entry.Challenges</p>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(entry.AdvisorFeedback))
+                    {
+                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+                                <i class="fas fa-comment text-blue-500 me-1"></i>Danýþman Geri Bildirimi
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900 p-3 rounded-lg">
+                                @entry.AdvisorFeedback
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <i class="fas fa-book text-6xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz staj defteri girdisi yok</h3>
+            <p class="text-gray-500 dark:text-gray-500 mb-6">Ýlk girdinizi oluþturmak için yukarýdaki "Yeni Girdi" butonunu kullanýn.</p>
+            <button onclick="toggleCreateForm()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                <i class="fas fa-plus me-2"></i>Ýlk Girdiyi Oluþtur
+            </button>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        function toggleCreateForm() {
+            const form = document.getElementById('createForm');
+            form.classList.toggle('hidden');
+            
+            if (!form.classList.contains('hidden')) {
+                // Focus first input when form opens
+                form.querySelector('input[type="text"]').focus();
+            }
+        }
+
+        function toggleDropdown(entryId) {
+            const dropdown = document.getElementById(`dropdown-${entryId}`);
+            
+            // Close all other dropdowns
+            document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+                if (d !== dropdown) d.classList.add('hidden');
+            });
+            
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[onclick^="toggleDropdown"]')) {
+                document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+                    d.classList.add('hidden');
+                });
+            }
+        });
+
+        // Auto-resize textareas
+        document.addEventListener('DOMContentLoaded', function() {
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            });
+        });
+    </script>
+}

@@ -23,14 +23,11 @@ namespace DataAccess.Unit.Interface
         IInternshipPeriodRepository InternshipPeriods { get; }
         IInternshipApplicationRepository InternshipApplications { get; }
         IInternshipApprovalRepository InternshipApprovals { get; }
-        INewsRepository News { get; }
         INotificationRepository Notifications { get; }
         IUserRepository Users { get; }
         IChatRoomRepository ChatRooms { get; }
         IChatMessageRepository ChatMessages { get; }
         ICompanyUserRepository CompanyUsers { get; }
-        ISliderRepository Sliders { get; }
-        ISliderItemRepository SliderItems { get; }
         IProvinceRepository Provinces { get; }
         IUniversityRepository Universities { get; }
         IOfferFavoriteRepository OfferFavorites { get; }

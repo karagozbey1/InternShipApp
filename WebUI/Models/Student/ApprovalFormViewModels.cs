@@ -120,5 +120,57 @@ namespace WebUI.Models.Student
         
         public string Status { get; set; } = "";
         public bool CanEdit { get; set; } = true;
+        
+        // Revision properties
+        public string? RevisionNote { get; set; }
+        public DateTime? RevisedAt { get; set; }
+    }
+
+    // Additional ViewModel for Edit page
+    public class EditApprovalViewModel
+    {
+        public int Id { get; set; }
+        
+        [Required(ErrorMessage = "Þirket adý zorunludur")]
+        public string CompanyName { get; set; } = "";
+        
+        public string Position { get; set; } = "";
+        
+        [Required(ErrorMessage = "Baþlangýç tarihi zorunludur")]
+        public DateTime StartDate { get; set; }
+        
+        [Required(ErrorMessage = "Bitiþ tarihi zorunludur")]
+        public DateTime EndDate { get; set; }
+        
+        [Range(1, 60, ErrorMessage = "Haftalýk çalýþma saati 1-60 arasýnda olmalýdýr")]
+        public int WeeklyWorkHours { get; set; } = 40;
+        
+        [StringLength(1000, ErrorMessage = "Staj açýklamasý 1000 karakterden uzun olamaz")]
+        public string InternshipDescription { get; set; } = "";
+        
+        [StringLength(500, ErrorMessage = "Öðrenci notu 500 karakterden uzun olamaz")]
+        public string StudentNote { get; set; } = "";
+        
+        public List<int> SelectedDocumentIds { get; set; } = new();
+        public List<DocumentViewM> AvailableDocuments { get; set; } = new();
+        public List<DocumentViewM> CurrentDocuments { get; set; } = new();
+        
+        public string Status { get; set; } = "";
+        public bool CanEdit { get; set; } = true;
+        
+        // Revision info (readonly)
+        public string? RevisionNote { get; set; }
+        public DateTime? RevisedAt { get; set; }
+    }
+
+    public class DocumentViewM
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string FileName { get; set; } = "";
+        public string FilePath { get; set; } = "";
+        public string DocumentType { get; set; } = "";
+        public long FileSize { get; set; }
+        public DateTime UploadedAt { get; set; }
     }
 }

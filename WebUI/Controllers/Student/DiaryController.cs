@@ -193,12 +193,12 @@ namespace WebUI.Controllers.Student
                 }
                 catch { }
 
-                return View("~/Views/Student/Diary.cshtml", vm);
+                return View("~/Views/Student/Diary/Index.cshtml", vm);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Staj defteri yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Student/Diary.cshtml", new DiaryListViewModel());
+                return View("~/Views/Student/Diary/Index.cshtml", new DiaryListViewModel());
             }
         }
 
@@ -340,7 +340,7 @@ namespace WebUI.Controllers.Student
                     NextWeekGoals = "Gelecek hafta için hedefler."
                 };
 
-                return View("~/Views/Student/WeeklyReport.cshtml", weeklyReport);
+                return View("~/Views/Student/Diary/WeeklyReport.cshtml", weeklyReport);
             }
             catch (Exception ex)
             {
@@ -456,12 +456,12 @@ namespace WebUI.Controllers.Student
                 };
                 vm.CanCreateDiary = activeInternship != null;
 
-                return View("~/Views/Student/DiaryCards.cshtml", vm);
+                return View("~/Views/Student/Diary/Cards.cshtml", vm);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Staj defteri yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Student/DiaryCards.cshtml", new DiaryListViewModel());
+                return View("~/Views/Student/Diary/Cards.cshtml", new DiaryListViewModel());
             }
         }
 

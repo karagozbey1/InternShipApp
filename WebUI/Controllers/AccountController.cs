@@ -33,7 +33,7 @@ public class AccountController : Controller
     {
         ViewBag.Role = role;
         ViewData["ReturnUrl"] = returnUrl;
-        return View();
+        return View("~/Views/Account/Authentication/Login.cshtml");
     }
 
     [HttpPost]
@@ -44,25 +44,25 @@ public class AccountController : Controller
         ViewData["ReturnUrl"] = returnUrl;
 
         if (!ModelState.IsValid)
-            return View(model);
+            return View("~/Views/Account/Authentication/Login.cshtml", model);
 
         var user = await _userService.GetUserByEmailAsync(model.Email);
         if (user == null)
         {
             ModelState.AddModelError(string.Empty, "Geçersiz kullanıcı adı veya şifre.");
-            return View(model);
+            return View("~/Views/Account/Authentication/Login.cshtml", model);
         }
 
         if (!user.IsActive)
         {
             ModelState.AddModelError(string.Empty, "Hesabınız aktif değil. Lütfen onay/aktivasyon işlemini tamamlayın.");
-            return View(model);
+            return View("~/Views/Account/Authentication/Login.cshtml", model);
         }
 
         if (!PasswordSecurity.VerifyPassword(model.Password, user.PasswordHash))
         {
             ModelState.AddModelError(string.Empty, "Geçersiz kullanıcı adı veya şifre.");
-            return View(model);
+            return View("~/Views/Account/Authentication/Login.cshtml", model);
         }
 
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -117,7 +117,7 @@ public class AccountController : Controller
     [AllowAnonymous]
     public IActionResult RegisterOptions()
     {
-        return View();
+        return View("~/Views/Account/Registration/Options.cshtml");
     }
 
     [HttpGet]
@@ -195,7 +195,7 @@ public class AccountController : Controller
                 Name = u.Name
             }).ToList()
         };
-        return View(model);
+        return View("~/Views/Account/Registration/Advisor.cshtml", model);
     }
 
     [HttpPost]
@@ -238,7 +238,7 @@ public class AccountController : Controller
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            return View(model);
+            return View("~/Views/Account/Registration/Advisor.cshtml", model);
         }
 
         return RedirectToAction("WaitingForApproval");
@@ -258,7 +258,7 @@ public class AccountController : Controller
     public IActionResult CompanyRegister()
     {
         var model = new CompanyRegisterViewModel();
-        return View(model);
+        return View("~/Views/Account/Registration/Company.cshtml", model);
     }
 
     [HttpPost]
@@ -305,7 +305,7 @@ public class AccountController : Controller
     public IActionResult WaitingForApproval(string email)
     {
         ViewBag.Email = email;
-        return View();
+        return View("~/Views/Account/Status/WaitingForApproval.cshtml");
     }
 
     [HttpGet]
@@ -332,7 +332,7 @@ public class AccountController : Controller
     [AllowAnonymous]
     public IActionResult ForgotPassword()
     {
-        return View();
+        return View("~/Views/Account/Password/Forgot.cshtml");
     }
 
     [HttpPost]
@@ -340,7 +340,7 @@ public class AccountController : Controller
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return View("~/Views/Account/Password/Forgot.cshtml", model);
 
         var resetUrl = "https://localhost:7211/Account/ResetPassword";
 
@@ -353,7 +353,7 @@ public class AccountController : Controller
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            return View(model);
+            return View("~/Views/Account/Password/Forgot.cshtml", model);
         }
     }
 
@@ -377,18 +377,18 @@ public class AccountController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return View("~/Views/Account/Password/Reset.cshtml", model);
 
         try
         {
             await _userService.ResetPasswordAsync(model.Token, model.NewPassword);
             TempData["ResetSuccess"] = "Şifreniz başarıyla değiştirildi. Giriş yapabilirsiniz.";
-            return View(model);
+            return View("~/Views/Account/Password/Reset.cshtml", model);
         }
         catch (InvalidOperationException ex)
         {
             ModelState.AddModelError("", ex.Message);
-            return View(model);
+            return View("~/Views/Account/Password/Reset.cshtml", model);
         }
     }
 
@@ -400,6 +400,13 @@ public class AccountController : Controller
                  Id = u.Id,
                  Name = u.Name
              }).ToList();
+        
+        // Model tipine göre doğru view'ı döndür
+        if (model is StudentRegisterViewModel)
+            return View("~/Views/Account/Registration/Student.cshtml", model);
+        else if (model is AdvisorRegisterViewModel)
+            return View("~/Views/Account/Registration/Advisor.cshtml", model);
+        
         return View(model);
     }
 }

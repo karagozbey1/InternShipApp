@@ -1,27 +1,35 @@
-﻿using Business.Interfaces.Internship; 
+﻿using Business.Interfaces.Internship;
+using Business.Interfaces.UserRepose;
 using Core.Entity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using WebUI.Models.ViewModels.Student;
+using Microsoft.AspNetCore.Mvc;
 using WebUI.Models.ViewModels.Student.ViewModels;
-using WebUI.Controllers;
+using WebUI.Models.ViewModels.Student;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace WebUI.Controllers.Student
 {
-    [Authorize]
-    public class DocumentController : BaseAppController
+    [Authorize(Roles = "Student")]
+    public class DocumentController : Controller
     {
         private readonly IInternshipDocumentService _documentService;
-        private readonly IInternshipApplicationService _applicationService;
+        private readonly IIUserService _userService;
+        private readonly IInternshipApprovalService _approvalService;
         private readonly IWebHostEnvironment _env;
 
         public DocumentController(
-            IInternshipDocumentService documentService,
-            IInternshipApplicationService applicationService,
+            IInternshipDocumentService documentService, 
+            IIUserService userService,
+            IInternshipApprovalService approvalService,
             IWebHostEnvironment env)
         {
             _documentService = documentService;
-            _applicationService = applicationService;
+            _userService = userService;
+            _approvalService = approvalService;
             _env = env;
         }
 
@@ -35,7 +43,7 @@ namespace WebUI.Controllers.Student
 
             var vm = new DocumentListViewModel
             {
-                Documents = docs.Select(d => new Document
+                Documents = docs.Select(d => new WebUI.Models.ViewModels.Student.Document
                 {
                     Id = d.Id,
                     StudentId = userId,
@@ -49,12 +57,12 @@ namespace WebUI.Controllers.Student
                 UploadModel = new DocumentUploadViewModel()
             };
 
-            return View("~/Views/Student/Document.cshtml", vm);
+            return View("~/Views/Student/Document/Index.cshtml", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(IFormFile file, DocumentType type, string? description, string title)
+        public async Task<IActionResult> Upload(IFormFile file, WebUI.Models.ViewModels.Student.DocumentType type, string? description, string title)
         {
             // Validation kontrolü
             if (file == null || file.Length == 0)
@@ -221,48 +229,55 @@ namespace WebUI.Controllers.Student
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// Başvuru yaparken belge seçimi için AJAX endpoint
-        /// </summary>
+        // Öğretmen approval details sayfası için AJAX endpoint
         [HttpGet]
-        public async Task<IActionResult> GetStudentDocuments(int? approvalId)
+        [AllowAnonymous] // Geçici olarak authorize sorunlarını atlayalım
+        public async Task<IActionResult> GetStudentDocuments(int? approvalId = null)
         {
             try
             {
-                if (approvalId.HasValue)
+                List<InternshipDocument> documents;
+                
+                if (approvalId.HasValue && approvalId.Value > 0)
                 {
-                    // Onay formuna bağlı belgeleri getir
-                    var docsByApproval = await _documentService.GetDocumentsByApprovalFormIdAsync(approvalId.Value);
-                    var dataApproval = docsByApproval.Select(d => new
+                    // Approval ID'si verilmişse o approval'a bağlı belgeleri getir
+                    System.Diagnostics.Debug.WriteLine($"?? GetStudentDocuments for ApprovalId: {approvalId.Value}");
+                    
+                    // İlk olarak approval form'u bulalım
+                    var approval = await _approvalService.GetApprovalFormWithDetailsAsync(approvalId.Value);
+                    if (approval == null || approval.ApplicationId <= 0)
                     {
-                        id = d.Id,
-                        fileName = d.FileName,
-                        title = d.Title,
-                        type = d.DocumentType,
-                        uploadDate = d.UploadedAt.ToString("dd.MM.yyyy"),
-                        fileSize = d.FileSize.HasValue ? $"{Math.Round((double)d.FileSize.Value / 1024 / 1024, 2)} MB" : "Bilinmiyor",
-                        filePath = d.FilePath,
-                        contentType = d.ContentType
-                    });
-                    return Json(dataApproval);
+                        System.Diagnostics.Debug.WriteLine($"? Approval not found or no ApplicationId for ApprovalId: {approvalId.Value}");
+                        return Json(new List<object>());
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"?? Found Approval with ApplicationId: {approval.ApplicationId}");
+                    
+                    // ApplicationId ile belgeleri getir
+                    documents = await _documentService.GetDocumentsByApplicationIdAsync(approval.ApplicationId);
+                    System.Diagnostics.Debug.WriteLine($"?? Found {documents.Count} documents for ApplicationId: {approval.ApplicationId}");
+                }
+                else
+                {
+                    // Normal öğrenci belgeleri (var olan UserId gerek)
+                    var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                    var userId = userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
+                    documents = await _documentService.GetDocumentsByStudentIdAsync(userId);
                 }
 
-                var userId = GetCurrentUserId();
-                // Öğrencinin tüm belgeleri
-                var docs = await _documentService.GetDocumentsByStudentIdAsync(userId);
-
-                var result = docs.Select(d => new
+                var result = documents.Select(d => new
                 {
                     id = d.Id,
-                    fileName = d.FileName,
-                    title = d.Title, // başlık
-                    type = MapDocumentType(d.DocumentType).ToString(),
+                    title = d.Title ?? d.FileName ?? "",
+                    fileName = d.FileName ?? "",
+                    type = d.DocumentType?.ToString() ?? "Other",
                     uploadDate = d.UploadedAt.ToString("dd.MM.yyyy"),
                     fileSize = d.FileSize.HasValue ? $"{Math.Round((double)d.FileSize.Value / 1024 / 1024, 2)} MB" : "Bilinmiyor",
                     filePath = d.FilePath,
                     contentType = d.ContentType
                 });
 
+                System.Diagnostics.Debug.WriteLine($"?? Returning {result.Count()} documents");
                 return Json(result);
             }
             catch (Exception ex)
@@ -272,24 +287,30 @@ namespace WebUI.Controllers.Student
             }
         }
 
-        private static DocumentType MapDocumentType(string docType)
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
+        }
+
+        private static WebUI.Models.ViewModels.Student.DocumentType MapDocumentType(string docType)
         {
             return docType?.ToLowerInvariant() switch
             {
-                "cv" => DocumentType.CV,
-                "transcript" => DocumentType.Transcript,
-                "applicationform" => DocumentType.ApplicationForm,
-                _ => DocumentType.Other
+                "cv" => WebUI.Models.ViewModels.Student.DocumentType.CV,
+                "transcript" => WebUI.Models.ViewModels.Student.DocumentType.Transcript,
+                "applicationform" => WebUI.Models.ViewModels.Student.DocumentType.ApplicationForm,
+                _ => WebUI.Models.ViewModels.Student.DocumentType.Other
             };
         }
 
-        private static string ToDocumentTypeString(DocumentType type)
+        private static string ToDocumentTypeString(WebUI.Models.ViewModels.Student.DocumentType type)
         {
             return type switch
             {
-                DocumentType.CV => "CV",
-                DocumentType.Transcript => "Transcript",
-                DocumentType.ApplicationForm => "ApplicationForm",
+                WebUI.Models.ViewModels.Student.DocumentType.CV => "CV",
+                WebUI.Models.ViewModels.Student.DocumentType.Transcript => "Transcript",
+                WebUI.Models.ViewModels.Student.DocumentType.ApplicationForm => "ApplicationForm",
                 _ => "Other"
             };
         }

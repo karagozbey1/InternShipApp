@@ -1,8 +1,8 @@
 ﻿using Business.Interfaces.Chat;
 using Business.Interfaces.Internship;
-using Business.Interfaces.Order;
 using Business.Interfaces.UserRepose;
-using Business.Interfaces;
+using Business.Interfaces.Order;
+using Business.Interfaces; // for IDiaryService
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebUI.Controllers;
@@ -20,7 +20,6 @@ namespace WebUI.Controllers.Student
         private readonly IInternshipPeriodService _periodService;
         private readonly IINotificationService _notificationService;
         private readonly IIChatService _chatService;
-        private readonly IINewsService _newsService;
         private readonly IDiaryService _diaryService;
         private readonly IInternshipDiaryService _internshipDiaryService;
 
@@ -31,7 +30,6 @@ namespace WebUI.Controllers.Student
             IInternshipPeriodService periodService,
             IINotificationService notificationService,
             IIChatService chatService,
-            IINewsService newsService,
             IDiaryService diaryService,
             IInternshipDiaryService internshipDiaryService)
         {
@@ -41,7 +39,6 @@ namespace WebUI.Controllers.Student
             _periodService = periodService;
             _notificationService = notificationService;
             _chatService = chatService;
-            _newsService = newsService;
             _diaryService = diaryService;
             _internshipDiaryService = internshipDiaryService;
         }
@@ -63,8 +60,6 @@ namespace WebUI.Controllers.Student
                 var notifications = await _notificationService.GetAllNotificationsByUserIdAsync(userId);
                 var diaryEntries = (await _diaryService.GetDiaryEntriesByStudentIdAsync(userId)).ToList();
                 var diaryDocuments = await _documentService.GetStudentDiaryEntriesAsync(userId);
-                var allNews = await _newsService.GetAllNewsAsync();
-                var recentNews = allNews.OrderByDescending(n => n.PublishDate).Take(5).ToList();
                 var activeInternship = applications.FirstOrDefault(a => a.Status == InternshipApplicationStatus.Approved);
 
                 var (totalDays, completedDays) = CalculateInternshipDays(activeInternship, diaryEntries);
@@ -130,16 +125,15 @@ namespace WebUI.Controllers.Student
                     ProgressPercentage = progressPercentage,
                     RecentApplications = applications.OrderByDescending(a => a.CreatedAt).Take(3).ToList(),
                     RecentNotifications = notifications.OrderByDescending(n => n.CreatedAt).Take(5).ToList(),
-                    RecentNews = recentNews.Take(3).ToList(),
                     ActiveInternship = activeInternship
                 };
 
-                return View("~/Views/Student/Dashboard.cshtml", viewModel);
+                return View("~/Views/Student/Dashboard/Index.cshtml", viewModel);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Dashboard yüklenirken bir hata oluştu: " + ex.Message;
-                return View("~/Views/Student/Dashboard.cshtml", new DashboardViewModel());
+                return View("~/Views/Student/Dashboard/Index.cshtml", new DashboardViewModel());
             }
         }
 

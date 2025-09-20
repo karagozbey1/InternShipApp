@@ -3,116 +3,396 @@
     Layout = "_AppLayout";
 }
 
-<div class="container-fluid px-4 py-4">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h5 mb-0">Benim Favorilerim</h2>
-        <a asp-controller="Application" asp-action="Browse" class="btn btn-outline-primary">Yeni Ýlanlara Göz At</a>
+@section Styles {
+    <link rel="stylesheet" href="~/css/favorites.css" asp-append-version="true" />
+}
+
+<div class="favorites-container">
+    <div class="favorites-header">
+        <div class="header-content">
+            <div class="title-section">
+                <h1 class="page-title">
+                    <i class="fas fa-bookmark"></i>
+                    Benim Favorilerim
+                </h1>
+                <p class="page-subtitle">Beðendiðiniz staj ilanlarýný buradan takip edin</p>
+            </div>
+            <a asp-controller="Application" asp-action="Browse" class="browse-btn">
+                <i class="fas fa-search"></i>
+                Yeni Ýlanlara Göz At
+            </a>
+        </div>
     </div>
 
-    <div id="emptyState" class="text-center p-5 bg-white rounded-3 shadow-sm d-none">
-        <div class="mb-2"><i class="far fa-bookmark text-secondary" style="font-size:40px;"></i></div>
-        <div class="fw-semibold mb-1">Henüz favori ilan eklemediniz</div>
-        <div class="text-muted">Ýlan detayýndaki Kaydet butonu ile favorilerinize ekleyin.</div>
-    </div>
+    <div class="favorites-content">
+        <div id="loadingState" class="loading-state">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <p>Favori ilanlarýnýz yükleniyor...</p>
+        </div>
 
-    <div class="row g-3" id="favList"></div>
+        <div id="emptyState" class="empty-state d-none">
+            <div class="empty-icon">
+                <i class="fas fa-bookmark"></i>
+            </div>
+            <h3>Henüz favori ilan eklemediniz</h3>
+            <p>Ýlan detayýndaki "Kaydet" butonu ile favorilerinize ekleyebilirsiniz.</p>
+            <a asp-controller="Application" asp-action="Browse" class="cta-btn">
+                <i class="fas fa-plus"></i>
+                Ýlan Keþfet
+            </a>
+        </div>
+
+        <div class="favorites-grid" id="favList"></div>
+    </div>
 </div>
-
-<style>
-    .legacy-offer-card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:18px}
-    .legacy-avatar{width:48px;height:48px;border-radius:6px;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
-    .legacy-title{font-weight:600;color:#1f2937}
-    .legacy-btn{display:inline-block;padding:.5rem 1rem;border-radius:12px;background:linear-gradient(90deg,#6D28D9,#7C3AED);color:#fff;font-weight:600;text-decoration:none}
-    .legacy-btn:hover{filter:brightness(1.05)}
-</style>
 
 @section Scripts {
 <script>
 (function(){
   const favList = document.getElementById('favList');
   const emptyState = document.getElementById('emptyState');
+  const loadingState = document.getElementById('loadingState');
   const userId = '@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")';
   const storageKey = `favOffers:${userId}`;
 
-  function getFavSet(){ try{ return new Set((localStorage.getItem(storageKey)||'').split(',').filter(x=>x)); }catch{ return new Set(); } }
-  function saveFavSet(set){ try{ localStorage.setItem(storageKey, Array.from(set).join(',')); }catch{} }
-
-  function render(items){
-    favList.innerHTML = '';
-    if(!items || items.length === 0){ emptyState.classList.remove('d-none'); return; }
-    emptyState.classList.add('d-none');
-
-    const s = getFavSet();
-    items.forEach(o => {
-      const letter = (o.companyName||'').trim().charAt(0).toUpperCase();
-      const col = document.createElement('div');
-      col.className = 'col-12 fav-item';
-      col.setAttribute('data-offer-id', o.id);
-      col.innerHTML = `
-        <div class="legacy-offer-card">
-          <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
-            <div class="d-flex align-items-start gap-3">
-              <div class="legacy-avatar">${letter || ''}</div>
-              <div>
-                <div class="legacy-title">${o.title||''}</div>
-                <div class="legacy-sub small text-muted">${o.companyName||''} • ${o.city||''}</div>
-                <div class="legacy-deadline small text-muted text-uppercase mt-3">Son Baþvuru: ${o.applicationDeadline? new Date(o.applicationDeadline).toLocaleDateString('tr-TR'): '-'}</div>
-              </div>
-            </div>
-            <div class="d-flex align-items-center gap-2 ms-auto">
-              <button type="button" class="btn btn-sm btn-outline-danger remove-fav" title="Favoriden Kaldýr"><i class="fas fa-times"></i></button>
-              <a href="/Student/Application/OfferDetails/${o.id}?source=student" class="legacy-btn">Detay</a>
-            </div>
-          </div>
-        </div>`;
-      favList.appendChild(col);
-      // Ensure local cache contains current items
-      if(o.id && !s.has(String(o.id))) { s.add(String(o.id)); }
-    });
-    saveFavSet(s);
+  // Utility functions for state management
+  function showElement(element) {
+    if (!element) return;
+    element.style.display = 'block';
+    element.classList.remove('d-none');
+    element.classList.add('show');
   }
 
-  async function load(){
-    try{
-      const res = await fetch('/api/public/offers/favorites');
-      if(!res.ok){ throw new Error('HTTP '+res.status); }
-      const data = await res.json();
-      render(data);
-    }catch(err){
-      console.error('Favoriler yüklenemedi:', err);
-      // Fallback: render from localStorage minimal
-      const ids = Array.from(getFavSet());
-      if(ids.length === 0){ emptyState.classList.remove('d-none'); return; }
-      favList.innerHTML = ids.map(id=>`
-        <div class="col-12 fav-item" data-offer-id="${id}">
-          <div class="legacy-offer-card d-flex justify-content-between align-items-center">
-            <div class="text-muted">Ýlan #${id}</div>
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-outline-danger remove-fav" title="Favoriden Kaldýr"><i class="fas fa-times"></i></button>
-              <a href="/Student/Application/OfferDetails/${id}?source=student" class="legacy-btn">Detay</a>
-            </div>
-          </div>
-        </div>`).join('');
+  function hideElement(element) {
+    if (!element) return;
+    element.style.display = 'none';
+    element.classList.add('d-none');
+    element.classList.remove('show');
+  }
+
+  function forceHideEmptyState() {
+    console.log('Forcing empty state to hide');
+    if (emptyState) {
+      emptyState.style.display = 'none !important';
       emptyState.classList.add('d-none');
+      emptyState.classList.remove('show');
+      emptyState.setAttribute('style', 'display: none !important;');
     }
   }
 
-  favList.addEventListener('click', function(e){
-    const btn = e.target.closest('.remove-fav');
-    if(!btn) return;
-    const item = e.target.closest('.fav-item');
-    if(!item) return;
-    const offerId = item.getAttribute('data-offer-id');
-    // Remove instantly
-    item.parentNode.removeChild(item);
-    if(favList.children.length === 0){ emptyState.classList.remove('d-none'); }
-    // Update local cache
-    const s = getFavSet(); s.delete(String(offerId)); saveFavSet(s);
-    // Persist via AJAX
-    fetch(`/api/public/offers/${offerId}/favorite`, { method:'POST' }).catch(()=>{});
+  function showOnlyEmptyState() {
+    console.log('Showing only empty state');
+    hideElement(loadingState);
+    showElement(emptyState);
+  }
+
+  function showOnlyLoadingState() {
+    console.log('Showing only loading state');
+    forceHideEmptyState();
+    showElement(loadingState);
+  }
+
+  function hideAllStates() {
+    console.log('Hiding all states');
+    forceHideEmptyState();
+    hideElement(loadingState);
+  }
+
+  function getFavSet(){ 
+    try{ 
+      return new Set((localStorage.getItem(storageKey)||'').split(',').filter(x=>x)); 
+    } catch { 
+      return new Set(); 
+    } 
+  }
+  
+  function saveFavSet(set){ 
+    try{ 
+      localStorage.setItem(storageKey, Array.from(set).join(',')); 
+    } catch {} 
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return 'Belirtilmemiþ';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric'
+    });
+  }
+
+  // Enhanced real-time check for favorites
+  function checkFavoritesState() {
+    const localFavorites = getFavSet();
+    const hasVisibleFavorites = favList.children.length > 0;
+    
+    console.log('Checking state - localStorage:', localFavorites.size, 'visible:', hasVisibleFavorites);
+    
+    if (localFavorites.size > 0 || hasVisibleFavorites) {
+      console.log('Has favorites - hiding empty state');
+      forceHideEmptyState();
+      
+      if (!hasVisibleFavorites && localFavorites.size > 0) {
+        console.log('Need to load favorites');
+        showOnlyLoadingState();
+        load();
+      }
+      return true;
+    } else {
+      console.log('No favorites - will show empty state after loading check');
+      return false;
+    }
+  }
+
+  function render(items){
+    console.log('Rendering items:', items);
+    
+    // Remove existing count if any
+    const existingCount = document.querySelector('.favorite-count');
+    if (existingCount) existingCount.remove();
+    
+    // Clear the list first
+    favList.innerHTML = '';
+    
+    // Check both sources
+    const localFavorites = getFavSet();
+    const hasAPIItems = items && items.length > 0;
+    
+    console.log(`Render - Local: ${localFavorites.size}, API: ${hasAPIItems ? items.length : 0}`);
+    
+    if (hasAPIItems) {
+      console.log(`Displaying ${items.length} items from API`);
+      
+      // First hide all states
+      hideAllStates();
+
+      // Show favorite count
+      const countDiv = document.createElement('div');
+      countDiv.className = 'favorite-count';
+      countDiv.innerHTML = `<i class="fas fa-bookmark"></i> ${items.length} favori ilan`;
+      favList.parentNode.insertBefore(countDiv, favList);
+
+      // Render items
+      items.forEach(o => {
+        const letter = (o.companyName||'').trim().charAt(0).toUpperCase() || 'S';
+        const col = document.createElement('div');
+        col.className = 'favorite-item';
+        col.setAttribute('data-offer-id', o.id);
+        col.innerHTML = `
+          <div class="favorite-card">
+            <div class="card-header">
+              <div class="company-avatar">${letter}</div>
+              <div class="card-content">
+                <h3>${o.title || 'Ýsimsiz Ýlan'}</h3>
+                <div class="card-meta">
+                  <i class="fas fa-building"></i>
+                  <span>${o.companyName || 'Bilinmeyen Þirket'}</span>
+                  ${o.city ? `<i class="fas fa-map-marker-alt"></i><span>${o.city}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            ${o.field ? `<div style="background: rgba(102, 126, 234, 0.1); color: #667eea; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem;"><i class="fas fa-tag"></i> ${o.field}</div>` : ''}
+            ${o.applicationDeadline ? `
+              <div class="deadline-info">
+                <i class="fas fa-clock"></i>
+                <span>Son baþvuru: ${formatDate(o.applicationDeadline)}</span>
+              </div>
+            ` : ''}
+            <div class="card-actions">
+              <a href="/Student/Application/OfferDetails/${o.id}?source=student" class="detail-btn">
+                <i class="fas fa-eye"></i>
+                Ýlaný Ýncele
+              </a>
+              <button type="button" class="remove-btn" title="Favoriden Kaldýr" onclick="removeFavorite(${o.id}, this)">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>`;
+        favList.appendChild(col);
+      });
+
+      // Sync localStorage
+      const currentIds = new Set(items.map(item => String(item.id)));
+      saveFavSet(currentIds);
+      
+      console.log('Rendered favorites successfully');
+      
+    } else if (localFavorites.size > 0) {
+      // Has localStorage but no API data
+      console.log('Has localStorage but no API data, retrying...');
+      showOnlyLoadingState();
+      
+      setTimeout(() => {
+        console.log('Retrying API call');
+        load();
+      }, 500);
+      
+    } else {
+      // No favorites anywhere
+      console.log('No favorites anywhere, showing empty state');
+      showOnlyEmptyState();
+    }
+  }
+
+  async function load(){
+    console.log('Loading favorites...');
+    showOnlyLoadingState();
+    
+    try{
+      const res = await fetch('/api/public/offers/favorites');
+      console.log('API Response status:', res.status);
+      
+      if(!res.ok){ 
+        throw new Error('HTTP '+res.status); 
+      }
+      
+      const data = await res.json();
+      console.log('API Response data:', data);
+      
+      render(data);
+      
+    } catch(err){
+      console.error('API Error:', err);
+      hideElement(loadingState);
+      
+      // Check localStorage as fallback
+      const localFavorites = getFavSet();
+      if(localFavorites.size === 0){ 
+        console.log('No localStorage data, showing empty state');
+        showOnlyEmptyState();
+        return; 
+      }
+      
+      console.log('Using localStorage fallback');
+      forceHideEmptyState();
+      
+      // Create minimal cards
+      const fallbackItems = Array.from(localFavorites).map(id => ({
+        id: parseInt(id),
+        title: `Ýlan #${id}`,
+        companyName: 'Bilinmeyen Þirket',
+        city: '',
+        field: '',
+        applicationDeadline: null
+      }));
+      
+      render(fallbackItems);
+    }
+  }
+
+  // Global function for removing favorites
+  window.removeFavorite = function(offerId, btn) {
+    const item = btn.closest('.favorite-item');
+    if (!item) return;
+    
+    console.log('Removing favorite:', offerId);
+    
+    // Update localStorage first
+    const s = getFavSet(); 
+    s.delete(String(offerId)); 
+    saveFavSet(s);
+    
+    // Remove with animation
+    item.style.transform = 'scale(0.8)';
+    item.style.opacity = '0';
+    
+    setTimeout(() => {
+      item.remove();
+      
+      // Check if we need to show empty state
+      if (favList.children.length === 0 && s.size === 0) { 
+        console.log('No more favorites, showing empty state');
+        showOnlyEmptyState();
+        
+        // Remove count display
+        const countDiv = document.querySelector('.favorite-count');
+        if (countDiv) countDiv.remove();
+      } else {
+        // Update count
+        const countDiv = document.querySelector('.favorite-count');
+        if (countDiv) {
+          const newCount = favList.children.length;
+          countDiv.innerHTML = `<i class="fas fa-bookmark"></i> ${newCount} favori ilan`;
+        }
+      }
+    }, 300);
+    
+    // API call
+    fetch(`/api/public/offers/${offerId}/favorite`, { method:'POST' })
+      .then(response => {
+        console.log('Remove API response:', response.status);
+      })
+      .catch(err => {
+        console.warn('Remove error:', err);
+      });
+  }
+
+  // Sync function
+  async function syncWithDB() {
+    try {
+      const localIds = Array.from(getFavSet());
+      if (localIds.length > 0) {
+        console.log('Syncing localStorage to DB:', localIds);
+        
+        const syncResponse = await fetch('/api/public/offers/sync-favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            favoriteIds: localIds.map(id => parseInt(id))
+          })
+        });
+        
+        if (syncResponse.ok) {
+          const syncData = await syncResponse.json();
+          console.log('Sync result:', syncData);
+        }
+      }
+    } catch (err) {
+      console.log('Sync failed:', err);
+    }
+  }
+
+  // Event listeners
+  window.addEventListener('storage', function(e) {
+    if (e.key === storageKey) {
+      console.log('Storage changed, checking state');
+      setTimeout(checkFavoritesState, 50);
+    }
   });
 
-  document.addEventListener('DOMContentLoaded', load());
+  window.addEventListener('favoriteUpdated', function() {
+    console.log('Favorite updated event');
+    setTimeout(checkFavoritesState, 50);
+  });
+
+  // Initialize on DOM load
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing favorites');
+    
+    // Initial state check
+    const hasInitialFavorites = checkFavoritesState();
+    
+    // Sync and load
+    syncWithDB().then(() => {
+      load();
+    });
+  });
+
+  // Periodic check
+  let lastKnownFavCount = getFavSet().size;
+  setInterval(() => {
+    const currentFavCount = getFavSet().size;
+    if (currentFavCount !== lastKnownFavCount) {
+      console.log(`Favorite count changed: ${lastKnownFavCount} ? ${currentFavCount}`);
+      lastKnownFavCount = currentFavCount;
+      checkFavoritesState();
+    }
+  }, 1000);
 })();
 </script>
 }

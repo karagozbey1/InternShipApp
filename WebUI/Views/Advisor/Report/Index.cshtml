@@ -4,392 +4,573 @@
     Layout = "_AppLayout";
 }
 
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="p-6 rounded-2xl bg-gradient-to-r from-indigo-50 to-cyan-50 border border-indigo-200 shadow-lg dark:from-indigo-900/20 dark:to-cyan-900/20 dark:border-indigo-700">
-        <div class="flex justify-between items-center">
+@section Styles {
+    <style>
+        .reports-sidebar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        .dark .reports-sidebar {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid #4b5563;
+        }
+        .report-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .dark .report-menu-item {
+            color: #9ca3af;
+        }
+        .report-menu-item:hover {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            color: #3b82f6;
+            transform: translateX(4px);
+        }
+        .dark .report-menu-item:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+            color: #93c5fd;
+        }
+        .report-menu-item.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+        .report-content {
+            display: none;
+        }
+        .report-content.active {
+            display: block;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .dark .stat-card {
+            background: #1f2937;
+            border: 1px solid #4b5563;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .dark .chart-container {
+            background: #1f2937;
+            border: 1px solid #4b5563;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            height: 20px;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+        .status-bar {
+            height: 16px;
+            border-radius: 8px;
+            transition: width 1s ease-in-out;
+        }
+        .status-approved { background: linear-gradient(90deg, #10b981, #059669); }
+        .status-pending { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .status-rejected { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .export-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .export-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+    </style>
+}
+
+<div class="grid grid-cols-12 gap-6">
+    <!-- Sol Menü -->
+    <div class="col-span-3">
+        <div class="reports-sidebar">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+                <i class="fas fa-chart-bar mr-2 text-blue-600 dark:text-blue-400"></i>Rapor Menüsü
+            </h2>
+            
+            <nav class="space-y-2">
+                <a href="#overview" class="report-menu-item active" data-tab="overview">
+                    <i class="fas fa-tachometer-alt w-5 h-5 mr-3"></i>
+                    <span>Genel Bakýþ</span>
+                </a>
+                <a href="#applications" class="report-menu-item" data-tab="applications">
+                    <i class="fas fa-file-alt w-5 h-5 mr-3"></i>
+                    <span>Baþvuru Analizi</span>
+                </a>
+                <a href="#diaries" class="report-menu-item" data-tab="diaries">
+                    <i class="fas fa-book w-5 h-5 mr-3"></i>
+                    <span>Staj Defterleri</span>
+                </a>
+                <a href="#students" class="report-menu-item" data-tab="students">
+                    <i class="fas fa-users w-5 h-5 mr-3"></i>
+                    <span>Öðrenci Analizi</span>
+                </a>
+            </nav>
+
+            <!-- Period Filter -->
+            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Dönem Seçimi</h3>
+                <div class="space-y-2">
+                    <a asp-action="Index" asp-route-period="thisWeek" asp-route-reportType="@Model.CurrentReportType" 
+                       class="block px-3 py-2 text-sm rounded-lg transition-colors @(Model.CurrentPeriod == "thisWeek" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700")">
+                        Bu Hafta
+                    </a>
+                    <a asp-action="Index" asp-route-period="thisMonth" asp-route-reportType="@Model.CurrentReportType"
+                       class="block px-3 py-2 text-sm rounded-lg transition-colors @(Model.CurrentPeriod == "thisMonth" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700")">
+                        Bu Ay
+                    </a>
+                    <a asp-action="Index" asp-route-period="thisYear" asp-route-reportType="@Model.CurrentReportType"
+                       class="block px-3 py-2 text-sm rounded-lg transition-colors @(Model.CurrentPeriod == "thisYear" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700")">
+                        Bu Yýl
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sað Ýçerik -->
+    <div class="col-span-9">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-indigo-800 dark:text-indigo-200 mb-2">
-                    <i class="fas fa-chart-line me-3"></i>Raporlar ve Analizler
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    <span id="page-title">Genel Bakýþ</span>
                 </h1>
-                <p class="text-indigo-600 dark:text-indigo-300">
-                    <i class="fas fa-university mr-2"></i>@Model.AdvisorInfo.UniversityName - @Model.AdvisorInfo.Department Bölümü
-                </p>
-                <p class="text-sm text-indigo-500 dark:text-indigo-400">
-                    Öðrenci aktiviteleri ve performans analizleri
+                <p class="text-gray-600 dark:text-gray-400" id="page-description">
+                    @Model.AdvisorInfo.UniversityName - @Model.AdvisorInfo.Department Bölümü
                 </p>
             </div>
-            <div class="flex gap-3">
-                <button onclick="exportReport('excel')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
-                    <i class="fas fa-download mr-2"></i>Excel Ýndir
+            <div class="flex space-x-4">
+                <button onclick="exportReport('excel')" class="export-btn">
+                    <i class="fas fa-file-excel mr-2"></i>Excel Ýndir
                 </button>
-                <a asp-controller="AdvisorDashboard" asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <a asp-controller="AdvisorDashboard" asp-action="Index" class="btn-back">
                     <i class="fas fa-arrow-left mr-2"></i>Dashboard
                 </a>
             </div>
         </div>
-    </div>
 
-    <!-- Filter Controls -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Period Filter -->
-        <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                <i class="fas fa-calendar mr-2"></i>Dönem Seçimi
-            </h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <a asp-action="Index" asp-route-period="today" asp-route-reportType="@Model.CurrentReportType" 
-                   class="period-btn @(Model.CurrentPeriod == "today" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Bugün
-                </a>
-                <a asp-action="Index" asp-route-period="thisWeek" asp-route-reportType="@Model.CurrentReportType"
-                   class="period-btn @(Model.CurrentPeriod == "thisWeek" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Bu Hafta
-                </a>
-                <a asp-action="Index" asp-route-period="thisMonth" asp-route-reportType="@Model.CurrentReportType"
-                   class="period-btn @(Model.CurrentPeriod == "thisMonth" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Bu Ay
-                </a>
-                <a asp-action="Index" asp-route-period="thisYear" asp-route-reportType="@Model.CurrentReportType"
-                   class="period-btn @(Model.CurrentPeriod == "thisYear" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Bu Yýl
-                </a>
-            </div>
-        </div>
-
-        <!-- Report Type Filter -->
-        <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                <i class="fas fa-chart-bar mr-2"></i>Rapor Türü
-            </h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <a asp-action="Index" asp-route-reportType="overview" asp-route-period="@Model.CurrentPeriod"
-                   class="report-type-btn @(Model.CurrentReportType == "overview" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Genel
-                </a>
-                <a asp-action="Index" asp-route-reportType="applications" asp-route-period="@Model.CurrentPeriod"
-                   class="report-type-btn @(Model.CurrentReportType == "applications" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Baþvurular
-                </a>
-                <a asp-action="Index" asp-route-reportType="diaries" asp-route-period="@Model.CurrentPeriod"
-                   class="report-type-btn @(Model.CurrentReportType == "diaries" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Staj Defterleri
-                </a>
-                <a asp-action="Index" asp-route-reportType="students" asp-route-period="@Model.CurrentPeriod"
-                   class="report-type-btn @(Model.CurrentReportType == "students" ? "active" : "") px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                    Öðrenciler
-                </a>
-            </div>
-        </div>
-    </div>
-
-    @if (Model.CurrentReportType == "overview" && Model.Summary != null)
-    {
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <div class="summary-card bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-blue-100 text-sm">Toplam Öðrenci</p>
-                        <p class="text-3xl font-bold">@Model.Summary.TotalStudents</p>
-                    </div>
-                    <i class="fas fa-users text-2xl opacity-80"></i>
-                </div>
-            </div>
-            <div class="summary-card bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-green-100 text-sm">Aktif Öðrenci</p>
-                        <p class="text-3xl font-bold">@Model.Summary.ActiveStudents</p>
-                    </div>
-                    <i class="fas fa-user-check text-2xl opacity-80"></i>
-                </div>
-            </div>
-            <div class="summary-card bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-purple-100 text-sm">Toplam Baþvuru</p>
-                        <p class="text-3xl font-bold">@Model.Summary.TotalApplications</p>
-                    </div>
-                    <i class="fas fa-file-alt text-2xl opacity-80"></i>
-                </div>
-            </div>
-            <div class="summary-card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-yellow-100 text-sm">Defteri Girdileri</p>
-                        <p class="text-3xl font-bold">@Model.Summary.TotalDiaryEntries</p>
-                    </div>
-                    <i class="fas fa-book text-2xl opacity-80"></i>
-                </div>
-            </div>
-            <div class="summary-card bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-red-100 text-sm">Toplam Saat</p>
-                        <p class="text-3xl font-bold">@Model.Summary.TotalWorkingHours.ToString("F0")</p>
-                    </div>
-                    <i class="fas fa-clock text-2xl opacity-80"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Activity Chart -->
-        @if (Model.ActivityData.Any())
-        {
-            <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                    <i class="fas fa-chart-line mr-2"></i>Günlük Aktivite Grafiði
-                </h3>
-                <canvas id="activityChart" width="400" height="200"></canvas>
-            </div>
-        }
-    }
-
-    @if (Model.CurrentReportType == "applications")
-    {
-        @if (Model.ApplicationStatistics.Any())
-        {
-            <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                    <i class="fas fa-file-alt mr-2"></i>Baþvuru Ýstatistikleri
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th class="px-6 py-3">Öðrenci</th>
-                                <th class="px-6 py-3">Toplam</th>
-                                <th class="px-6 py-3">Onaylanan</th>
-                                <th class="px-6 py-3">Bekleyen</th>
-                                <th class="px-6 py-3">Reddedilen</th>
-                                <th class="px-6 py-3">Baþarý Oraný</th>
-                                <th class="px-6 py-3">Son Baþvuru</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var stat in Model.ApplicationStatistics)
-                            {
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                                        @stat.StudentName
-                                        <div class="text-xs text-gray-500">@stat.StudentEmail</div>
-                                    </td>
-                                    <td class="px-6 py-4">@stat.TotalApplications</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                                            @stat.ApprovedApplications
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                                            @stat.PendingApplications
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
-                                            @stat.RejectedApplications
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: @(stat.SuccessRate)%"></div>
-                                        </div>
-                                        <span class="text-xs text-gray-600">@stat.SuccessRate.ToString("F1")%</span>
-                                    </td>
-                                    <td class="px-6 py-4 text-xs">
-                                        @(stat.LastApplicationDate?.ToString("dd.MM.yyyy") ?? "-")
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                <i class="fas fa-file-alt text-gray-400 text-6xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Baþvuru Verisi Bulunamadý</h3>
-                <p class="text-gray-500 dark:text-gray-500">Seçilen dönemde baþvuru bulunmamaktadýr.</p>
-            </div>
-        }
-    }
-
-    @if (Model.CurrentReportType == "diaries")
-    {
-        @if (Model.DiaryStatistics.Any())
-        {
-            <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                    <i class="fas fa-book mr-2"></i>Staj Defteri Ýstatistikleri
-                </h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                            <tr>
-                                <th class="px-6 py-3">Öðrenci</th>
-                                <th class="px-6 py-3">Toplam Girdi</th>
-                                <th class="px-6 py-3">Onaylanan</th>
-                                <th class="px-6 py-3">Bekleyen</th>
-                                <th class="px-6 py-3">Toplam Saat</th>
-                                <th class="px-6 py-3">Ortalama Saat</th>
-                                <th class="px-6 py-3">Onay Oraný</th>
-                                <th class="px-6 py-3">Son Girdi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var stat in Model.DiaryStatistics)
-                            {
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                                        @stat.StudentName
-                                        <div class="text-xs text-gray-500">@stat.StudentEmail</div>
-                                    </td>
-                                    <td class="px-6 py-4">@stat.TotalEntries</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                                            @stat.ApprovedEntries
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                                            @stat.PendingEntries
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4">@stat.TotalHours.ToString("F1")</td>
-                                    <td class="px-6 py-4">@stat.AverageHoursPerEntry.ToString("F1")</td>
-                                    <td class="px-6 py-4">
-                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                            <div class="bg-green-600 h-2.5 rounded-full" style="width: @(stat.ApprovalRate)%"></div>
-                                        </div>
-                                        <span class="text-xs text-gray-600">@stat.ApprovalRate.ToString("F1")%</span>
-                                    </td>
-                                    <td class="px-6 py-4 text-xs">
-                                        @(stat.LastEntryDate?.ToString("dd.MM.yyyy") ?? "-")
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                <i class="fas fa-book text-gray-400 text-6xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Staj Defteri Verisi Bulunamadý</h3>
-                <p class="text-gray-500 dark:text-gray-500">Seçilen dönemde staj defteri girdisi bulunmamaktadýr.</p>
-            </div>
-        }
-    }
-
-    @if (Model.CurrentReportType == "students")
-    {
-        @if (Model.StudentReports.Any())
-        {
-            <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                    <i class="fas fa-users mr-2"></i>Öðrenci Aktivite Raporu
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach (var student in Model.StudentReports)
-                    {
-                        <div class="student-report-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center justify-between mb-4">
-                                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">@student.StudentName</h4>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium @(student.IsActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800")">
-                                    @student.ActivityStatus
-                                </span>
+        <!-- Genel Bakýþ -->
+        <div id="overview" class="report-content active">
+            @if (Model.Summary != null)
+            {
+                <!-- Summary Statistics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100 text-sm">Toplam Öðrenci</p>
+                                <p class="text-3xl font-bold">@Model.Summary.TotalStudents</p>
+                                <p class="text-blue-200 text-sm mt-1">Danýþmanlýk verilen</p>
                             </div>
-                            
-                            <div class="space-y-3">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600 dark:text-gray-400">Baþvurular:</span>
-                                    <span class="font-medium">@student.TotalApplications</span>
+                            <i class="fas fa-users text-2xl opacity-80"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card bg-gradient-to-br from-green-500 to-green-600 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100 text-sm">Aktif Öðrenci</p>
+                                <p class="text-3xl font-bold">@Model.Summary.ActiveStudents</p>
+                                <p class="text-green-200 text-sm mt-1">Þu anda aktif</p>
+                            </div>
+                            <i class="fas fa-user-check text-2xl opacity-80"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100 text-sm">Toplam Baþvuru</p>
+                                <p class="text-3xl font-bold">@Model.Summary.TotalApplications</p>
+                                <p class="text-purple-200 text-sm mt-1">Bu dönemde</p>
+                            </div>
+                            <i class="fas fa-file-alt text-2xl opacity-80"></i>
+                        </div>
+                    </div>
+
+                    <div class="stat-card bg-gradient-to-br from-yellow-500 to-yellow-600 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-yellow-100 text-sm">Çalýþma Saati</p>
+                                <p class="text-3xl font-bold">@Model.Summary.TotalWorkingHours.ToString("F0")</p>
+                                <p class="text-yellow-200 text-sm mt-1">Toplam saat</p>
+                            </div>
+                            <i class="fas fa-clock text-2xl opacity-80"></i>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Quick Stats without Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                @if (Model.ApplicationStatistics.Any())
+                {
+                    <div class="chart-container">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                            <i class="fas fa-chart-bar mr-2 text-blue-600 dark:text-blue-400"></i>Baþvuru Durumlarý
+                        </h3>
+                        <div class="space-y-4">
+                            @{
+                                var totalApps = Model.ApplicationStatistics.Sum(a => a.TotalApplications);
+                                var totalAppr = Model.ApplicationStatistics.Sum(a => a.ApprovedApplications);
+                                var totalPend = Model.ApplicationStatistics.Sum(a => a.PendingApplications);
+                                var totalRej = Model.ApplicationStatistics.Sum(a => a.RejectedApplications);
+                            }
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 rounded-full mr-3 bg-green-500"></div>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Onaylanan</span>
                                 </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600 dark:text-gray-400">Defteri Girdileri:</span>
-                                    <span class="font-medium">@student.TotalDiaryEntries</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600 dark:text-gray-400">Çalýþma Saati:</span>
-                                    <span class="font-medium">@student.TotalWorkingHours.ToString("F1")</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600 dark:text-gray-400">Son Aktivite:</span>
-                                    <span class="font-medium text-xs">
-                                        @(student.LastActivity?.ToString("dd.MM.yyyy") ?? "Yok")
-                                    </span>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-gray-900 dark:text-white">@totalAppr</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">@(totalApps > 0 ? ((decimal)totalAppr / totalApps * 100).ToString("F1") : "0")%</div>
                                 </div>
                             </div>
-                            
-                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                <p class="text-xs text-gray-500 dark:text-gray-400">@student.StudentEmail</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">@student.Department</p>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 rounded-full mr-3 bg-yellow-500"></div>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Bekleyen</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-gray-900 dark:text-white">@totalPend</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">@(totalApps > 0 ? ((decimal)totalPend / totalApps * 100).ToString("F1") : "0")%</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 rounded-full mr-3 bg-red-500"></div>
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Reddedilen</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-gray-900 dark:text-white">@totalRej</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">@(totalApps > 0 ? ((decimal)totalRej / totalApps * 100).ToString("F1") : "0")%</div>
+                                </div>
                             </div>
                         </div>
-                    }
+                    </div>
+                }
+
+                @if (Model.DiaryStatistics.Any())
+                {
+                    <div class="chart-container">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                            <i class="fas fa-book mr-2 text-blue-600 dark:text-blue-400"></i>Staj Defteri Özeti
+                        </h3>
+                        <div class="space-y-4">
+                            @{
+                                var totalEntries = Model.DiaryStatistics.Sum(d => d.TotalEntries);
+                                var totalApproved = Model.DiaryStatistics.Sum(d => d.ApprovedEntries);
+                                var totalHours = Model.DiaryStatistics.Sum(d => d.TotalHours);
+                            }
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">Toplam Girdi</span>
+                                <span class="font-medium text-gray-900 dark:text-white">@totalEntries</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">Onaylanan Girdi</span>
+                                <span class="font-medium text-green-600 dark:text-green-400">@totalApproved</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">Toplam Çalýþma Saati</span>
+                                <span class="font-medium text-blue-600 dark:text-blue-400">@totalHours.ToString("F1")</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">Onay Oraný</span>
+                                <span class="font-medium text-purple-600 dark:text-purple-400">@(totalEntries > 0 ? ((decimal)totalApproved / totalEntries * 100).ToString("F1") : "0")%</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Baþvuru Analizi -->
+        <div id="applications" class="report-content">
+            @if (Model.ApplicationStatistics.Any())
+            {
+                <div class="chart-container">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                        <i class="fas fa-file-alt mr-2 text-blue-600 dark:text-blue-400"></i>Baþvuru Ýstatistikleri
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th class="px-6 py-3">Öðrenci</th>
+                                    <th class="px-6 py-3">Toplam</th>
+                                    <th class="px-6 py-3">Onaylanan</th>
+                                    <th class="px-6 py-3">Bekleyen</th>
+                                    <th class="px-6 py-3">Reddedilen</th>
+                                    <th class="px-6 py-3">Baþarý Oraný</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var stat in Model.ApplicationStatistics)
+                                {
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                            @stat.StudentName
+                                            @if (!string.IsNullOrEmpty(stat.StudentEmail))
+                                            {
+                                                <div class="text-xs text-gray-500">@stat.StudentEmail</div>
+                                            }
+                                        </td>
+                                        <td class="px-6 py-4">@stat.TotalApplications</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                                @stat.ApprovedApplications
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                                                @stat.PendingApplications
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
+                                                @stat.RejectedApplications
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                <div class="status-approved h-2.5 rounded-full" style="width: @(stat.SuccessRate)%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-600">@stat.SuccessRate.ToString("F1")%</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                <i class="fas fa-users text-gray-400 text-6xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Öðrenci Verisi Bulunamadý</h3>
-                <p class="text-gray-500 dark:text-gray-500">Seçilen dönemde aktif öðrenci bulunmamaktadýr.</p>
-            </div>
-        }
-    }
+            }
+            else
+            {
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <i class="fas fa-file-alt text-gray-400 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Baþvuru Verisi Bulunamadý</h3>
+                    <p class="text-gray-500 dark:text-gray-500">Seçilen dönemde baþvuru bulunmamaktadýr.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Staj Defterleri -->
+        <div id="diaries" class="report-content">
+            @if (Model.DiaryStatistics.Any())
+            {
+                <div class="chart-container">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                        <i class="fas fa-book mr-2 text-blue-600 dark:text-blue-400"></i>Staj Defteri Ýstatistikleri
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th class="px-6 py-3">Öðrenci</th>
+                                    <th class="px-6 py-3">Toplam Girdi</th>
+                                    <th class="px-6 py-3">Onaylanan</th>
+                                    <th class="px-6 py-3">Bekleyen</th>
+                                    <th class="px-6 py-3">Toplam Saat</th>
+                                    <th class="px-6 py-3">Ortalama Saat</th>
+                                    <th class="px-6 py-3">Onay Oraný</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var stat in Model.DiaryStatistics)
+                                {
+                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                            @stat.StudentName
+                                            @if (!string.IsNullOrEmpty(stat.StudentEmail))
+                                            {
+                                                <div class="text-xs text-gray-500">@stat.StudentEmail</div>
+                                            }
+                                        </td>
+                                        <td class="px-6 py-4">@stat.TotalEntries</td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                                @stat.ApprovedEntries
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                                                @stat.PendingEntries
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">@stat.TotalHours.ToString("F1")</td>
+                                        <td class="px-6 py-4">@stat.AverageHoursPerEntry.ToString("F1")</td>
+                                        <td class="px-6 py-4">
+                                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                                <div class="status-approved h-2.5 rounded-full" style="width: @(stat.ApprovalRate)%"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-600">@stat.ApprovalRate.ToString("F1")%</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <i class="fas fa-book text-gray-400 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Staj Defteri Verisi Bulunamadý</h3>
+                    <p class="text-gray-500 dark:text-gray-500">Seçilen dönemde staj defteri girdisi bulunmamaktadýr.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Öðrenci Analizi -->
+        <div id="students" class="report-content">
+            @if (Model.StudentReports.Any())
+            {
+                <div class="chart-container">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
+                        <i class="fas fa-users mr-2 text-blue-600 dark:text-blue-400"></i>Öðrenci Aktivite Raporu
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach (var student in Model.StudentReports)
+                        {
+                            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:transform hover:translateY(-2px) hover:shadow-xl">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">@student.StudentName</h4>
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium @(student.IsActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800")">
+                                        @student.ActivityStatus
+                                    </span>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">Baþvurular:</span>
+                                        <span class="font-medium">@student.TotalApplications</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">Defteri Girdileri:</span>
+                                        <span class="font-medium">@student.TotalDiaryEntries</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">Çalýþma Saati:</span>
+                                        <span class="font-medium">@student.TotalWorkingHours.ToString("F1")</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600 dark:text-gray-400">Son Aktivite:</span>
+                                        <span class="font-medium text-xs">
+                                            @(student.LastActivity?.ToString("dd.MM.yyyy") ?? "Yok")
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">@student.StudentEmail</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">@student.Department</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+                    <i class="fas fa-users text-gray-400 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Öðrenci Verisi Bulunamadý</h3>
+                    <p class="text-gray-500 dark:text-gray-500">Seçilen dönemde aktif öðrenci bulunmamaktadýr.</p>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        @if (Model.ActivityData.Any())
-        {
-            <text>
-            const ctx = document.getElementById('activityChart').getContext('2d');
-            const activityChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [@Html.Raw(string.Join(",", Model.ActivityData.Select(d => $"'{d.Date}'")))],
-                    datasets: [
-                        {
-                            label: 'Baþvurular',
-                            data: [@Html.Raw(string.Join(",", Model.ActivityData.Select(d => d.Applications)))],
-                            borderColor: 'rgb(59, 130, 246)',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Staj Defteri Girdileri',
-                            data: [@Html.Raw(string.Join(",", Model.ActivityData.Select(d => d.DiaryEntries)))],
-                            borderColor: 'rgb(16, 185, 129)',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        }
+        $(document).ready(function() {
+            // Menu navigation
+            $('.report-menu-item').click(function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all menu items and content
+                $('.report-menu-item').removeClass('active');
+                $('.report-content').removeClass('active');
+                
+                // Add active class to clicked item
+                $(this).addClass('active');
+                
+                // Show corresponding content
+                var tabId = $(this).data('tab');
+                $('#' + tabId).addClass('active');
+                
+                // Update page title
+                updatePageInfo(tabId);
+                
+                // Animate progress bars
+                setTimeout(function() {
+                    animateProgressBars(tabId);
+                }, 100);
+            });
+
+            // Initial animation
+            animateProgressBars('overview');
+        });
+
+        function updatePageInfo(tabId) {
+            var titles = {
+                'overview': 'Genel Bakýþ',
+                'applications': 'Baþvuru Analizi',
+                'diaries': 'Staj Defterleri',
+                'students': 'Öðrenci Analizi'
+            };
+            
+            $('#page-title').text(titles[tabId] || 'Raporlar');
+        }
+
+        function animateProgressBars(tabId) {
+            $('#' + tabId + ' .progress-bar, #' + tabId + ' .status-bar').each(function() {
+                var width = $(this).attr('style');
+                if (width && width.includes('width:')) {
+                    var widthValue = width.match(/width:\s*([^;%]+)%/);
+                    if (widthValue) {
+                        $(this).css('width', '0%').animate({
+                            width: widthValue[1] + '%'
+                        }, 1000);
                     }
                 }
             });
-            </text>
         }
 
         function exportReport(format) {
@@ -400,47 +581,4 @@
             window.location.href = `/Advisor/AdvisorReport/Export/${reportType}?period=${period}&format=${format}`;
         }
     </script>
-}
-
-@section Styles {
-    <style>
-        .period-btn, .report-type-btn {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #6b7280;
-        }
-        
-        .period-btn.active, .report-type-btn.active {
-            background: #6366f1;
-            color: white;
-            border-color: #6366f1;
-        }
-        
-        .period-btn:hover:not(.active), .report-type-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.9);
-            color: #374151;
-        }
-
-        .summary-card {
-            transition: all 0.3s ease;
-        }
-
-        .summary-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .student-report-card {
-            transition: all 0.3s ease;
-        }
-
-        .student-report-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        #activityChart {
-            height: 300px !important;
-        }
-    </style>
 }

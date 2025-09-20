@@ -39,7 +39,10 @@ namespace WebUI.Controllers.Advisor
                     return RedirectToAction("Index", "AdvisorDashboard");
                 }
 
-                // ayný ünivertesideki ve  ayný bölümdeki öðrencileri al
+                // Get all approval forms directly (more efficient than per-student queries)
+                var allApprovalForms = new List<InternshipApprovalForm>();
+                
+                // Get all students from the same university and department
                 var allStudents = await _userService.GetAllStudentsAsync();
                 var relevantStudents = allStudents
                     .Where(s => s.UniversityId == advisor.UniversityId && 
@@ -48,8 +51,7 @@ namespace WebUI.Controllers.Advisor
 
                 var studentIds = relevantStudents.Select(s => s.Id).ToList();
 
-                // Get all approval forms from these students
-                var allApprovalForms = new List<InternshipApprovalForm>();
+                // Get approval forms for all relevant students
                 foreach (var studentId in studentIds)
                 {
                     try
@@ -72,8 +74,8 @@ namespace WebUI.Controllers.Advisor
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
                     filteredForms = filteredForms.Where(f => 
-                        f.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        (f.Student != null && f.Student.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (f.CompanyName != null && f.CompanyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                        (f.Student != null && f.Student.FullName != null && f.Student.FullName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
                         (f.InternshipCoordinator != null && f.InternshipCoordinator.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
                 }
 
@@ -82,7 +84,7 @@ namespace WebUI.Controllers.Advisor
                     filteredForms = filteredForms.Where(f => f.Status == statusFilter.Value);
                 }
 
-                // Create view models
+                // Create view models with fresh data
                 var applicationViewModels = new List<AdvisorApplicationCardViewModel>();
                 
                 foreach (var form in filteredForms.OrderByDescending(f => f.CreatedAt))
@@ -90,6 +92,11 @@ namespace WebUI.Controllers.Advisor
                     var student = relevantStudents.FirstOrDefault(s => s.Id == form.StudentId);
                     if (student != null)
                     {
+                        // Revizyon durumunu kontrol et
+                        bool isRevision = form.Status == InternshipApprovalStatus.Revision;
+                        bool isLegacyRevision = !string.IsNullOrEmpty(form.RejectionReason) && 
+                                               form.RejectionReason.StartsWith("REVISION:");
+
                         applicationViewModels.Add(new AdvisorApplicationCardViewModel
                         {
                             Id = form.Id,
@@ -111,7 +118,12 @@ namespace WebUI.Controllers.Advisor
                             CoordinatorPhone = form.CoordinatorPhone,
                             CoordinatorEmail = form.CoordinatorEmail,
                             ApprovedAt = form.ApprovedAt,
-                            RejectedAt = form.RejectedAt
+                            RejectedAt = form.RejectedAt,
+                            StudentDepartment = student.Department,
+                            StudentUniversity = student.University?.Name,
+                            StudentGrade = student.Grade,
+                            RevisionNote = form.RevisionNote ?? (isLegacyRevision ? form.RejectionReason?.Substring("REVISION:".Length).Trim() : ""),
+                            RevisedAt = form.RevisedAt
                         });
                     }
                 }
@@ -124,7 +136,8 @@ namespace WebUI.Controllers.Advisor
                     TotalCount = applicationViewModels.Count,
                     PendingCount = applicationViewModels.Count(a => a.Status == InternshipApprovalStatus.Pending),
                     ApprovedCount = applicationViewModels.Count(a => a.Status == InternshipApprovalStatus.Approved),
-                    RejectedCount = applicationViewModels.Count(a => a.Status == InternshipApprovalStatus.Rejected)
+                    RejectedCount = applicationViewModels.Count(a => a.Status == InternshipApprovalStatus.Rejected),
+                    RevisionCount = applicationViewModels.Count(a => a.Status == InternshipApprovalStatus.Revision)
                 };
 
                 return View("~/Views/Advisor/Application/Index.cshtml", viewModel);
@@ -161,6 +174,11 @@ namespace WebUI.Controllers.Advisor
                     return Forbid("Bu baþvuruya eriþim yetkiniz yok.");
                 }
 
+                // Revizyon durumunu kontrol et
+                bool isRevision = approvalForm.Status == InternshipApprovalStatus.Revision;
+                bool isLegacyRevision = !string.IsNullOrEmpty(approvalForm.RejectionReason) && 
+                                       approvalForm.RejectionReason.StartsWith("REVISION:");
+
                 var viewModel = new AdvisorApplicationCardViewModel
                 {
                     Id = approvalForm.Id,
@@ -185,7 +203,9 @@ namespace WebUI.Controllers.Advisor
                     RejectedAt = approvalForm.RejectedAt,
                     StudentDepartment = student.Department,
                     StudentUniversity = student.University?.Name,
-                    StudentGrade = student.Grade
+                    StudentGrade = student.Grade,
+                    RevisionNote = approvalForm.RevisionNote ?? (isLegacyRevision ? approvalForm.RejectionReason?.Substring("REVISION:".Length).Trim() : ""),
+                    RevisedAt = approvalForm.RevisedAt
                 };
 
                 return Json(viewModel);
@@ -274,8 +294,8 @@ namespace WebUI.Controllers.Advisor
                     return Json(new { success = false, message = "Geri dönüþ notu belirtilmelidir." });
                 }
 
-                // For revision, we can use reject with a special note indicating it's for revision
-                await _approvalService.RejectFormAsync(id, $"REVISION: {revisionNote}");
+                // Use new revision method instead of reject
+                await _approvalService.ReturnForRevisionAsync(id, revisionNote);
                 
                 // Send notification to student
                 var approvalForm = await _approvalService.GetApprovalFormWithDetailsAsync(id);
@@ -285,7 +305,7 @@ namespace WebUI.Controllers.Advisor
                     {
                         UserId = approvalForm.StudentId,
                         Title = "Staj Onay Formunuz Revizyona Gönderildi",
-                        Message = $"Staj onay formunuz revizyona gönderildi. Geri dönüþ notu: {revisionNote}",
+                        Message = $"Staj onay formunuz revizyona gönderildi. Revizyon notu: {revisionNote}",
                         Type = "Approval",
                         IsRead = false,
                         CreatedAt = DateTime.UtcNow
@@ -326,6 +346,11 @@ namespace WebUI.Controllers.Advisor
                     return RedirectToAction("Index");
                 }
 
+                // Revizyon durumunu kontrol et
+                bool isRevision = approvalForm.Status == InternshipApprovalStatus.Revision;
+                bool isLegacyRevision = !string.IsNullOrEmpty(approvalForm.RejectionReason) && 
+                                       approvalForm.RejectionReason.StartsWith("REVISION:");
+
                 var viewModel = new AdvisorApplicationCardViewModel
                 {
                     Id = approvalForm.Id,
@@ -350,7 +375,9 @@ namespace WebUI.Controllers.Advisor
                     RejectedAt = approvalForm.RejectedAt,
                     StudentDepartment = student.Department,
                     StudentUniversity = student.University?.Name,
-                    StudentGrade = student.Grade
+                    StudentGrade = student.Grade,
+                    RevisionNote = approvalForm.RevisionNote ?? (isLegacyRevision ? approvalForm.RejectionReason?.Substring("REVISION:".Length).Trim() : ""),
+                    RevisedAt = approvalForm.RevisedAt
                 };
 
                 return View("~/Views/Advisor/Application/ApplicationDetail.cshtml", viewModel);

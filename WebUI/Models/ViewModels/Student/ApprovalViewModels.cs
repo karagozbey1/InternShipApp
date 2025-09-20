@@ -143,6 +143,10 @@ namespace WebUI.Models.ViewModels.Student
         // NEW: Advisor contact fields (from Step 3 selection)
         public string? AdvisorEmail { get; set; }
         public string? AdvisorPhone { get; set; }
+        
+        // NEW: Revision properties
+        public string? RevisionNote { get; set; }
+        public DateTime? RevisedAt { get; set; }
     }
 
     public class DocumentVM

@@ -4,6 +4,7 @@
     Layout = "_PublicLayout";
     var isStudent = User.IsInRole("Student");
     bool isAuth = User.Identity?.IsAuthenticated == true;
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
 }
 <link rel="stylesheet" href="~/css/announcements.css" />
 <div class="container-fluid px-4 py-4" id="offersRoot" data-page-size="@Model.PageSize" data-initial-page="@Model.Page">
@@ -88,7 +89,6 @@
                                 <div class="col-4 text-center"><div class="detail-box bg-light rounded p-1"><div class="text-info fw-bold small">@(item.Salary ?? "-")</div><div class="text-xs text-muted">Maaþ</div></div></div>
                             </div>
                         </div>
-                        <button type="button" class="favorite-btn" title="Favori" onclick="event.stopPropagation();annToggleFav(@item.Id,this)"><i class="@(item.IsFavorite?"fas text-warning fa-star":"far fa-star text-secondary")"></i></button>
                     </div>
                 }
             </div>
@@ -158,7 +158,13 @@
     </div>
 </div>
 @section Scripts {
-    <script>window.__isAuthenticated=@(isAuth.ToString().ToLower());window.__isStudent=@(isStudent.ToString().ToLower());</script>
+    <script>
+        window.__isAuthenticated=@(isAuth.ToString().ToLower());
+        window.__isStudent=@(isStudent.ToString().ToLower());
+        document.body.setAttribute('data-user-id', '@userId');
+        document.body.setAttribute('data-auth', '@isAuth.ToString().ToLower()');
+        document.body.setAttribute('data-student', '@isStudent.ToString().ToLower()');
+    </script>
     <script id="initialOffersData" type="application/json">@System.Text.Json.JsonSerializer.Serialize(new { items = Model.Offers.Where(o=>o.IsActive).Select(o => new { id=o.Id,title=o.Title,companyName=o.CompanyName,publishDate=o.PublishDate,applicationDeadline=o.ApplicationDeadline,city=o.City,field=o.Field,position=o.Position,salary=o.Salary,workType=((o.WorkType?.Equals("Internship",StringComparison.OrdinalIgnoreCase)??false)?"Staj":o.WorkType),quota=o.Quota,isFavorite=o.IsFavorite,description=o.Description,requirements=o.Requirements,phone=o.Phone,address=o.Address,website=o.Website,isActive=o.IsActive,companyDescription=o.CompanyDescription,employeeCount=o.EmployeeCount,establishedDate=o.EstablishedDate }), totalCount=Model.TotalCount,page=Model.Page,totalPages=Model.TotalPages })</script>
     <script src="~/js/announcements.js"></script>
     <style>
@@ -166,7 +172,5 @@
         .offer-tile-enhanced:hover{border-color:#007bff;box-shadow:0 2px 8px rgba(0,123,255,.15);transform:translateY(-1px)}
         .offer-tile-enhanced.active{border-color:#007bff;background:#f0f8ff;box-shadow:0 4px 12px rgba(0,123,255,.2)}
         .detail-box{min-height:48px;display:flex;flex-direction:column;justify-content:center;border:1px solid #e9ecef}
-        .favorite-btn{position:absolute;top:8px;right:8px;background:none;border:0;padding:4px;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
-        .favorite-btn:hover{background:rgba(0,0,0,.05)}
     </style>
 }

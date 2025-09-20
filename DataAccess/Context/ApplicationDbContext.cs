@@ -22,13 +22,10 @@ namespace DataAccess.Context
         public DbSet<InternshipApprovalForm> InternshipApprovalForms { get; set; } = null!;
         public DbSet<InternshipDocument> InternshipDocuments { get; set; } = null!;
         public DbSet<InternshipComment> InternshipComments { get; set; } = null!;
-        public DbSet<News> News { get; set; } = null!;
         public DbSet<ChatRoom> ChatRooms { get; set; } = null!;
         public DbSet<UserChatRoom> UserChatRooms { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
-        public DbSet<Slider> Sliders => Set<Slider>();
-        public DbSet<SliderItem> SliderItems => Set<SliderItem>();
         public DbSet<Province> Provinces { get; set; } = null!;
         public DbSet<University> Universities { get; set; } = null!;
         public DbSet<DiaryEntry> DiaryEntries { get; set; } = null!;
@@ -320,9 +317,6 @@ namespace DataAccess.Context
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<News>()
-                .HasIndex(n => new { n.Category, n.PublishDate });
-
             modelBuilder.Entity<ChatRoom>()
                 .HasIndex(cr => cr.RoomIdentifier)
                 .IsUnique();
@@ -359,12 +353,6 @@ namespace DataAccess.Context
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Slider>()
-               .HasMany(s => s.Items)
-               .WithOne(i => i.Slider)
-               .HasForeignKey(i => i.SliderId)
-               .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Province>(entity =>
             {

@@ -18,20 +18,17 @@ namespace WebUI.Controllers.Advisor
         private readonly IDiaryService _diaryService;
         private readonly IIUserService _userService;
         private readonly IINotificationService _notificationService;
-        private readonly IINewsService _newsService;
 
         public AdvisorDashboardController(
             IInternshipApplicationService applicationService,
             IDiaryService diaryService,
             IIUserService userService,
-            IINotificationService notificationService,
-            IINewsService newsService)
+            IINotificationService notificationService)
         {
             _applicationService = applicationService;
             _diaryService = diaryService;
             _userService = userService;
             _notificationService = notificationService;
-            _newsService = newsService;
         }
 
         public async Task<IActionResult> Index()
@@ -98,9 +95,6 @@ namespace WebUI.Controllers.Advisor
                 var notifications = await _notificationService.GetAllNotificationsByUserIdAsync(advisorId);
                 var unreadNotifications = notifications.Where(n => !n.IsRead).ToList();
 
-                // Get recent news
-                var recentNews = await _newsService.GetRecentNewsAsync(6);
-
                 // Set counts
                 viewModel.PendingApplicationsCount = Math.Max(0, pendingApps.Count);
                 viewModel.MyStudentsCount = Math.Max(0, studentIds.Count);
@@ -111,7 +105,6 @@ namespace WebUI.Controllers.Advisor
                 viewModel.UniversityName = advisor.University?.Name ?? "";
 
                 // Dynamic content
-                viewModel.RecentNews = recentNews?.ToList() ?? new List<News>();
                 viewModel.RecentNotifications = notifications?.OrderByDescending(n => n.CreatedAt).Take(5).ToList() ?? new List<Notification>();
 
                 // Recent activities
@@ -168,7 +161,6 @@ namespace WebUI.Controllers.Advisor
                 viewModel.RecentActivities = new List<AdvisorActivityItem>();
                 viewModel.RecentApplications = new List<InternshipApplication>();
                 viewModel.RecentDiaryEntries = new List<DiaryEntry>();
-                viewModel.RecentNews = new List<News>();
                 viewModel.RecentNotifications = new List<Notification>();
                 viewModel.AcademicYear = new AcademicYearInfo();
             }

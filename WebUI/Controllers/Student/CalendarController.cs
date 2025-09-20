@@ -91,7 +91,7 @@ namespace WebUI.Controllers.Student
                     vm.DiaryDays.Add(e.Date.Day);
             }
 
-            return View("~/Views/Student/Calendar.cshtml", vm);
+            return View("~/Views/Student/Calendar/Index.cshtml", vm);
         }
 
         [HttpGet]

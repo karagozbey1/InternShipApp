@@ -21,7 +21,7 @@ namespace WebUI.Controllers.Student
                     new() { Question = "Þifremi unuttum ne yapmalýyým?", Answer = "Giriþ sayfasýndan 'Þifremi Unuttum' baðlantýsýný kullanýn." }
                 }
             };
-            return View("~/Views/Student/Help.cshtml", vm);
+            return View("~/Views/Student/Help/Index.cshtml", vm);
         }
     }
 }

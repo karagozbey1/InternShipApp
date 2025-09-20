@@ -1,0 +1,346 @@
+/**
+ * Modern Approval Details JavaScript
+ * Handles interactions and animations for approval form details page
+ */
+
+class ApprovalDetails {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+        this.initAnimations();
+        this.setupStatusUpdates();
+        this.handleNotifications();
+    }
+
+    bindEvents() {
+        // Edit button click handling
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-btn')) {
+                this.handleEditClick(e.target.closest('.edit-btn'));
+            }
+        });
+
+        // Status card hover effects
+        const statusDisplays = document.querySelectorAll('.status-display');
+        statusDisplays.forEach(display => {
+            display.addEventListener('mouseenter', () => this.animateStatusCard(display, true));
+            display.addEventListener('mouseleave', () => this.animateStatusCard(display, false));
+        });
+
+        // Document link clicks
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.doc-view')) {
+                this.handleDocumentView(e);
+            }
+        });
+    }
+
+    handleEditClick(button) {
+        // Add loading state
+        this.setButtonLoading(button, true);
+        
+        // Add smooth transition effect
+        setTimeout(() => {
+            this.setButtonLoading(button, false);
+        }, 800);
+    }
+
+    setButtonLoading(button, loading) {
+        if (loading) {
+            button.classList.add('loading');
+            const originalText = button.innerHTML;
+            button.dataset.originalText = originalText;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Yükleniyor...</span>';
+        } else {
+            button.classList.remove('loading');
+            if (button.dataset.originalText) {
+                button.innerHTML = button.dataset.originalText;
+            }
+        }
+    }
+
+    animateStatusCard(card, isHover) {
+        if (isHover) {
+            card.style.transform = 'translateY(-2px) scale(1.02)';
+            card.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+        } else {
+            card.style.transform = 'translateY(0) scale(1)';
+            card.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+        }
+    }
+
+    initAnimations() {
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-active');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.fade-in').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Status pulse animation
+        const statusText = document.querySelector('.hero-status-text');
+        if (statusText) {
+            this.startStatusPulse(statusText);
+        }
+    }
+
+    startStatusPulse(element) {
+        setInterval(() => {
+            element.style.animation = 'none';
+            setTimeout(() => {
+                element.style.animation = 'statusPulse 2s ease-in-out infinite';
+            }, 10);
+        }, 10000); // Pulse every 10 seconds
+    }
+
+    setupStatusUpdates() {
+        // Real-time status updates (if needed)
+        const statusCard = document.querySelector('.status-display');
+        if (statusCard) {
+            // Simulate real-time updates (replace with actual WebSocket/SignalR implementation)
+            this.checkStatusUpdates();
+        }
+    }
+
+    checkStatusUpdates() {
+        // This would be replaced with actual real-time implementation
+        // For now, just a placeholder for future enhancement
+        console.log('Status update check initialized');
+    }
+
+    handleDocumentView(e) {
+        e.preventDefault();
+        const link = e.target.closest('.doc-view');
+        const href = link.getAttribute('href');
+        
+        // Add loading effect
+        link.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Açýlýyor...';
+        
+        // Open document in new tab
+        setTimeout(() => {
+            window.open(href, '_blank');
+            link.innerHTML = 'Gör';
+        }, 500);
+    }
+
+    handleNotifications() {
+        // Check for success/error messages
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const error = urlParams.get('error');
+
+        if (success) {
+            this.showNotification(decodeURIComponent(success), 'success');
+        }
+        if (error) {
+            this.showNotification(decodeURIComponent(error), 'error');
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${this.getNotificationIcon(type)}"></i>
+                <span>${message}</span>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        // Add styles
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${this.getNotificationColor(type)};
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            max-width: 400px;
+            font-weight: 500;
+        `;
+
+        notification.querySelector('.notification-content').style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        `;
+
+        notification.querySelector('.notification-close').style.cssText = `
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        `;
+
+        document.body.appendChild(notification);
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 5000);
+    }
+
+    getNotificationIcon(type) {
+        const icons = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        return icons[type] || icons.info;
+    }
+
+    getNotificationColor(type) {
+        const colors = {
+            success: 'linear-gradient(135deg, #10b981, #059669)',
+            error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            info: 'linear-gradient(135deg, #6366f1, #3b82f6)'
+        };
+        return colors[type] || colors.info;
+    }
+
+    // Utility methods
+    formatDate(date) {
+        return new Intl.DateTimeFormat('tr-TR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).format(new Date(date));
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Copy to clipboard functionality
+    copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            this.showNotification('Panoya kopyalandý!', 'success');
+        }).catch(() => {
+            this.showNotification('Kopyalama baþarýsýz!', 'error');
+        });
+    }
+
+    // Print functionality
+    printPage() {
+        window.print();
+    }
+
+    // Share functionality
+    sharePage() {
+        if (navigator.share) {
+            navigator.share({
+                title: document.title,
+                url: window.location.href
+            });
+        } else {
+            this.copyToClipboard(window.location.href);
+        }
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new ApprovalDetails();
+});
+
+// Export for potential module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = ApprovalDetails;
+}
+
+// Additional CSS for notifications (injected dynamically)
+const notificationStyles = `
+    .notification {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .notification-close:hover {
+        background: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .fade-in-active {
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    @media (max-width: 480px) {
+        .notification {
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+    }
+`;
+
+// Inject notification styles
+const styleElement = document.createElement('style');
+styleElement.textContent = notificationStyles;
+document.head.appendChild(styleElement);

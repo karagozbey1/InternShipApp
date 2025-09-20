@@ -17,9 +17,6 @@
                 </p>
             </div>
             <div class="flex gap-3">
-                <button onclick="exportDiaryPdf()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
-                    <i class="fas fa-file-pdf mr-2"></i>PDF Ýndir
-                </button>
                 <a asp-controller="AdvisorDiary" asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
                     <i class="fas fa-arrow-left mr-2"></i>Geri Dön
                 </a>
@@ -296,11 +293,6 @@
         function closeApprovalModal() {
             document.getElementById('approvalModal').classList.add('hidden');
             document.body.style.overflow = 'auto';
-        }
-
-        function exportDiaryPdf() {
-            // PDF export fonksiyonu
-            alert('PDF export özelliði yakýnda eklenecek.');
         }
 
         // Modal dýþýna týklanýnca kapat

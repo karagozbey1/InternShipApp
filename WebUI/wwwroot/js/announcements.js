@@ -4,6 +4,7 @@ let filters = new URLSearchParams(window.location.search);
 let selectedOfferId = null;
 const IS_AUTH = (window.__isAuthenticated === true) || (document.body.getAttribute('data-auth')==='true');
 const IS_STUDENT = (window.__isStudent === true) || (document.body.getAttribute('data-student')==='true');
+const USER_ID = document.body.getAttribute('data-user-id') || '0';
 
 /******************** Helpers ********************/
 function q(id){return document.getElementById(id);}        // shorthand
@@ -45,6 +46,31 @@ function fmtDate(d){
 }
 
 function splitLines(val){ return !val?[]:val.split(/\r?\n|[,;]+/).map(s=>s.trim()).filter(Boolean); }
+
+// LocalStorage favorite management (consistent with OfferDetails page)
+function getFavSet(){
+  try{ 
+    const storageKey = `favOffers:${USER_ID}`;
+    const raw = localStorage.getItem(storageKey) || ''; 
+    return new Set(raw.split(',').filter(x=>x)); 
+  } catch { 
+    return new Set(); 
+  }
+}
+
+function saveFavSet(set){
+  try{ 
+    const storageKey = `favOffers:${USER_ID}`;
+    localStorage.setItem(storageKey, Array.from(set).join(',')); 
+    
+    // Dispatch custom event for cross-page communication
+    window.dispatchEvent(new CustomEvent('favoriteUpdated', {
+      detail: { userId: USER_ID, favoriteCount: set.size }
+    }));
+    
+    console.log('Dispatched favoriteUpdated event, count:', set.size);
+  } catch {}
+}
 
 /******************** Filter serialize & load ********************/
 function serializeFilters(page){
@@ -123,14 +149,16 @@ function renderOfferList(j){
   console.log('renderOfferList called with:', j);
   const listEl = q('announcementList'); if(!listEl) return;
   const items = (j.items||[]).filter(o => o.isActive !== false);
+  const favSet = getFavSet();
+  
   const html = items.map(it=>{
-    // The workTypeDisplay is now correctly handled in the Razor view before serialization.
+    const isFavorite = favSet.has(String(it.id));
     return `<div class='offer-tile offer-tile-enhanced' data-json='${encQuotes(JSON.stringify(it))}' onclick='annSelect(this)'>
       <div class='d-flex justify-content-between mb-2'>
         <h6 class='mb-1 offer-title text-truncate fw-bold' title='${esc(it.title)}'>${esc(it.title)}</h6>
         <small class='text-muted'>${fmtDate(it.publishDate)}</small>
       </div>
-      ${it.applicationDeadline?`<div class="small text-muted mb-1 d-flex align-items-center gap-1"><i class='far fa-calendar'></i><span>Son Ba\u015Fvuru: ${fmtDate(it.applicationDeadline)}</span></div>`:''}
+      ${it.applicationDeadline?`<div class="small text-muted mb-1 d-flex align-items-center gap-1"><i class='far fa-calendar'></i><span>Son Baþvuru: ${fmtDate(it.applicationDeadline)}</span></div>`:''}
       <div class='small text-muted mb-2 text-truncate'>
         <i class='fas fa-building me-1 text-primary'></i>${esc(it.companyName)}
       </div>
@@ -150,21 +178,17 @@ function renderOfferList(j){
           <div class='col-4 text-center'>
             <div class='detail-box bg-light rounded p-1'>
               <div class='text-success fw-bold small'>${esc(it.workType || '-')}</div>
-              <div class='text-xs text-muted'>T\u00FCr</div>
+              <div class='text-xs text-muted'>Tür</div>
             </div>
           </div>
           <div class='col-4 text-center'>
             <div class='detail-box bg-light rounded p-1'>
               <div class='text-info fw-bold small'>${esc(it.salary || '-')}</div>
-              <div class='text-xs text-muted'>Maa\u015F</div>
+              <div class='text-xs text-muted'>Maaþ</div>
             </div>
           </div>
         </div>
       </div>
-      
-      <button type='button' class='favorite-btn' title='Favori' onclick='event.stopPropagation();annToggleFav(${it.id},this)'>
-        <i class='${it.isFavorite?"fas text-warning fa-star":"far fa-star text-secondary"}'></i>
-      </button>
     </div>`;
   }).join('');
   listEl.innerHTML = html || '<div class="p-4 text-center text-muted">Kayýt bulunamadý.</div>';
@@ -199,72 +223,112 @@ function annSelect(tile){
     console.error('JSON parse error:', error); console.error('Failed to parse JSON string:', tile.getAttribute('data-json')); return; 
   }
   selectedOfferId = data.id; console.log('Selected offer ID:', selectedOfferId);
+  
   const defaultState = q('defaultState');
   const detailHero = q('detailHero');
   const mainContent = q('mainContent');
+  
   if (defaultState){
     defaultState.style.display='none';
-    // Remove node completely to prevent layout space or accidental re-display
     try { defaultState.parentElement && defaultState.parentElement.removeChild(defaultState); } catch(e){ console.warn('defaultState remove failed', e); }
     console.log('Placeholder removed');
   }
   if (detailHero){ detailHero.style.display='block'; }
   if (mainContent){ mainContent.style.display='flex'; }
+  
   const titleEl = q('detailTitle'); const metaEl = q('detailMeta');
   if (titleEl){ titleEl.innerText = data.title || 'Ýlan Baþlýðý'; }
-  const dateForMeta = data.applicationDeadline || data.publishDate; if (metaEl){ metaEl.textContent = `${data.companyName || ''} • ${data.city || ''} • ${fmtDate(dateForMeta)}`; }
+  const dateForMeta = data.applicationDeadline || data.publishDate; 
+  if (metaEl){ metaEl.textContent = `${data.companyName || ''} • ${data.city || ''} • ${fmtDate(dateForMeta)}`; }
+  
   const btn = q('applyBtn'); if(btn){ btn.classList.remove('d-none'); btn.disabled=false; }
-  const descContentEl = q('descContent'); if (descContentEl){ descContentEl.innerHTML = data.description ? `<p class="mb-0">${esc(data.description)}</p>` : '<p class="text-muted mb-0">Açýklama bulunmamaktadýr.</p>'; }
+  
+  const descContentEl = q('descContent'); 
+  if (descContentEl){ 
+    descContentEl.innerHTML = data.description ? `<p class="mb-0">${esc(data.description)}</p>` : '<p class="text-muted mb-0">Açýklama bulunmamaktadýr.</p>'; 
+  }
+  
   const reqItems = splitLines(data.requirements).map(r=>`<li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>${esc(r)}</li>`).join('');
-  const reqContentEl = q('requirementsContent'); if (reqContentEl){ reqContentEl.innerHTML = reqItems ? `<ul class="list-unstyled mb-0">${reqItems}</ul>` : '<p class="text-muted mb-0">Gereksinim bilgisi belirtilmemiþ.</p>'; }
-  // Improved logo initial fallback (companyName -> title -> remove if none)
+  const reqContentEl = q('requirementsContent'); 
+  if (reqContentEl){ 
+    reqContentEl.innerHTML = reqItems ? `<ul class="list-unstyled mb-0">${reqItems}</ul>` : '<p class="text-muted mb-0">Gereksinim bilgisi belirtilmemiþ.</p>'; 
+  }
+  
+  // Company logo
   const desiredInitial = (data.companyName && data.companyName.trim().length>0 ? data.companyName.trim()[0] : (data.title && data.title.trim().length>0 ? data.title.trim()[0] : '')).toUpperCase();
   const logoEl = q('companyLogo');
   if (logoEl){
     if(desiredInitial){ logoEl.textContent = desiredInitial; logoEl.title = data.companyName || data.title || ''; logoEl.classList.remove('d-none'); }
     else { logoEl.textContent=''; logoEl.classList.add('d-none'); }
   }
+  
   const nameEl = q('companyName'); if (nameEl){ nameEl.textContent = data.companyName || 'Firma Adý'; }
-  const locationEl = q('companyLocation'); if (locationEl){ locationEl.innerHTML = data.city ? `<i class="fas fa-map-marker-alt me-1"></i>${esc(data.city)}` : '<i class="fas fa-map-marker-alt me-1"></i>Konum bilgisi yok'; }
-  const cw = q('companyWebsite'); if (cw){ let wHtml=''; if(data.website){ let url = data.website.startsWith('http')?data.website:'https://'+data.website; wHtml += `<a href='${esc(url)}' target='_blank' class='d-inline-block me-2'><i class="fas fa-globe me-1"></i>Site</a>`; } if(data.email){ wHtml += `<a href='mailto:${esc(data.email)}' class='d-inline-block'><i class="fas fa-envelope me-1"></i>E-posta</a>`; } cw.innerHTML = wHtml; }
-  let cHtml=''; if(data.phone){ cHtml += `<div class='mb-2'><i class='fas fa-phone me-2 text-primary'></i><a href='tel:${esc(data.phone)}'>${esc(data.phone)}</a></div>`; } if(data.address){ cHtml += `<div class='mb-2'><i class='fas fa-location-dot me-2 text-primary'></i><span>${esc(data.address)}</span></div>`; }
+  const locationEl = q('companyLocation'); 
+  if (locationEl){ 
+    locationEl.innerHTML = data.city ? `<i class="fas fa-map-marker-alt me-1"></i>${esc(data.city)}` : '<i class="fas fa-map-marker-alt me-1"></i>Konum bilgisi yok'; 
+  }
+  
+  const cw = q('companyWebsite'); 
+  if (cw){ 
+    let wHtml=''; 
+    if(data.website){ 
+      let url = data.website.startsWith('http')?data.website:'https://'+data.website; 
+      wHtml += `<a href='${esc(url)}' target='_blank' class='d-inline-block me-2'><i class="fas fa-globe me-1"></i>Site</a>`; 
+    } 
+    if(data.email){ 
+      wHtml += `<a href='mailto:${esc(data.email)}' class='d-inline-block'><i class="fas fa-envelope me-1"></i>E-posta</a>`; 
+    } 
+    cw.innerHTML = wHtml; 
+  }
+  
+  let cHtml=''; 
+  if(data.phone){ 
+    cHtml += `<div class='mb-2'><i class='fas fa-phone me-2 text-primary'></i><a href='tel:${esc(data.phone)}'>${esc(data.phone)}</a></div>`; 
+  } 
+  if(data.address){ 
+    cHtml += `<div class='mb-2'><i class='fas fa-location-dot me-2 text-primary'></i><span>${esc(data.address)}</span></div>`; 
+  }
   q('companyContent').innerHTML = cHtml || '<span class="text-muted">Ýletiþim bilgisi yok</span>';
   
   let about='';
   if(data.companyDescription && data.companyDescription.trim().length>0){
     about = esc(data.companyDescription);
-  } else {
-    // leave empty (no fallback to general offer description, per requirement)
-    about = '';
   }
   q('companyAbout').textContent = about;
   
   let extra=[];
   if(data.establishedDate){
-    try{ const d=new Date(data.establishedDate); extra.push(`<span class='me-3'><i class='fas fa-calendar-alt me-1 text-secondary'></i>Kurulu\u015F: ${d.toLocaleDateString('tr-TR')}</span>`);}catch(e){console.warn('establishedDate parse',e);}
+    try{ 
+      const d=new Date(data.establishedDate); 
+      extra.push(`<span class='me-3'><i class='fas fa-calendar-alt me-1 text-secondary'></i>Kuruluþ: ${d.toLocaleDateString('tr-TR')}</span>`);
+    } catch(e) {
+      console.warn('establishedDate parse',e);
+    }
   }
   if(data.employeeCount){
-    extra.push(`<span class='me-3'><i class='fas fa-users me-1 text-secondary'></i>\u00C7al\u0131\u015Fan: ${esc(data.employeeCount)}</span>`);
+    extra.push(`<span class='me-3'><i class='fas fa-users me-1 text-secondary'></i>Çalýþan: ${esc(data.employeeCount)}</span>`);
   }
   q('companyExtra').innerHTML = extra.join('');
+  
+  // Update save button state
+  updateSaveButtonState();
 }
 
-function annToggleFav(id, el){
-  console.log('annToggleFav called:', id, el);
-  if(!IS_AUTH || !IS_STUDENT){ 
-    location.href='/Account/Login?returnUrl='+encodeURIComponent(location.pathname+location.search); 
-    return; 
-  }
-  fetch(`/api/public/offers/${id}/favorite`, { method:'POST' })
-    .then(r=>r.json())
-    .then(j=>{ 
-      console.log('Favorite response:', j);
-      if(j.success){ 
-        const i = el.querySelector('i'); 
-        i.className = j.isFavorite? 'fas text-warning fa-star':'far fa-star text-secondary'; 
-      }
-    })
-    .catch(error => console.error('Favorite error:', error));
+function updateSaveButtonState() {
+  if (!selectedOfferId) return;
+  
+  const saveBtn = q('saveBtn');
+  if (!saveBtn) return;
+  
+  const favSet = getFavSet();
+  const isFavorite = favSet.has(String(selectedOfferId));
+  
+  saveBtn.innerHTML = isFavorite 
+    ? '<i class="fas fa-bookmark me-1"></i>Kaydedildi'
+    : '<i class="fas fa-bookmark me-1"></i>Kaydet';
+  saveBtn.className = isFavorite 
+    ? 'btn btn-warning'
+    : 'btn btn-light';
 }
 
 function annApply(){
@@ -272,9 +336,8 @@ function annApply(){
   if(!selectedOfferId) return;
   
   if(!IS_AUTH){ 
-    // Redirect to login with return URL to this page with the selected offer
     const currentUrl = window.location.pathname + window.location.search;
-    const returnUrl = encodeURIComponent(currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'selectedOffer' + selectedOfferId);
+    const returnUrl = encodeURIComponent(currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'selectedOffer=' + selectedOfferId);
     location.href='/Account/Login?returnUrl=' + returnUrl;
     return; 
   }
@@ -293,29 +356,47 @@ function annSave(){
   
   if(!IS_AUTH){ 
     const currentUrl = window.location.pathname + window.location.search;
-    const returnUrl = encodeURIComponent(currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'selectedOffer' + selectedOfferId);
+    const returnUrl = encodeURIComponent(currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'selectedOffer=' + selectedOfferId);
     location.href='/Account/Login?returnUrl=' + returnUrl;
     return; 
   }
   
-  // Toggle favorite (same as star button)
+  if(!IS_STUDENT){
+    alert('Favorilere ekleme yalnýzca öðrenci kullanýcýlarý ile mümkündür.');
+    return;
+  }
+  
+  // Update localStorage immediately
+  const favSet = getFavSet();
+  let willBeFavorite;
+  
+  if(favSet.has(String(selectedOfferId))) {
+    favSet.delete(String(selectedOfferId));
+    willBeFavorite = false;
+  } else {
+    favSet.add(String(selectedOfferId));
+    willBeFavorite = true;
+  }
+  
+  saveFavSet(favSet);
+  updateSaveButtonState();
+  
+  console.log(`Favorite ${willBeFavorite ? 'added' : 'removed'} for offer ${selectedOfferId}, total favorites: ${favSet.size}`);
+  
+  // Sync with server
   fetch(`/api/public/offers/${selectedOfferId}/favorite`, { method:'POST' })
-    .then(r=>r.json())
-    .then(j=>{ 
-      console.log('Save response:', j);
-      if(j.success){ 
-        const btn = q('saveBtn');
-        if(btn) {
-          btn.innerHTML = j.isFavorite 
-            ? '<i class="fas fa-bookmark me-1"></i>Kaydedildi'
-            : '<i class="far fa-bookmark me-1"></i>Kaydet';
-          btn.className = j.isFavorite 
-            ? 'btn btn-warning'
-            : 'btn btn-light';
-        }
+    .then(r => {
+      if (!r.ok) {
+        console.warn('Server sync failed:', r.status);
       }
+      return r.json();
     })
-    .catch(error => console.error('Save error:', error));
+    .then(j => { 
+      console.log('Server sync response:', j);
+    })
+    .catch(error => {
+      console.error('Server sync error:', error);
+    });
 }
 
 function annLoad(page) {
@@ -326,7 +407,6 @@ function annLoad(page) {
 // Expose functions to global scope IMMEDIATELY (before DOM loads)
 window.loadOffers = loadOffers;
 window.annSelect = annSelect;
-window.annToggleFav = annToggleFav;
 window.annApply = annApply;
 window.annSave = annSave;
 window.annLoad = annLoad;
@@ -334,7 +414,6 @@ window.annLoad = annLoad;
 console.log('Functions exposed to window with Turkish character support:', {
   loadOffers: typeof window.loadOffers,
   annSelect: typeof window.annSelect,
-  annToggleFav: typeof window.annToggleFav,
   annApply: typeof window.annApply,
   annSave: typeof window.annSave,
   annLoad: typeof window.annLoad

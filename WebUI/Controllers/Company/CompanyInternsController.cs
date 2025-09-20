@@ -38,12 +38,12 @@ namespace WebUI.Controllers.Company
                     .Where(a => a.Status == InternshipApplicationStatus.Approved && a.EndDate > DateTime.Now)
                     .Select(a => MapToActiveInternViewModel(a))
                     .ToList();
-                return View("~/Views/Company/ActiveInterns.cshtml", activeInterns);
+                return View("~/Views/Company/Interns/Index.cshtml", activeInterns);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Aktif stajyerler yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Company/ActiveInterns.cshtml", new List<ActiveInternViewModel>());
+                return View("~/Views/Company/Interns/Index.cshtml", new List<ActiveInternViewModel>());
             }
         }
 
@@ -68,7 +68,7 @@ namespace WebUI.Controllers.Company
                 }
 
                 var model = MapToInternDetailViewModel(application);
-                return View("~/Views/Company/InternDetail.cshtml", model);
+                return View("~/Views/Company/Interns/Detail.cshtml", model);
             }
             catch (Exception ex)
             {
@@ -142,12 +142,12 @@ namespace WebUI.Controllers.Company
                     StatusData = GetStatusData(allApps)
                 };
 
-                return View("~/Views/Company/Reports.cshtml", model);
+                return View("~/Views/Company/Reports/Index.cshtml", model);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Raporlar yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Company/Reports.cshtml", new CompanyReportsViewModel());
+                return View("~/Views/Company/Reports/Index.cshtml", new CompanyReportsViewModel());
             }
         }
 

@@ -85,7 +85,7 @@ namespace WebUI.Controllers.Company
                 IsActiveFilter = isActiveFilter,
                 JobPostings = list.OrderByDescending(j => j.CreatedDate).ToList()
             };
-            return View("~/Views/Company/JobPostings.cshtml", model);
+            return View("~/Views/Company/JobPostings/Index.cshtml", model);
         }
 
         // Oluþtur / Düzenle (GET)
@@ -159,7 +159,7 @@ namespace WebUI.Controllers.Company
                     model.EndDate = offer.Period?.EndDate ?? DateTime.UtcNow.AddDays(90);
                 }
             }
-            return View("~/Views/Company/CreateJobPosting.cshtml", model);
+            return View("~/Views/Company/JobPostings/Create.cshtml", model);
         }
 
         private async Task<IActionResult> SaveCreateEditModel(JobPostingCreateViewModel model)
@@ -167,7 +167,7 @@ namespace WebUI.Controllers.Company
             model.AvailableDurations = Enum.GetValues(typeof(OfferDurationType)).Cast<OfferDurationType>().ToList();
             model.AvailableLocations = (await _provinceRepo.GetAllAsync()).ToList();
             model.AvailablePeriods = await _periodService.GetActivePeriodsAsync();
-            if (!ModelState.IsValid) return View("~/Views/Company/CreateJobPosting.cshtml", model);
+            if (!ModelState.IsValid) return View("~/Views/Company/JobPostings/Create.cshtml", model);
 
             DateTime start; DateTime end;
             if (model.UsePeriod)
@@ -175,13 +175,13 @@ namespace WebUI.Controllers.Company
                 if (model.PeriodId <= 0)
                 {
                     ModelState.AddModelError("PeriodId", "Dönem seçimi zorunludur.");
-                    return View("~/Views/Company/CreateJobPosting.cshtml", model);
+                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
                 }
                 var period = await _periodService.GetPeriodByIdAsync(model.PeriodId);
                 if (period == null)
                 {
                     ModelState.AddModelError("PeriodId", "Seçilen dönem bulunamadý.");
-                    return View("~/Views/Company/CreateJobPosting.cshtml", model);
+                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
                 }
                 start = period.StartDate; end = period.EndDate;
             }
@@ -191,19 +191,19 @@ namespace WebUI.Controllers.Company
                 if (end <= start)
                 {
                     ModelState.AddModelError("EndDate", "Bitiþ tarihi baþlangýçtan sonra olmalýdýr.");
-                    return View("~/Views/Company/CreateJobPosting.cshtml", model);
+                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
                 }
             }
             if (model.ApplicationDeadline >= start)
             {
                 ModelState.AddModelError("ApplicationDeadline", "Son baþvuru tarihi baþlangýçtan önce olmalýdýr.");
-                return View("~/Views/Company/CreateJobPosting.cshtml", model);
+                return View("~/Views/Company/JobPostings/Create.cshtml", model);
             }
             var companyId = await GetCurrentCompanyIdAsync();
             if (companyId <= 0)
             {
                 TempData["ErrorMessage"] = "Þirket hesabýnýz bulunamadý.";
-                return View("~/Views/Company/CreateJobPosting.cshtml", model);
+                return View("~/Views/Company/JobPostings/Create.cshtml", model);
             }
             var cityName = (await _provinceRepo.GetByIdAsync(model.LocationId))?.Name ?? string.Empty;
 
@@ -397,7 +397,7 @@ namespace WebUI.Controllers.Company
                 Requirements = offer.Requirements ?? string.Empty,
                 CompanyName = (await _companyService.GetCompanyByIdAsync(offer.CompanyId))?.CompanyName ?? string.Empty
             };
-            return PartialView("~/Views/Company/_JobPostingDetailPartial.cshtml", model);
+            return PartialView("~/Views/Company/JobPostings/_JobPostingDetailPartial.cshtml", model);
         }
 
         // Ýstatistik

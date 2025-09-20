@@ -214,4 +214,48 @@ public class InternshipDocumentService : IInternshipDocumentService
             throw new ArgumentException("Geçersiz onay formu ID", nameof(approvalFormId));
         return await _unitOfWork.InternshipDocuments.GetDocumentsByApprovalFormIdAsync(approvalFormId);
     }
+
+    public async Task LinkDocumentToApplicationAsync(int documentId, int applicationId)
+    {
+        if (documentId <= 0)
+            throw new ArgumentException("Geçersiz belge ID", nameof(documentId));
+        
+        if (applicationId <= 0)
+            throw new ArgumentException("Geçersiz başvuru ID", nameof(applicationId));
+
+        // Geçici implementasyon - repository method'u henüz yok
+        // await _unitOfWork.InternshipDocuments.LinkDocumentToApplicationAsync(documentId, applicationId);
+        // await _unitOfWork.SaveAsync();
+        
+        // Basit implementasyon: belgenin ApplicationId'sini güncelle
+        var document = await _unitOfWork.InternshipDocuments.GetByIdAsync(documentId);
+        if (document != null)
+        {
+            document.ApplicationId = applicationId;
+            _unitOfWork.InternshipDocuments.Update(document);
+            await _unitOfWork.SaveAsync();
+        }
+    }
+
+    public async Task UnlinkDocumentFromApplicationAsync(int documentId, int applicationId)
+    {
+        if (documentId <= 0)
+            throw new ArgumentException("Geçersiz belge ID", nameof(documentId));
+        
+        if (applicationId <= 0)
+            throw new ArgumentException("Geçersiz başvuru ID", nameof(applicationId));
+
+        // Geçici implementasyon - repository method'u henüz yok
+        // await _unitOfWork.InternshipDocuments.UnlinkDocumentFromApplicationAsync(documentId, applicationId);
+        // await _unitOfWork.SaveAsync();
+        
+        // Basit implementasyon: belgenin ApplicationId'sini null yap
+        var document = await _unitOfWork.InternshipDocuments.GetByIdAsync(documentId);
+        if (document != null && document.ApplicationId == applicationId)
+        {
+            document.ApplicationId = null;
+            _unitOfWork.InternshipDocuments.Update(document);
+            await _unitOfWork.SaveAsync();
+        }
+    }
 }

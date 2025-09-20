@@ -32,6 +32,10 @@
             border-left-color: #ef4444;
         }
         
+        .application-card.status-revision {
+            border-left-color: #f97316;
+        }
+        
         .student-avatar {
             width: 48px;
             height: 48px;
@@ -80,7 +84,7 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
             <div class="flex items-center justify-between">
                 <div>
@@ -120,6 +124,18 @@
         <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
             <div class="flex items-center justify-between">
                 <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Revizyonda</p>
+                    <p class="text-3xl font-bold text-orange-600">@Model.RevisionCount</p>
+                </div>
+                <div class="p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
+                    <i class="fas fa-edit text-white text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dynamic-card p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Reddedildi</p>
                     <p class="text-3xl font-bold text-red-600">@Model.RejectedCount</p>
                 </div>
@@ -150,6 +166,10 @@
                     <option value="@InternshipApprovalStatus.Approved" 
                             selected="@(Model.StatusFilter == InternshipApprovalStatus.Approved)">
                         Onaylandý
+                    </option>
+                    <option value="@InternshipApprovalStatus.Revision" 
+                            selected="@(Model.StatusFilter == InternshipApprovalStatus.Revision)">
+                        Revizyonda
                     </option>
                     <option value="@InternshipApprovalStatus.Rejected" 
                             selected="@(Model.StatusFilter == InternshipApprovalStatus.Rejected)">
@@ -200,6 +220,10 @@
                                 <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                                     <p><i class="fas fa-id-card mr-2"></i>@application.StudentNumber</p>
                                     <p><i class="fas fa-envelope mr-2"></i>@application.StudentEmail</p>
+                                    @if (!string.IsNullOrEmpty(application.StudentDepartment))
+                                    {
+                                        <p><i class="fas fa-graduation-cap mr-2"></i>@application.StudentDepartment</p>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -227,6 +251,15 @@
                                     <span><i class="fas fa-clock mr-1"></i>@application.WeeklyWorkHours sa/hafta</span>
                                     <span><i class="fas fa-calendar mr-1"></i>@application.DurationDays gün</span>
                                 </div>
+
+                                @* Revizyon notu göster *@
+                                @if (application.Status == InternshipApprovalStatus.Revision && !string.IsNullOrEmpty(application.RevisionNote))
+                                {
+                                    <div class="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                                        <p class="text-xs text-orange-700 font-medium">Revizyon Notu:</p>
+                                        <p class="text-xs text-orange-800">@application.RevisionNote</p>
+                                    </div>
+                                }
                             </div>
                         </div>
 
@@ -276,6 +309,13 @@
                                             @application.RejectedAt.Value.ToString("dd.MM.yyyy")
                                         </p>
                                     }
+                                    else if (application.Status == InternshipApprovalStatus.Revision && application.RevisedAt.HasValue)
+                                    {
+                                        <p class="text-orange-600 font-medium">
+                                            <i class="fas fa-edit mr-1"></i>
+                                            @application.RevisedAt.Value.ToString("dd.MM.yyyy")
+                                        </p>
+                                    }
                                 </div>
                             }
                         </div>
@@ -308,6 +348,12 @@
 
 @section Scripts {
     <script>
-        // Remove showApplicationDetails logic since navigating to page now
+        // Auto-refresh page every 30 seconds to show latest data
+        setInterval(function() {
+            // Only refresh if no modal is open
+            if (!document.querySelector('.fixed.inset-0:not(.hidden)')) {
+                location.reload();
+            }
+        }, 30000);
     </script>
 }

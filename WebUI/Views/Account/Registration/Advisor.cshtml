@@ -1,0 +1,81 @@
+@model AdvisorRegisterViewModel
+@{
+    Layout = "_AccountLayout";
+}
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center mb-5">
+                <h2 class="heading-section">Danýþman Kayýt</h2>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="login-wrap p-0">
+                    <h3 class="mb-4 text-center">Bilgilerinizi girin</h3>
+                    <form asp-action="AdvisorRegister" asp-controller="Account" method="post" class="signin-form">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        
+                        <div class="form-group">
+                            <input asp-for="FullName" class="form-control" placeholder="Adýnýz" required>
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <input asp-for="Email" class="form-control" placeholder="Üniversite E-posta Adresi" required>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="custom-dropdown-container">
+                                <input type="text" id="university-display" class="form-control" placeholder="Üniversite Seçiniz" readonly required>
+                                <input type="hidden" asp-for="UniversityName" id="selected-university-name">
+                                <div class="dropdown-icon">
+                                    <i class="fa fa-caret-down"></i>
+                                </div>
+
+                                <div id="university-list" class="dropdown-list">
+                                    <div class="search-box">
+                                        <input type="text" class="form-control" placeholder="Ara...">
+                                    </div>
+                                    <ul class="list-unstyled">
+                                        @foreach (var uni in Model.Universities)
+                                        {
+                                            <li data-id="@uni.Id" data-name="@uni.Name">@uni.Name</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                            <span asp-validation-for="UniversityName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <input asp-for="Password" id="password-field-advisor" type="password" class="form-control" placeholder="Þifre" required>
+                            <span toggle="#password-field-advisor" class="fa fa-fw fa-eye field-icon toggle-password"></span>
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <input asp-for="ConfirmPassword" id="confirm-password-field-advisor" type="password" class="form-control" placeholder="Þifre Tekrar" required>
+                            <span toggle="#confirm-password-field-advisor" class="fa fa-fw fa-eye field-icon toggle-password"></span>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="form-control btn btn-primary submit px-3">Kayýt Ol</button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <a href="@Url.Action("RegisterOptions", "Account")" class="btn btn-secondary w-100">Geri Dön</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

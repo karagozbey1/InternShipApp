@@ -30,14 +30,11 @@ namespace DataAccess.Unit.Repose
             InternshipOffers = new InternshipOfferRepository(_context);
             InternshipApplications = new InternshipApplicationRepository(_context);
             InternshipApprovals = new InternshipApprovalRepository(_context);
-            News = new NewsRepository(_context);
             Notifications = new NotificationRepository(_context);
             Users = new UserRepository(_context);
             ChatRooms = new ChatRoomRepository(_context);
             ChatMessages = new ChatMessageRepository(_context);
             CompanyUsers = new CompanyUserRepository(_context);
-            Sliders = new SliderRepository(_context);
-            SliderItems = new SliderItemRepository(_context);
             InternshipComments = new InternshipCommentRepository(_context);
             Provinces = new ProvinceRepository(_context);
             Universities = new UniversityRepository(_context);
@@ -56,14 +53,11 @@ namespace DataAccess.Unit.Repose
         public IInternshipCommentRepository InternshipComments { get; }
         public IInternshipDocumentRepository InternshipDocuments { get; }
         public IInternshipPeriodRepository InternshipPeriods { get; }
-        public INewsRepository News { get; }
         public INotificationRepository Notifications { get; }
         public IUserRepository Users { get; }
         public IChatRoomRepository ChatRooms { get; }
         public IChatMessageRepository ChatMessages { get; }
         public ICompanyUserRepository CompanyUsers { get; }
-        public ISliderRepository Sliders { get; }
-        public ISliderItemRepository SliderItems { get; }
         public IProvinceRepository Provinces { get; private set; }
         public IUniversityRepository Universities { get; private set; }
         public IOfferFavoriteRepository OfferFavorites { get; }

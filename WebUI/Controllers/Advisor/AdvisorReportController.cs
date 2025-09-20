@@ -170,8 +170,7 @@ namespace WebUI.Controllers.Advisor
             viewModel.Summary = new ReportSummary
             {
                 TotalStudents = students.Count,
-                ActiveStudents = students.Count(s => applicationStats.Any(a => a.StudentName == s.FullName) || 
-                                                    diaryStats.Any(d => d.StudentName == s.FullName)),
+                ActiveStudents = students.Count(s => applicationStats.Any(a => a.StudentName == s.FullName) || diaryStats.Any(d => d.StudentName == s.FullName)),
                 TotalApplications = applicationStats.Sum(a => a.TotalApplications),
                 TotalDiaryEntries = diaryStats.Sum(d => d.TotalEntries),
                 TotalWorkingHours = (decimal)diaryStats.Sum(d => d.TotalHours),
@@ -243,7 +242,7 @@ namespace WebUI.Controllers.Advisor
         private async Task<AdvisorReportViewModel> GenerateStudentReport(List<User> students, DateTime startDate, DateTime endDate, string period)
         {
             var viewModel = new AdvisorReportViewModel();
-            var studentReports = new List<StudentReportData>();
+            var studentReports = new List<StudentReportItem>();
 
             foreach (var student in students)
             {
@@ -259,7 +258,7 @@ namespace WebUI.Controllers.Advisor
                 if (periodEntries.Any())
                     lastActivityDates.Add(periodEntries.Max(d => d.CreatedAt));
 
-                studentReports.Add(new StudentReportData
+                studentReports.Add(new StudentReportItem
                 {
                     StudentName = student.FullName,
                     StudentEmail = student.Email,
@@ -267,23 +266,13 @@ namespace WebUI.Controllers.Advisor
                     TotalApplications = periodApplications.Count(),
                     TotalDiaryEntries = periodEntries.Count(),
                     TotalWorkingHours = (decimal)periodEntries.Sum(d => (double)d.WorkingHours),
-                    LastActivity = lastActivityDates.Any() ? lastActivityDates.Max() : null,
-                    IsActive = periodApplications.Any() || periodEntries.Any()
+                    LastActivity = lastActivityDates.Any() ? lastActivityDates.Max() : (DateTime?)null,
+                    IsActive = periodApplications.Any() || periodEntries.Any(),
+                    ActivityStatus = (periodApplications.Any() || periodEntries.Any()) ? "Aktif" : "Pasif"
                 });
             }
 
-            viewModel.StudentReports = studentReports.Select(sr => new StudentReportItem
-            {
-                StudentName = sr.StudentName,
-                StudentEmail = sr.StudentEmail,
-                Department = sr.Department,
-                TotalApplications = sr.TotalApplications,
-                TotalDiaryEntries = sr.TotalDiaryEntries,
-                TotalWorkingHours = sr.TotalWorkingHours,
-                LastActivity = sr.LastActivity,
-                IsActive = sr.IsActive,
-                ActivityStatus = sr.IsActive ? "Aktif" : "Pasif"
-            }).ToList();
+            viewModel.StudentReports = studentReports;
             return viewModel;
         }
 
@@ -332,8 +321,7 @@ namespace WebUI.Controllers.Advisor
         {
             try
             {
-                // Bu method Excel/PDF export iþlemlerini handle edecek
-                // Þimdilik placeholder
+                // Placeholder export handling
                 TempData["InfoMessage"] = $"{format.ToUpper()} export özelliði yakýnda eklenecek.";
                 return RedirectToAction("Index", new { period, reportType = type });
             }

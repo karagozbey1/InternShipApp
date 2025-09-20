@@ -62,12 +62,12 @@ namespace WebUI.Controllers.Company
                     ActiveInternsList = activeInterns.Select(MapToActiveInternViewModel).ToList(),
                     RecentActivities = recentActivities
                 };
-                return View("~/Views/Company/Index.cshtml", model);
+                return View("~/Views/Company/Dashboard/Index.cshtml", model);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Dashboard yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Company/Index.cshtml", new CompanyDashboardViewModel { CompanyName = "Þirket" });
+                return View("~/Views/Company/Dashboard/Index.cshtml", new CompanyDashboardViewModel { CompanyName = "Þirket" });
             }
         }
 

@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
 using WebUI.Models;
-using Business.Interfaces.Order; // IINewsService için
 using WebUI.Models.ViewModels.Home;
 using Business.Interfaces.Internship;
 using Business.Interfaces.Com;
@@ -14,18 +13,14 @@ namespace WebUI.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly IINewsService _newsService;
-        private readonly IISliderService _sliderService;
         private readonly IInternshipOfferService _offerService;
         private readonly IICompanyService _companyService;
         private readonly IIProvinceService _provinceService; // new
 
-        public HomeController(ILogger<HomeController> logger, IINewsService newsService, IISliderService sliderService,
+        public HomeController(ILogger<HomeController> logger,
             IInternshipOfferService offerService, IICompanyService companyService, IIProvinceService provinceService)
         {
             _logger = logger;
-            _newsService = newsService;
-            _sliderService = sliderService;
             _offerService = offerService;
             _companyService = companyService;
             _provinceService = provinceService;
@@ -35,28 +30,8 @@ namespace WebUI.Controllers
         {
             var viewModel = new HomeIndexViewModel();
             
-            // Get news and announcements
-            var allNews = await _newsService.GetAllNewsAsync();
-            viewModel.Announcements = allNews.Where(n => n.Category?.Equals("Announcement", StringComparison.OrdinalIgnoreCase) == true)
-                                            .OrderByDescending(n => n.PublishDate)
-                                            .Take(4)
-                                            .Select(n => new AnnouncementItem
-                                            {
-                                                Title = n.Title,
-                                                Content = n.Content,
-                                                PublishDate = n.PublishDate
-                                            })
-                                            .ToList();
-            
-            viewModel.News = allNews.Where(n => n.Category?.Equals("News", StringComparison.OrdinalIgnoreCase) == true)
-                                   .OrderByDescending(n => n.PublishDate)
-                                   .Take(4)
-                                   .ToList();
-            
-            // Get active sliders with their items
-            viewModel.SliderItems = (await _sliderService.GetActiveSlidersWithItemsAsync())
-                .SelectMany(s => s.Items ?? new List<Core.Entity.SliderItem>())
-                .ToList();
+            // Get news and announcements (news removed)
+            viewModel.Announcements = new List<AnnouncementItem>();
             
             // Static content that should be made dynamic (can be moved to database later)
             viewModel.ImportantDates = new List<ImportantDate>
@@ -79,18 +54,9 @@ namespace WebUI.Controllers
             return View(viewModel);
         }
 
-        // New solutions landing (Herkes için Çözüm) - acts as hub to login flows
+        // New solutions landing (Herkes için çözüm) - acts as hub to login flows
         [HttpGet]
         public IActionResult Solutions() => View();
-
-        public async Task<IActionResult> News()
-        {
-            var all = await _newsService.GetAllNewsAsync();
-            var news = all.Where(n => n.Category?.Equals("News", StringComparison.OrdinalIgnoreCase) == true)
-                          .OrderByDescending(n => n.PublishDate)
-                          .ToList();
-            return View(news);
-        }
 
         // Duyurular / Ýlanlar (company active offers) with filtering + pagination
         public async Task<IActionResult> Announcements(string? q, string? city, string? field, string? company, string sort = "new", int page = 1, int pageSize = 10)

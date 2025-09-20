@@ -71,50 +71,13 @@ namespace WebUI.Models.ViewModels.Advisor
         public int TotalApplications { get; set; }
         public int TotalDiaryEntries { get; set; }
         public decimal TotalWorkingHours { get; set; }
-        public decimal AverageCompletionRate { get; set; }
-        public string Period { get; set; } = "";
-    }
-
-    public class StudentReportData
-    {
-        public string StudentName { get; set; } = "";
-        public string StudentNumber { get; set; } = "";
-        public string Department { get; set; } = "";
-        public int TotalApplications { get; set; }
-        public int ApprovedApplications { get; set; }
-        public int TotalDiaryEntries { get; set; }
-        public decimal TotalWorkingHours { get; set; }
-        public DateTime? LastActivity { get; set; }
-        public bool IsActive { get; set; }
-        public string Status { get; set; } = "";
-        public decimal CompletionRate { get; set; }
-        public string StudentEmail { get; set; } = "";
-    }
-
-    public class AdvisorReportViewModel
-    {
-        public int TotalStudents { get; set; }
-        public int TotalApplications { get; set; }
-        public int PendingApprovals { get; set; }
-        public int CompletedInternships { get; set; }
+        public string Period { get; set; } = string.Empty;
         public List<AdvisorActivityItem> RecentActivities { get; set; } = new();
-        
-        // Additional properties needed by Report/Index.cshtml
-        public string CurrentReportType { get; set; } = "";
-        public List<StudentReportItem> StudentReports { get; set; } = new();
-        public List<ActivityDataItem> ActivityData { get; set; } = new();
-        public string CurrentPeriod { get; set; } = "";
-        
-        // Chart and statistics data
+
+        // Optional additional fields for future charts
         public Dictionary<string, int> StatusDistribution { get; set; } = new();
         public Dictionary<string, decimal> MonthlyProgress { get; set; } = new();
         public List<DepartmentStatistic> DepartmentStats { get; set; } = new();
-
-        // Missing properties from views
-        public AdvisorInfo? AdvisorInfo { get; set; }
-        public ReportSummary? Summary { get; set; }
-        public List<ApplicationStatistic> ApplicationStatistics { get; set; } = new();
-        public List<DiaryStatistic> DiaryStatistics { get; set; } = new();
     }
     
     public class StudentReportItem
@@ -159,6 +122,19 @@ namespace WebUI.Models.ViewModels.Advisor
         public decimal SuccessRate { get; set; }
     }
 
+    // NEW: Advisor Report ViewModel used by AdvisorReportController and Report/Index.cshtml
+    public class AdvisorReportViewModel
+    {
+        public string CurrentPeriod { get; set; } = "thisMonth";
+        public string CurrentReportType { get; set; } = "overview";
+        public AdvisorInfo AdvisorInfo { get; set; } = new();
+        public ReportSummary Summary { get; set; } = new();
+        public List<ApplicationStatistic> ApplicationStatistics { get; set; } = new();
+        public List<DiaryStatistic> DiaryStatistics { get; set; } = new();
+        public List<ActivityDataItem> ActivityData { get; set; } = new();
+        public List<StudentReportItem> StudentReports { get; set; } = new();
+    }
+
     // Application related ViewModels
     public class AdvisorApplicationListViewModel
     {
@@ -169,6 +145,7 @@ namespace WebUI.Models.ViewModels.Advisor
         public int PendingCount { get; set; }
         public int ApprovedCount { get; set; }
         public int RejectedCount { get; set; }
+        public int RevisionCount { get; set; } // Yeni eklenen
     }
 
     public class AdvisorApplicationCardViewModel
@@ -197,6 +174,9 @@ namespace WebUI.Models.ViewModels.Advisor
         public string? StudentDepartment { get; set; }
         public string? StudentUniversity { get; set; }
         public int? StudentGrade { get; set; }
+        // Revizyon için yeni eklenen propertyler
+        public string? RevisionNote { get; set; }
+        public DateTime? RevisedAt { get; set; }
 
         // Missing properties from views
         public string StatusText => Status switch
@@ -204,6 +184,7 @@ namespace WebUI.Models.ViewModels.Advisor
             Core.Entity.InternshipApprovalStatus.Pending => "Beklemede",
             Core.Entity.InternshipApprovalStatus.Approved => "Onaylandý",
             Core.Entity.InternshipApprovalStatus.Rejected => "Reddedildi",
+            Core.Entity.InternshipApprovalStatus.Revision => "Revizyonda",
             _ => "Bilinmiyor"
         };
 
@@ -212,6 +193,7 @@ namespace WebUI.Models.ViewModels.Advisor
             Core.Entity.InternshipApprovalStatus.Pending => "yellow",
             Core.Entity.InternshipApprovalStatus.Approved => "green",
             Core.Entity.InternshipApprovalStatus.Rejected => "red",
+            Core.Entity.InternshipApprovalStatus.Revision => "orange",
             _ => "gray"
         };
 
@@ -220,6 +202,7 @@ namespace WebUI.Models.ViewModels.Advisor
             Core.Entity.InternshipApprovalStatus.Pending => "fas fa-clock",
             Core.Entity.InternshipApprovalStatus.Approved => "fas fa-check-circle",
             Core.Entity.InternshipApprovalStatus.Rejected => "fas fa-times-circle",
+            Core.Entity.InternshipApprovalStatus.Revision => "fas fa-edit",
             _ => "fas fa-question-circle"
         };
 
@@ -374,7 +357,6 @@ namespace WebUI.Models.ViewModels.Advisor
         public int CompletedInternshipsCount { get; set; }
         public int UnreadNotificationsCount { get; set; }
         public Core.Entity.User? AdvisorInfo { get; set; }
-        public List<Core.Entity.News> RecentNews { get; set; } = new();
         public List<Core.Entity.Notification> RecentNotifications { get; set; } = new();
         public List<Core.Entity.InternshipApplication> RecentApplications { get; set; } = new();
         public WebUI.Models.ViewModels.Education.AcademicYearInfo? AcademicYear { get; set; }

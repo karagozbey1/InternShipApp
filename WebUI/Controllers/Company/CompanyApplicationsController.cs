@@ -63,12 +63,12 @@ namespace WebUI.Controllers.Company
                     Applications = allApplications.Select(MapToApplicationItemViewModel).OrderByDescending(a => a.ApplicationDate).ToList(),
                     AvailableJobPostings = offers.Select(o => new JobPostingSelectViewModel { Id = o.Id, Title = o.Title, Position = o.Field }).ToList()
                 };
-                return View("~/Views/Company/Applications.cshtml", model);
+                return View("~/Views/Company/Applications/Index.cshtml", model);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Baþvurular yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Company/Applications.cshtml", new ApplicationListViewModel());
+                return View("~/Views/Company/Applications/Index.cshtml", new ApplicationListViewModel());
             }
         }
 
@@ -91,7 +91,7 @@ namespace WebUI.Controllers.Company
                     return RedirectToAction("List");
                 }
                 var model = MapToApplicationDetailViewModel(application);
-                return View("~/Views/Company/ApplicationDetail.cshtml", model);
+                return View("~/Views/Company/Applications/Detail.cshtml", model);
             }
             catch (Exception ex)
             {
@@ -230,5 +230,21 @@ namespace WebUI.Controllers.Company
             _ => InternshipApplicationStatus.Pending
         };
         #endregion
+
+        // Legacy route support: /Student/CompanyApplications/Applications
+        [HttpGet("/Student/CompanyApplications/Applications")]
+        public async Task<IActionResult> LegacyApplicationsList()
+        {
+            // Yanlýþ student linki doðru company linkine yönlendir
+            return RedirectToAction("List");
+        }
+
+        // Legacy route support: /CompanyApplications/Applications  
+        [HttpGet("/CompanyApplications/Applications")]
+        public async Task<IActionResult> LegacyApplicationsListAlt()
+        {
+            // Yanlýþ eski linki doðru yeni linkine yönlendir
+            return RedirectToAction("List");
+        }
     }
 }
