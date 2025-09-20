@@ -2,7 +2,7 @@
 using Business.Interfaces.Internship;
 using Business.Interfaces.UserRepose;
 using Business.Interfaces.Order;
-using Business.Interfaces; // for IDiaryService
+using Business.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using WebUI.Controllers;
@@ -11,9 +11,11 @@ using Core.Entity;
 
 namespace WebUI.Controllers.Student
 {
+    // Öğrenci ana sayfa kontrolcüsü
     [Authorize]
     public class DashboardController : BaseAppController
     {
+        // Servisler
         private readonly IIUserService _userService;
         private readonly IInternshipApplicationService _applicationService;
         private readonly IInternshipDocumentService _documentService;
@@ -23,6 +25,7 @@ namespace WebUI.Controllers.Student
         private readonly IDiaryService _diaryService;
         private readonly IInternshipDiaryService _internshipDiaryService;
 
+        // Kurucu metod
         public DashboardController(
             IIUserService userService,
             IInternshipApplicationService applicationService,
@@ -43,6 +46,7 @@ namespace WebUI.Controllers.Student
             _internshipDiaryService = internshipDiaryService;
         }
 
+        // Ana sayfa
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -137,6 +141,7 @@ namespace WebUI.Controllers.Student
             }
         }
 
+        // Staj günlerini hesaplar
         private (int totalDays, int completedDays) CalculateInternshipDays(InternshipApplication? activeInternship, List<DiaryEntry> diaryEntries)
         {
             if (activeInternship == null) return (0, 0);
@@ -148,6 +153,7 @@ namespace WebUI.Controllers.Student
             return (totalDays, completedDays);
         }
 
+        // Süreç aşamasını belirler
         private string DetermineProcessStage(List<InternshipApplication> applications, InternshipApplication? activeInternship, int totalDays, int completedDays, bool hasDiary)
         {
             // Hiç başvuru yok
@@ -166,6 +172,7 @@ namespace WebUI.Controllers.Student
             return "Staj Devam Ediyor";
         }
 
+        // Süreç ilerlemesini getirir
         private int GetProcessProgress(string stage) => stage switch
         {
             "Başvuru Süresinde" => 10,
@@ -179,6 +186,7 @@ namespace WebUI.Controllers.Student
             _ => 20
         };
 
+        // Süreç açıklamasını getirir
         private string GetProcessDescription(string stage) => stage switch
         {
             "Başvuru Süresinde" => "Staj başvurunuzu yapabilirsiniz",
@@ -192,6 +200,7 @@ namespace WebUI.Controllers.Student
             _ => "Staj sürecinize devam edin"
         };
 
+        // Son aktiviteleri oluşturur
         private async Task<List<ActivityItem>> GenerateRecentActivities(int userId, List<InternshipApplication> applications, List<DiaryEntry> diaryEntries, List<Notification> notifications)
         {
             var activities = new List<ActivityItem>();
@@ -242,6 +251,7 @@ namespace WebUI.Controllers.Student
             return activities.OrderByDescending(a => a.CreatedAt).Take(4).ToList();
         }
 
+        // Zaman farkını metne çevirir
         private string GetTimeAgo(DateTime dateTime)
         {
             var ts = DateTime.UtcNow - dateTime;
@@ -252,6 +262,7 @@ namespace WebUI.Controllers.Student
             return dateTime.ToString("dd MMM yyyy");
         }
 
+        // İstatistikleri getirir
         [HttpGet]
         public async Task<IActionResult> GetStats()
         {
@@ -276,6 +287,7 @@ namespace WebUI.Controllers.Student
             }
         }
 
+        // İlerleme durumunu getirir
         [HttpGet]
         public async Task<IActionResult> GetProgress()
         {
@@ -306,6 +318,7 @@ namespace WebUI.Controllers.Student
             }
         }
 
+        // Günlük özet bildirimi oluşturur
         private async Task EnsureDailySummaryNotificationAsync(int userId, List<Notification> existing, string key, bool condition, string message)
         {
             if (!condition) return;
