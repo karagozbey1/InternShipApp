@@ -10,10 +10,12 @@ using Core.Entity;
 
 namespace WebUI.Controllers.Company
 {
+    // Þirket ana kontrolcüsü
     [Authorize(Roles = "Company")]
-    [Route("Company")] // preserve original URL prefix
+    [Route("Company")]
     public class CompanyController : BaseCompanyController
     {
+        // Kurucu metod
         public CompanyController(
             IICompanyService companyService,
             IInternshipOfferService offerService,
@@ -23,6 +25,7 @@ namespace WebUI.Controllers.Company
             IIChatService chatService)
             : base(companyService, offerService, applicationService, userService, notificationService, chatService) { }
 
+        // Ana sayfa
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -71,7 +74,7 @@ namespace WebUI.Controllers.Company
             }
         }
 
-        // New method to generate dynamic recent activities
+        // Son aktiviteleri oluþturur
         private async Task<List<CompanyActivityViewModel>> GenerateRecentActivitiesAsync(
             int companyId, 
             List<InternshipApplication> applications, 
@@ -226,7 +229,7 @@ namespace WebUI.Controllers.Company
             }
         }
 
-        // New: AJAX endpoint for refreshing activities without full page reload
+        // Son aktiviteleri JSON olarak döndürür
         [HttpGet("GetRecentActivities")]
         public async Task<JsonResult> GetRecentActivities()
         {
@@ -264,7 +267,7 @@ namespace WebUI.Controllers.Company
             }
         }
 
-        // New: Get dashboard stats for AJAX refresh
+        // Dashboard istatistiklerini döndürür
         [HttpGet("GetDashboardStats")]
         public async Task<JsonResult> GetDashboardStats()
         {
