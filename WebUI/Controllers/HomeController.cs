@@ -5,18 +5,27 @@ using WebUI.Models;
 using WebUI.Models.ViewModels.Home;
 using Business.Interfaces.Internship;
 using Business.Interfaces.Com;
-using Business.Services.Interfaces; // for IIProvinceService
+using Business.Services.Interfaces;
 
 namespace WebUI.Controllers
 {
+    // Ana sayfa kontrolcüsü
     [AllowAnonymous]
     public class HomeController : Controller
     {
+        // Logger servisi
         private readonly ILogger<HomeController> _logger;
+        
+        // Ýlan servisi
         private readonly IInternshipOfferService _offerService;
+        
+        // Þirket servisi
         private readonly IICompanyService _companyService;
-        private readonly IIProvinceService _provinceService; // new
+        
+        // Ýl servisi
+        private readonly IIProvinceService _provinceService;
 
+        // Kurucu metod
         public HomeController(ILogger<HomeController> logger,
             IInternshipOfferService offerService, IICompanyService companyService, IIProvinceService provinceService)
         {
@@ -26,14 +35,13 @@ namespace WebUI.Controllers
             _provinceService = provinceService;
         }
 
+        // Ana sayfa
         public async Task<IActionResult> Index()
         {
             var viewModel = new HomeIndexViewModel();
             
-            // Get news and announcements (news removed)
             viewModel.Announcements = new List<AnnouncementItem>();
             
-            // Static content that should be made dynamic (can be moved to database later)
             viewModel.ImportantDates = new List<ImportantDate>
             {
                 new ImportantDate { Date = DateTime.Parse("2025-02-01"), Description = "Yaz Dönemi Staj Baþvurularý Baþlýyor" },
@@ -54,11 +62,11 @@ namespace WebUI.Controllers
             return View(viewModel);
         }
 
-        // New solutions landing (Herkes için çözüm) - acts as hub to login flows
+        // Çözümler sayfasý
         [HttpGet]
         public IActionResult Solutions() => View();
 
-        // Duyurular / Ýlanlar (company active offers) with filtering + pagination
+        // Duyurular sayfasý
         public async Task<IActionResult> Announcements(string? q, string? city, string? field, string? company, string sort = "new", int page = 1, int pageSize = 10)
         {
             page = page < 1 ? 1 : page;
@@ -84,7 +92,6 @@ namespace WebUI.Controllers
                 offers = offers.Where(o => string.Equals(o.City, city, StringComparison.OrdinalIgnoreCase)).ToList();
             if (!string.IsNullOrWhiteSpace(field))
                 offers = offers.Where(o => string.Equals(o.Field, field, StringComparison.OrdinalIgnoreCase)).ToList();
-            // company filter intentionally removed per request
             offers = sort switch
             {
                 "old" => offers.OrderBy(o => o.CreatedAt).ToList(),
@@ -120,7 +127,6 @@ namespace WebUI.Controllers
                 EstablishedDate = companyMap.TryGetValue(o.CompanyId, out var c7) ? c7.EstablishedDate : null
             }).ToList();
 
-            // dynamic cities from Province table
             var provinces = await _provinceService.GetAllAsync();
             var provinceNames = provinces.Select(p => p.Name).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n).ToList();
 
@@ -129,7 +135,7 @@ namespace WebUI.Controllers
                 Query = q ?? string.Empty,
                 City = city ?? string.Empty,
                 Field = field ?? string.Empty,
-                Company = string.Empty, // no company filter
+                Company = string.Empty,
                 Sort = sort,
                 Page = page,
                 PageSize = pageSize,
@@ -137,12 +143,12 @@ namespace WebUI.Controllers
                 Offers = list,
                 DistinctCities = provinceNames,
                 DistinctFields = offers.Select(o => o.Field).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(s => s).ToList(),
-                DistinctCompanies = new List<string>() // not used anymore
+                DistinctCompanies = new List<string>()
             };
             return View(vm);
         }
 
-        // List + page build reused for AJAX + normal
+        // Ýlan verilerini oluþturur
         private async Task<AnnouncementOffersViewModel> BuildOffersVm(string? q, string? city, string? field, string? company, string sort, int page, int pageSize)
         {
             page = page < 1 ? 1 : page; pageSize = pageSize is < 5 or > 50 ? 10 : pageSize;
@@ -155,7 +161,6 @@ namespace WebUI.Controllers
             if (!string.IsNullOrWhiteSpace(q)) { var term = q.Trim(); offers = offers.Where(o => (o.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) || (o.Field?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) || (companyMap.TryGetValue(o.CompanyId, out var c) && (c.CompanyName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)) || (o.City?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)).ToList(); }
             if (!string.IsNullOrWhiteSpace(city)) offers = offers.Where(o => string.Equals(o.City, city, StringComparison.OrdinalIgnoreCase)).ToList();
             if (!string.IsNullOrWhiteSpace(field)) offers = offers.Where(o => string.Equals(o.Field, field, StringComparison.OrdinalIgnoreCase)).ToList();
-            // company filter removed intentionally
             offers = sort switch { "old" => offers.OrderBy(o => o.CreatedAt).ToList(), "title" => offers.OrderBy(o => o.Title).ToList(), _ => offers.OrderByDescending(o => o.CreatedAt).ToList() };
             var total = offers.Count; var totalPages = (int)Math.Ceiling(total / (double)pageSize); if (page > totalPages && totalPages > 0) page = totalPages;
             var favSet = GetFavoriteOfferIds();
@@ -203,7 +208,7 @@ namespace WebUI.Controllers
             };
         }
 
-        // AJAX endpoint for pagination / filtering
+        // Ýlanlarý JSON olarak döndürür
         [HttpGet]
         [Route("api/public/offers")]
         public async Task<IActionResult> GetOffersApi(string? q, string? city, string? field, string? company, string sort = "new", int page = 1, int pageSize = 10)
@@ -242,7 +247,7 @@ namespace WebUI.Controllers
             return Json(result);
         }
 
-        // Favorite toggle (cookie based demo). Real implementation should persist per user.
+        // Favori durumunu deðiþtirir
         [Authorize(Roles = "Student")]
         [HttpPost]
         [Route("api/public/offers/{id}/favorite")]        
@@ -254,18 +259,25 @@ namespace WebUI.Controllers
             return Json(new { success = true, isFavorite = favs.Contains(id) });
         }
 
+        // Favori ilan ID'lerini getirir
         private HashSet<int> GetFavoriteOfferIds()
         {
             var cookie = Request.Cookies["fav_offers"];
             if (string.IsNullOrWhiteSpace(cookie)) return new HashSet<int>();
             try { return new HashSet<int>(cookie.Split('-', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse)); } catch { return new HashSet<int>(); }
         }
+        
+        // Favori ilan ID'lerini kaydeder
         private void SaveFavoriteOfferIds(HashSet<int> set)
         {
             Response.Cookies.Append("fav_offers", string.Join('-', set), new CookieOptions { Expires = DateTimeOffset.UtcNow.AddDays(30), HttpOnly = false, IsEssential = true });
         }
 
+        // Gizlilik sayfasý
         public IActionResult Privacy() => View();
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)] public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        
+        // Hata sayfasý
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)] 
+        public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
