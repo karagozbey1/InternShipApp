@@ -2,35 +2,58 @@ using System;
 
 namespace Core.Entity
 {
+    // Staj defteri entity'si - öðrenci staj günlükleri
     public class InternshipDiary
     {
+        // Primary key - staj defteri benzersiz tanýmlayýcýsý
         public int Id { get; set; }
+        
+        // Foreign key - defteri tutan öðrencinin ID'si
         public int StudentId { get; set; }
+        
+        // Navigation property - defteri tutan öðrenci
         public User? Student { get; set; }
 
-        // Optional link to the original InternshipApplication
+        // Foreign key - iliþkili baþvurunun ID'si (opsiyonel)
         public int? ApplicationId { get; set; }
+        
+        // Navigation property - iliþkili baþvuru
         public InternshipApplication? Application { get; set; }
 
+        // Defter baþlýðý - zorunlu alan
         public string Title { get; set; } = null!;
+        
+        // Defter açýklamasý - opsiyonel
         public string? Description { get; set; }
         
-        // PostgreSQL için UTC DateTime - default deðerleri kaldýrýldý
+        // Defter oluþturulma zamaný - UTC format
         public DateTime CreatedAt { get; set; }
+        
+        // Defter güncellenme zamaný - UTC format
         public DateTime UpdatedAt { get; set; }
         
-        // Staj bilgileri
+        // Þirket adý - opsiyonel
         public string? CompanyName { get; set; }
+        
+        // Departman adý - opsiyonel
         public string? Department { get; set; }
+        
+        // Staj baþlangýç tarihi - opsiyonel
         public DateTime? InternshipStartDate { get; set; }
+        
+        // Staj bitiþ tarihi - opsiyonel
         public DateTime? InternshipEndDate { get; set; }
+        
+        // Toplam staj günü - opsiyonel
         public int? TotalDays { get; set; }
         
-        // Defter ayarlarý
+        // Bu defter zorunlu mu - varsayýlan true
         public bool IsRequired { get; set; } = true;
+        
+        // Defter tamamlandý mý - varsayýlan false
         public bool IsCompleted { get; set; } = false;
         
-        // Ýliþkiler
+        // Navigation property - defterdeki günlük giriþler
         public ICollection<DiaryEntry>? Entries { get; set; }
     }
 }
