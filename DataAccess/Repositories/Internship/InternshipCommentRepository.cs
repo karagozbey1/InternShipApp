@@ -9,12 +9,15 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Repositories.Internship
 {
+    // Yorum veri erişim sınıfı
     public class InternshipCommentRepository : Repository<InternshipComment>, IInternshipCommentRepository
     {
-
+        // Kurucu metod
         public InternshipCommentRepository(ApplicationDbContext context) : base(context)
         {
         }
+        
+        // Yorum ekler
         public async Task AddCommentAsync(InternshipComment comment)
         {
             if (comment == null)
@@ -24,6 +27,7 @@ namespace DataAccess.Repositories.Internship
             await _context.SaveChangesAsync();
         }
 
+        // Başvuru yorumlarını getirir
         public async Task<List<InternshipComment>> GetCommentsByApplicationIdAsync(int applicationId)
         {
             return await _context.InternshipComments
