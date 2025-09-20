@@ -5,8 +5,6 @@ using Core.Entity;
 using DataAccess.Unit.Interface;
 using System.Linq;
 
-
-
 namespace Business.Services.UserRepose;
 
 public class UserService : IIUserService
@@ -20,31 +18,38 @@ public class UserService : IIUserService
         _activationEmailService = activationEmailService;
     }
 
-
+    // Kimlik ile kullanıcı getirir
     public async Task<User?> GetUserByIdAsync(int userId)
     {
         return await _unitOfWork.Users.GetByIdAsync(userId);
     }
 
+    // Üniversite ile kullanıcı getirir
     public async Task<User?> GetUserWithUniversityAsync(int userId)
     {
         return await _unitOfWork.Users.GetUserWithUniversityAsync(userId);
     }
 
+    // E-posta ile kullanıcı getirir
     public async Task<User?> GetUserByEmailAsync(string email)
     {
         return await _unitOfWork.Users.GetUserByEmailAsync(email);
     }
+    
+    // Aktivasyon kodu ile kullanıcı getirir
     public async Task<User?> GetUserByActivationCodeAsync(string code)
     {
         return await _unitOfWork.Users.GetUserByActivationCodeAsync(code);
     }
+    
+    // Kullanıcı günceller
     public async Task UpdateUserAsync(User user)
     {
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveAsync();
     }
 
+    // Kullanıcı siler
     public async Task DeleteUserAsync(int userId)
     {
         var user = await _unitOfWork.Users.GetByIdAsync(userId);
@@ -54,16 +59,20 @@ public class UserService : IIUserService
             await _unitOfWork.SaveAsync();
         }
     }
+    
+    // Role göre kullanıcıları getirir
     public async Task<List<User>> GetUsersByRoleAsync(UserRole role)
     {
         return await _unitOfWork.Users.GetUsersByRoleAsync(role);
     }
 
+    // Ada göre kullanıcı arar
     public async Task<List<User>> SearchUsersByFullNameAsync(string keyword)
     {
         return await _unitOfWork.Users.SearchUsersByFullNameAsync(keyword);
     }
 
+    // Yeni kullanıcı ekler
     public async Task<User> AddUserAsync(User user)
     {
         if (!await _unitOfWork.Users.IsEmailUniqueAsync(user.Email))
@@ -87,6 +96,7 @@ public class UserService : IIUserService
 
 
     #region Şifre Sıfırlama
+    // Şifre sıfırlama e-postası gönderir
     public async Task SendForgetPasswordAsync(string email, string resetUrl)
     {
         var user = await GetUserByEmailAsync(email);
@@ -102,9 +112,10 @@ public class UserService : IIUserService
         await _unitOfWork.SaveAsync();
 
         var message = $"Şifrenizi sıfırlamak için lütfen aşağıdaki bağlantıya tıklayın.";
-        await _activationEmailService.SendEmailForgetPassAsync(  user.Email,  token,  resetUrl,  user.FullName);
+        await _activationEmailService.SendEmailForgetPassAsync(user.Email, token, resetUrl, user.FullName);
     }
 
+    // Şifre sıfırlar
     public async Task ResetPasswordAsync(string token, string newPassword)
     {
         var user = await _unitOfWork.Users.GetUserByResetPasswordCodeAsync(token);
@@ -124,6 +135,7 @@ public class UserService : IIUserService
     }
 
     #endregion
+    // Kullanıcı aktive eder
     public async Task ActivateUserAsync(string code)
     {
         await _unitOfWork.Users.ActivateUserAsync(code);
@@ -131,14 +143,17 @@ public class UserService : IIUserService
 
 
 
+    // Tüm öğrencileri getirir
     public async Task<List<User>> GetAllStudentsAsync()
     {
         return await _unitOfWork.Users.GetUsersByRoleAsync(UserRole.Student);
     }
 
+    // Kimlik ile öğrenci getirir
     public async Task<User?> GetStudentByIdAsync(int id)
         => await _unitOfWork.Users.GetByIdAsync(id);
 
+    // Şifre değiştirir
     public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
     {
         var user = await _unitOfWork.Users.GetUserByIdWithPasswordAsync(userId);
