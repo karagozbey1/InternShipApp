@@ -2,51 +2,51 @@
 
 namespace Core.Entity;
 
-// Şirket entity'si - staj pozisyonları sunan kurumların bilgilerini temsil eder
+// Şirket bilgileri
 public class Company
 {
-    // Primary key - şirketin benzersiz tanımlayıcısı
+    // Kimlik numarası
     public int CompanyId { get; set; }
 
-    // Şirketin resmi adı - zorunlu alan
+    // Şirket adı
     public string CompanyName { get; set; } = null!;
     
-    // Şirketin faaliyet gösterdiği sektör - opsiyonel
+    // Sektör
     public string? Sector { get; set; }
    
-    // Şirketin iletişim telefon numarası - opsiyonel
+    // Telefon
     public string? Phone { get; set; }
     
-    // Şirketin sistem onay durumu - true ise ilan verebilir
+    // Onaylandı mı
     public bool Approved { get; set; }
 
-    // Navigation property - şirketin verdiği staj teklifleri
+    // Staj ilanları
     public ICollection<InternshipOffer>? InternshipOffers { get; set; }
     
-    // Navigation property - şirket ile ilişkili kullanıcılar
+    // Şirket kullanıcıları
     public ICollection<CompanyUser>? CompanyUsers { get; set; }
     
-    // Şirketin vergi numarası - opsiyonel
+    // Vergi numarası
     public string? TaxNumber { get; set; }
     
-    // Şirketin fiziksel adresi - opsiyonel
+    // Adres
     public string? Address { get; set; }
     
-    // Şirket hakkında genel açıklama - opsiyonel
+    // Açıklama
     public string? Description { get; set; }
     
-    // Şirketin resmi e-posta adresi - opsiyonel
+    // E-posta
     public string? Email { get; set; }
     
-    // Şirketin web sitesi URL'i - opsiyonel
+    // Web sitesi
     public string? Website { get; set; }
     
-    // Şirketin çalışan sayısı - string format (örn: "50-100")
+    // Çalışan sayısı
     public string? EmployeeCount { get; set; }
     
-    // Şirketin kuruluş tarihi - opsiyonel
+    // Kuruluş tarihi
     public DateTime? EstablishedDate { get; set; }
     
-    // Şirket logosunun dosya yolu - opsiyonel
+    // Logo yolu
     public string? LogoPath { get; set; }
 }

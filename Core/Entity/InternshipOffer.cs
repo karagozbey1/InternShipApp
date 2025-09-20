@@ -8,129 +8,129 @@ using System.Threading.Tasks;
 
 namespace Core.Entity
 {
-    // Staj süre türünü belirten enum
+    // Staj süre türü
     public enum OfferDurationType
     {
-        // Kısa süreli staj - genellikle 1-2 ay arası
+        // Kısa süreli
         [Display(Name = "Kısa")]
         Kisa = 1,
         
-        // Uzun süreli staj - genellikle 3-6 ay arası
+        // Uzun süreli
         [Display(Name = "Uzun")]
         Uzun = 2,
         
-        // Yarı zamanlı çalışma düzeni - günde 4-5 saat
+        // Yarı zamanlı
         [Display(Name = "Yarı zamanlı")]
         YariZamanli = 3,
         
-        // Tam zamanlı çalışma düzeni - günde 8 saat
+        // Tam zamanlı
         [Display(Name = "Tam zamanlı")]
         TamZamanli = 4
     }
 
-    // İş teklifi türünü belirten enum
+    // İş türü
     public enum OfferJobType
     {
-        // Sadece staj pozisyonu - geçici, eğitim amaçlı
+        // Sadece staj
         Internship = 1,
         
-        // Sadece iş pozisyonu - kalıcı istihdam
+        // Sadece iş
         Job = 2,
         
-        // Hem staj hem iş imkanı - staj sonrası kalma fırsatı
+        // Staj ve iş
         Both = 3
     }
 
-    // Para birimi türlerini tanımlayan enum
+    // Para birimi
     public enum CurrencyType
     {
-        // Türk Lirası - yerel para birimi
+        // Türk Lirası
         [Display(Name = "₺ - TL")]
         TRY = 1,
         
-        // Amerikan Doları - uluslararası standart
+        // Amerikan Doları
         [Display(Name = "$ - USD")]
         USD = 2,
         
-        // Euro - Avrupa para birimi
+        // Euro
         [Display(Name = "€ - EUR")]
         EUR = 3
     }
 
-    // Tarih seçim modunu belirten enum
+    // Tarih seçim türü
     public enum DateSelectionMode
     {
-        // Şirket önceden tanımlanmış bir dönem belirlemiş
+        // Belirli dönem
         Period = 1,
         
-        // Şirket kesin başlangıç ve bitiş tarihlerini vermiş
+        // Sabit tarih aralığı
         FixedRange = 2,
         
-        // Şirket tarih kısıtlaması getirmemiş
+        // Esnek tarih
         Open = 3
     }
 
-    // Staj teklifi entity - şirketlerin staj ilanlarını temsil eder
+    // Staj ilanı
     public class InternshipOffer
     {
-        // Primary key - benzersiz teklif tanımlayıcısı
+        // Kimlik numarası
         public int Id { get; set; }
         
-        // İlan başlığı - pozisyon adını belirtir
+        // İlan başlığı
         public string Title { get; set; } = null!;
 
-        // Detaylı iş açıklaması - opsiyonel
+        // İş açıklaması
         public string? Description { get; set; }
         
-        // Başvuru için gerekli şartlar - opsiyonel
+        // Gerekli şartlar
         public string? Requirements { get; set; }
         
-        // Stajın yapılacağı şehir - zorunlu alan
+        // Şehir
         public string City { get; set; } = null!;
         
-        // Stajın alanı/sektörü - zorunlu alan
+        // Alan/sektör
         public string Field { get; set; } = null!;
      
-        // Mevcut pozisyon sayısı - kaç öğrenci alınacağını belirtir
+        // Mevcut pozisyon sayısı
         public int AvailablePositions { get; set; } = 0;
         
-        // Teklifin aktif durumu - false ise başvuru alınmaz
+        // Aktif durumu
         public bool IsActive { get; set; } = true;
         
-        // Teklifin oluşturulma tarihi - otomatik atanır
+        // Oluşturulma tarihi
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Başvuru son tarihi - opsiyonel, null ise süresiz
+        // Başvuru son tarihi
         public DateTime? ApplicationDeadline { get; set; }
         
-        // Foreign key - teklifi veren şirketin ID'si
+        // Şirket kimliği
         public int CompanyId { get; set; }
         
-        // Navigation property - teklifi veren şirket
+        // Şirket bilgileri
         public Company? Company { get; set; }
 
-        // Foreign key - staj döneminin ID'si
+        // Dönem kimliği
         public int PeriodId { get; set; }
         
-        // Navigation property - staj dönemi
+        // Dönem bilgileri
         public InternshipPeriod? Period { get; set; }
 
-        // Stajın süre türü - enum değeri
+        // Süre türü
         public OfferDurationType Duration { get; set; } = OfferDurationType.Kisa;
 
-        // İş teklifi türü - enum değeri
+        // İş türü
         public OfferJobType JobType { get; set; } = OfferJobType.Internship;
 
-        // Aylık maaş miktarı - opsiyonel
+        // Aylık maaş
         public decimal? MonthlySalary { get; set; }
 
-        // Maaş para birimi - enum değeri
+        // Maaş para birimi
         public CurrencyType MonthlySalaryCurrency { get; set; } = CurrencyType.TRY;
 
-        // Navigation property - bu ilana yapılan başvurular
+        // Başvurular
         public ICollection<InternshipApplication>? InternshipApplications { get; set; }
 
-        // Tarih seçim modu - öğrencinin tarih esnekliği
+        // Tarih seçim türü
         public DateSelectionMode DateMode { get; set; } = DateSelectionMode.Period;
     }
 }

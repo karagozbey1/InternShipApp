@@ -8,25 +8,25 @@ using System.Threading.Tasks;
 
 namespace Core.Entity
 {
-    // Þirket-kullanýcý iliþki entity'si - many-to-many junction table
+    // Þirket kullanýcý iliþkisi
     public class CompanyUser
     {
-        // Primary key - iliþki benzersiz tanýmlayýcýsý
+        // Kimlik numarasý
         public int Id { get; set; }
 
-        // Foreign key - þirketin ID'si
+        // Þirket kimliði
         public int CompanyId { get; set; }
         
-        // Navigation property - þirket
+        // Þirket
         public Company Company { get; set; } = null!;
 
-        // Foreign key - kullanýcýnýn ID'si
+        // Kullanýcý kimliði
         public int UserId { get; set; }
         
-        // Navigation property - kullanýcý
+        // Kullanýcý
         public User User { get; set; } = null!;
 
-        // Kullanýcýnýn þirketteki rolü - opsiyonel (örn: "ÝK Uzmaný", "Staj Koordinatörü")
+        // Þirketteki görevi
         public string? RoleInCompany { get; set; }
     }
 }

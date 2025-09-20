@@ -7,61 +7,61 @@ using System.Threading.Tasks;
 
 namespace Core.Entity
 {
-    // Bildirim entity'si - kullanıcılara gönderilen sistem mesajları
+    // Bildirim
     public class Notification
     {
-        // Primary key - bildirim benzersiz tanımlayıcısı
+        // Kimlik numarası
         public int Id { get; set; }
         
-        // Foreign key - bildirimi alan kullanıcının ID'si
+        // Kullanıcı kimliği
         public int UserId { get; set; }
         
-        // Navigation property - bildirimi alan kullanıcı
+        // Kullanıcı
         public User User { get; set; } = null!;
         
-        // Bildirim başlığı - kısa özet
+        // Başlık
         public string Title { get; set; } = null!;
         
-        // Bildirim içeriği - detaylı mesaj
+        // Mesaj
         public string Message { get; set; } = null!;
         
-        // Bildirim türü - Info, Warning, Error, Success, Message, Application, Document
+        // Bildirim türü
         public string Type { get; set; } = "Info";
         
-        // Bildirime tıklandığında gidilecek URL - opsiyonel
+        // Tıklama bağlantısı
         public string? ActionUrl { get; set; }
         
-        // Bildirim ikonu CSS sınıfı - FontAwesome class
+        // İkon sınıfı
         public string? IconClass { get; set; }
         
-        // Bildirim oluşturulma zamanı - otomatik atanır
+        // Oluşturulma tarihi
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Bildirim okunma zamanı - null ise okunmamış
+        // Okunma tarihi
         public DateTime? ReadAt { get; set; }
         
-        // Bildirim okundu mu - boolean flag
+        // Okundu mu
         public bool IsRead { get; set; } = false;
         
-        // Bildirim silinmiş mi - soft delete
+        // Silindi mi
         public bool IsDeleted { get; set; } = false;
         
-        // Bildirim son geçerlilik tarihi - opsiyonel
+        // Son geçerlilik tarihi
         public DateTime? ExpiresAt { get; set; }
         
-        // İlişkili entity'nin ID'si - opsiyonel
+        // İlişkili öğe kimliği
         public int? RelatedEntityId { get; set; }
         
-        // İlişkili entity'nin türü - Application, Document, ChatMessage vb.
+        // İlişkili öğe türü
         public string? RelatedEntityType { get; set; }
         
-        // Grup anahtarı - ilişkili bildirimleri gruplamak için
+        // Grup anahtarı
         public string? GroupKey { get; set; }
         
-        // Bu bildirim gruplanmış mı - batch notifications için
+        // Gruplu mu
         public bool IsGrouped { get; set; } = false;
         
-        // Bildirim önceliği - 1=Low, 2=Normal, 3=High, 4=Critical
+        // Öncelik seviyesi
         public int Priority { get; set; } = 1;
     }
 }

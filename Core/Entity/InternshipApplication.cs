@@ -1,66 +1,66 @@
 ﻿namespace Core.Entity;
 
-// Staj başvurusu durumunu belirten enum - başvurunun hangi aşamada olduğunu gösterir
+// Başvuru durumu
 public enum InternshipApplicationStatus
 {
-    // Beklemede - başvuru henüz değerlendirilmiyor
+    // Beklemede
     Pending = 0,
     
-    // Onaylandı - başvuru şirket tarafından kabul edildi
+    // Onaylandı
     Approved = 1,
     
-    // Reddedildi - başvuru şirket tarafından reddedildi
+    // Reddedildi
     Rejected = 2
 }
 
-// Staj başvurusu entity'si - öğrencilerin şirket pozisyonlarına yaptığı başvuruları temsil eder
+// Staj başvurusu
 public class InternshipApplication
 {
-    // Primary key - başvuru benzersiz tanımlayıcısı
+    // Kimlik numarası
     public int Id { get; set; }
     
-    // Başvurunun mevcut durumu - Pending, Approved veya Rejected
+    // Başvuru durumu
     public InternshipApplicationStatus Status { get; set; }
     
-    // Öğrencinin başvuru ile birlikte gönderdiği not - opsiyonel
+    // Öğrenci notu
     public string? StudentNote { get; set; }
     
-    // Başvurunun oluşturulma tarihi - otomatik atanır
+    // Başvuru tarihi
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    // Foreign key - başvuru yapılan staj teklifinin ID'si
+    // Staj ilanı kimliği
     public int InternshipOfferId { get; set; }
     
-    // Navigation property - başvuru yapılan staj teklifi
+    // Staj ilanı
     public InternshipOffer? InternshipOffer { get; set; }
     
-    // Foreign key - başvuru yapan öğrencinin ID'si
+    // Öğrenci kimliği
     public int StudentId { get; set; }
     
-    // Navigation property - başvuruyu yapan öğrenci
+    // Öğrenci
     public User? Student { get; set; }
     
-    // Foreign key - başvuruyu değerlendiren danışmanın ID'si (opsiyonel)
+    // Danışman kimliği
     public int? AdvisorId { get; set; }
     
-    // Navigation property - başvuruyu değerlendiren danışman
+    // Danışman
     public User? Advisor { get; set; }
     
-    // Stajın başlangıç tarihi - öğrencinin çalışmaya başlayacağı tarih
+    // Staj başlangıç tarihi
     public DateTime StartDate { get; set; }
     
-    // Stajın bitiş tarihi - öğrencinin stajını tamamlayacağı tarih
+    // Staj bitiş tarihi
     public DateTime EndDate { get; set; }
     
-    // Navigation property - başvuruya eklenen belgeler koleksiyonu
+    // Başvuru belgeleri
     public ICollection<InternshipDocument>? InternshipDocuments { get; set; }
     
-    // Navigation property - başvuru hakkında yapılan yorumlar
+    // Başvuru yorumları
     public ICollection<InternshipComment>? InternshipComments { get; set; }
     
-    // Başvurunun son güncellenme tarihi - durum değişikliklerinde güncellenir
+    // Son güncelleme tarihi
     public DateTime UpdatedAt { get; set; }
     
-    // Bu stajın öğrenci için zorunlu olup olmadığını belirtir
+    // Zorunlu staj mı
     public bool IsCompulsory { get; set; } = false;
 }

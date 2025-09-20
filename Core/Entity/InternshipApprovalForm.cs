@@ -2,120 +2,120 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Core.Entity
 {
-    // Staj onay formu entity'si - danýþman onay sürecini yönetir
+    // Staj onay formu
     public class InternshipApprovalForm
     {
-        // Primary key - onay formu benzersiz tanýmlayýcýsý
+        // Kimlik numarasý
         public int Id { get; set; }
         
-        // Foreign key - onaylanan baþvurunun ID'si
+        // Baþvuru kimliði
         [Required]
         public int ApplicationId { get; set; }
         
-        // Navigation property - onaylanan baþvuru
+        // Baþvuru
         public InternshipApplication? Application { get; set; }
         
-        // Foreign key - stajyer öðrencinin ID'si
+        // Öðrenci kimliði
         [Required]
         public int StudentId { get; set; }
         
-        // Navigation property - stajyer öðrenci
+        // Öðrenci
         public User? Student { get; set; }
         
-        // Foreign key - onaylayan danýþmanýn ID'si (opsiyonel)
+        // Danýþman kimliði
         public int? AdvisorId { get; set; }
         
-        // Navigation property - onaylayan danýþman
+        // Danýþman
         public User? Advisor { get; set; }
         
-        // Þirket adý - zorunlu alan
+        // Þirket adý
         [Required]
         [Display(Name = "Þirket Adý")]
         public string CompanyName { get; set; } = null!;
         
-        // Staj baþlangýç tarihi - zorunlu alan
+        // Baþlangýç tarihi
         [Required]
         [Display(Name = "Staj Baþlangýç Tarihi")]
         public DateTime StartDate { get; set; }
         
-        // Staj bitiþ tarihi - zorunlu alan
+        // Bitiþ tarihi
         [Required]
         [Display(Name = "Staj Bitiþ Tarihi")]
         public DateTime EndDate { get; set; }
         
-        // Haftalýk çalýþma saati - zorunlu alan
+        // Haftalýk çalýþma saati
         [Required]
         [Display(Name = "Haftalýk Çalýþma Saati")]
         public int WeeklyWorkHours { get; set; }
         
-        // Staj yeri adresi - opsiyonel
+        // Ýþ yeri adresi
         [Display(Name = "Staj Yeri Adresi")]
         public string? WorkplaceAddress { get; set; }
         
-        // Staj koordinatörü adý - opsiyonel
+        // Koordinatör
         [Display(Name = "Staj Koordinatörü")]
         public string? InternshipCoordinator { get; set; }
         
-        // Koordinatör telefonu - opsiyonel
+        // Koordinatör telefonu
         [Display(Name = "Koordinatör Telefonu")]
         public string? CoordinatorPhone { get; set; }
         
-        // Koordinatör e-postasý - opsiyonel
+        // Koordinatör e-posta
         [Display(Name = "Koordinatör E-posta")]
         public string? CoordinatorEmail { get; set; }
         
-        // Staj açýklamasý - opsiyonel
+        // Staj açýklamasý
         [Display(Name = "Staj Konusu/Açýklamasý")]
         public string? InternshipDescription { get; set; }
         
-        // Öðrenci notu - opsiyonel
+        // Öðrenci notu
         [Display(Name = "Öðrenci Notu")]
         public string? StudentNote { get; set; }
         
-        // Danýþman notu - opsiyonel
+        // Danýþman notu
         [Display(Name = "Danýþman Notu")]
         public string? AdvisorNote { get; set; }
         
-        // Revizyon notu - opsiyonel
+        // Düzeltme notu
         [Display(Name = "Revizyon Notu")]
         public string? RevisionNote { get; set; }
         
-        // Onay durumu - enum deðeri
+        // Durum
         public InternshipApprovalStatus Status { get; set; } = InternshipApprovalStatus.Pending;
         
-        // Form oluþturulma zamaný - otomatik atanýr
+        // Oluþturulma tarihi
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Onaylanma zamaný - opsiyonel
+        // Onaylanma tarihi
         public DateTime? ApprovedAt { get; set; }
         
-        // Reddedilme zamaný - opsiyonel
+        // Reddedilme tarihi
         public DateTime? RejectedAt { get; set; }
         
-        // Revizyon zamaný - opsiyonel
+        // Düzeltme tarihi
         public DateTime? RevisedAt { get; set; }
         
-        // Red nedeni - opsiyonel
+        // Red nedeni
         [Display(Name = "Red Nedeni")]
         public string? RejectionReason { get; set; }
     }
     
-    // Staj onay durumu enum'u
+    // Onay durumu
     public enum InternshipApprovalStatus
     {
-        // Onay bekleniyor - varsayýlan durum
+        // Beklemede
         [Display(Name = "Onay Bekleniyor")]
         Pending = 0,
         
-        // Onaylandý - danýþman onayladý
+        // Onaylandý
         [Display(Name = "Onaylandý")]
         Approved = 1,
         
-        // Reddedildi - danýþman reddetti
+        // Reddedildi
         [Display(Name = "Reddedildi")]
         Rejected = 2,
         
-        // Revizyonda - düzeltme istendi
+        // Düzeltme istendi
         [Display(Name = "Revizyonda")]
         Revision = 3
     }

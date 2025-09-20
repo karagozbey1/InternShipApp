@@ -1,24 +1,24 @@
 ﻿namespace Core.Entity
 {
-    // Üniversite entity'si - akademik kurumları temsil eder
+    // Üniversite
     public class University
     {
-        // Primary key - üniversite benzersiz tanımlayıcısı
+        // Kimlik numarası
         public int Id { get; set; }
         
-        // Üniversitenin adı - zorunlu alan
+        // Üniversite adı
         public string Name { get; set; } = string.Empty;
         
-        // Üniversitenin durumu - aktif/pasif kontrolü
+        // Durum
         public byte Status { get; set; } = 1;
 
-        // Foreign key - üniversitenin bulunduğu ilin ID'si
+        // İl kimliği
         public int ProvinceId { get; set; }
         
-        // Navigation property - üniversitenin bulunduğu il
+        // İl bilgileri
         public Province? Province { get; set; }
 
-        // Navigation property - bu üniversiteye kayıtlı kullanıcılar
+        // Kullanıcılar
         public ICollection<User>? Users { get; set; }
     }
 }

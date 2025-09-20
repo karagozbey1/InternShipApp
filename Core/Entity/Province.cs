@@ -2,18 +2,18 @@
 
 namespace Core.Entity;
 
-// İl entity'si - Türkiye illerini temsil eder
+// İl
 public class Province
 {
-    // Primary key - il benzersiz tanımlayıcısı
+    // Kimlik numarası
     public int Id { get; set; }
     
-    // İl adı - zorunlu alan
+    // İl adı
     public string Name { get; set; } = string.Empty;
     
-    // İl durumu - aktif/pasif kontrolü
+    // Durum
     public int Status { get; set; }
     
-    // Navigation property - bu ildeki üniversiteler
+    // Üniversiteler
     public ICollection<University> Universities { get; set; } = new List<University>();
 }
