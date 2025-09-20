@@ -11,9 +11,11 @@ using WebUI.Models.Company;
 
 namespace WebUI.Controllers.Company
 {
+    // Temel þirket kontrolcü sýnýfý
     [Authorize(Roles = "Company")]
     public abstract class BaseCompanyController : Controller
     {
+        // Servisler
         protected readonly IICompanyService _companyService;
         protected readonly IInternshipOfferService _offerService;
         protected readonly IInternshipApplicationService _applicationService;
@@ -21,6 +23,7 @@ namespace WebUI.Controllers.Company
         protected readonly IINotificationService _notificationService;
         protected readonly IIChatService _chatService;
 
+        // Kurucu metod
         protected BaseCompanyController(
             IICompanyService companyService,
             IInternshipOfferService offerService,
@@ -37,12 +40,14 @@ namespace WebUI.Controllers.Company
             _chatService = chatService;
         }
 
+        // Mevcut kullanýcý ID'sini getirir
         protected int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
 
+        // Mevcut þirket ID'sini getirir
         protected async Task<int> GetCurrentCompanyIdAsync()
         {
             var userId = GetCurrentUserId();
@@ -50,7 +55,7 @@ namespace WebUI.Controllers.Company
             return company?.CompanyId ?? 0;
         }
 
-        #region Mapping helpers shared across company controllers
+        // Son baþvurularý görünüm modeline dönüþtürür
         protected RecentApplicationViewModel MapToRecentApplicationViewModel(InternshipApplication application)
         {
             return new RecentApplicationViewModel
@@ -63,6 +68,7 @@ namespace WebUI.Controllers.Company
             };
         }
 
+        // Aktif stajyerleri görünüm modeline dönüþtürür
         protected ActiveInternViewModel MapToActiveInternViewModel(InternshipApplication application)
         {
             var totalDays = CalculateWorkingDays(application.StartDate, application.EndDate);
@@ -80,6 +86,7 @@ namespace WebUI.Controllers.Company
             };
         }
 
+        // Durumu görünüm modeline dönüþtürür
         protected ApplicationStatus MapToViewModelStatus(InternshipApplicationStatus coreStatus) => coreStatus switch
         {
             InternshipApplicationStatus.Pending => ApplicationStatus.Pending,
@@ -88,7 +95,7 @@ namespace WebUI.Controllers.Company
             _ => ApplicationStatus.Pending
         };
 
-        // Helper method to calculate working days (excluding weekends)
+        // Çalýþma günlerini hesaplar
         private int CalculateWorkingDays(DateTime startDate, DateTime endDate)
         {
             if (endDate <= startDate) return 0;
@@ -103,6 +110,5 @@ namespace WebUI.Controllers.Company
             }
             return workingDays;
         }
-        #endregion
     }
 }
