@@ -15,6 +15,169 @@ namespace WebUI.Models.ViewModels.Student
         public string SearchTerm { get; set; } = "";
     }
 
+    /// <summary>
+    /// Staj onayý düzenleme sayfasý için ViewModel
+    /// Danýþman tarafýndan onay formlarýný düzenlemek için kullanýlýr
+    /// </summary>
+    public class ApprovalEditViewModel
+    {
+        /// <summary>
+        /// Onay formu ID'si - düzenlenecek formun benzersiz tanýmlayýcýsý
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Danýþman notu - öðrenci performansý ve deðerlendirme
+        /// </summary>
+        [Required(ErrorMessage = "Danýþman notu zorunludur")]
+        [StringLength(2000, ErrorMessage = "Danýþman notu en fazla 2000 karakter olabilir")]
+        public string StudentNote { get; set; } = "";
+
+        /// <summary>
+        /// Danýþman onay durumu - form durumunu belirler
+        /// </summary>
+        [Required(ErrorMessage = "Onay durumu seçimi zorunludur")]
+        public string AdvisorApprovalStatus { get; set; } = "";
+
+        /// <summary>
+        /// Öðrenci bilgileri - form sahibinin detaylarý
+        /// </summary>
+        public StudentInfoViewModel Student { get; set; } = new();
+
+        /// <summary>
+        /// Ýlgili belgeler - forma eklenen dokümanlar
+        /// </summary>
+        public List<ApprovalDocumentViewModel> Documents { get; set; } = new();
+
+        /// <summary>
+        /// Seçili belge ID'leri - hangi belgelerin dahil edildiði
+        /// </summary>
+        public List<int> SelectedDocumentIds { get; set; } = new();
+
+        /// <summary>
+        /// Staj þirketi bilgileri
+        /// </summary>
+        public string CompanyName { get; set; } = "";
+
+        /// <summary>
+        /// Staj pozisyonu/görevi
+        /// </summary>
+        public string Position { get; set; } = "";
+
+        /// <summary>
+        /// Staj baþlangýç tarihi
+        /// </summary>
+        public DateTime StartDate { get; set; }
+
+        /// <summary>
+        /// Staj bitiþ tarihi
+        /// </summary>
+        public DateTime EndDate { get; set; }
+
+        /// <summary>
+        /// Haftalýk çalýþma saatleri
+        /// </summary>
+        public int WeeklyWorkHours { get; set; }
+
+        /// <summary>
+        /// Staj açýklamasý - yapýlacak iþlerin detayý
+        /// </summary>
+        public string? InternshipDescription { get; set; }
+
+        /// <summary>
+        /// Onay durumu - mevcut form durumu
+        /// </summary>
+        public string Status { get; set; } = "";
+
+        /// <summary>
+        /// Formu düzenleyip düzenleyemeyeceðini belirten flag
+        /// </summary>
+        public bool CanEdit { get; set; }
+
+        /// <summary>
+        /// Revizyon notu - düzeltme gerekiyorsa açýklama
+        /// </summary>
+        public string? RevisionNote { get; set; }
+    }
+
+    /// <summary>
+    /// Öðrenci bilgileri için ViewModel
+    /// </summary>
+    public class StudentInfoViewModel
+    {
+        /// <summary>
+        /// Öðrenci ID'si
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Öðrencinin tam adý
+        /// </summary>
+        public string FullName { get; set; } = "";
+
+        /// <summary>
+        /// Öðrenci numarasý
+        /// </summary>
+        public string StudentNumber { get; set; } = "";
+
+        /// <summary>
+        /// Öðrenci e-posta adresi
+        /// </summary>
+        public string Email { get; set; } = "";
+
+        /// <summary>
+        /// Öðrencinin bölümü
+        /// </summary>
+        public string? Department { get; set; }
+
+        /// <summary>
+        /// Öðrencinin üniversitesi
+        /// </summary>
+        public string? University { get; set; }
+    }
+
+    /// <summary>
+    /// Onay belge görüntüleme için ViewModel
+    /// Onay formlarýnda kullanýlan belgeler için özel sýnýf
+    /// </summary>
+    public class ApprovalDocumentViewModel
+    {
+        /// <summary>
+        /// Belge ID'si
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Belge baþlýðý
+        /// </summary>
+        public string Title { get; set; } = "";
+
+        /// <summary>
+        /// Dosya adý
+        /// </summary>
+        public string FileName { get; set; } = "";
+
+        /// <summary>
+        /// Dosya yolu
+        /// </summary>
+        public string FilePath { get; set; } = "";
+
+        /// <summary>
+        /// Dosya boyutu (byte)
+        /// </summary>
+        public long FileSize { get; set; }
+
+        /// <summary>
+        /// Belge türü
+        /// </summary>
+        public string DocumentType { get; set; } = "";
+
+        /// <summary>
+        /// Yüklenme tarihi
+        /// </summary>
+        public DateTime UploadedAt { get; set; }
+    }
+
     public class DirectApprovalFormViewModel
     {
         [Required(ErrorMessage = "Þirket adý zorunludur")]

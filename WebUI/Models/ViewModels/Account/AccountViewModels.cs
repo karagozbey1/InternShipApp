@@ -126,6 +126,13 @@ namespace WebUI.Models.ViewModels.Account
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Þifre ve doðrulama þifresi uyuþmuyor.")]
         public string ConfirmPassword { get; set; } = "";
+
+        /// <summary>
+        /// Üniversite dropdown listesi için
+        /// Controller'da doldurulacak üniversite listesi
+        /// Education namespace'indeki UniversityDropdownViewModel kullanýlýr
+        /// </summary>
+        public List<UniversityDropdownViewModel> Universities { get; set; } = new();
     }
 
     /// <summary>
@@ -220,12 +227,27 @@ namespace WebUI.Models.ViewModels.Account
         public string FullName { get; set; } = "";
         
         /// <summary>
+        /// Þirket temsilcisinin ad soyadý (alternatif alan adý)
+        /// View'larda CompanyUserFullName olarak kullanýlýr
+        /// </summary>
+        [Required(ErrorMessage = "Yetkili ad soyad zorunludur")]
+        public string CompanyUserFullName { get; set; } = "";
+        
+        /// <summary>
         /// Þirket temsilcisinin e-posta adresi
         /// Giriþ yaparken kullanýlacak, þirket e-postasý olmalý
         /// </summary>
         [Required(ErrorMessage = "E-posta adresi zorunludur")]
         [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz")]
         public string Email { get; set; } = "";
+
+        /// <summary>
+        /// Yetkili e-posta adresi (alternatif alan adý)
+        /// View'larda EmailUser olarak kullanýlýr
+        /// </summary>
+        [Required(ErrorMessage = "Yetkili e-posta zorunludur")]
+        [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz")]
+        public string EmailUser { get; set; } = "";
         
         /// <summary>
         /// Þirketin resmi adý
@@ -241,6 +263,13 @@ namespace WebUI.Models.ViewModels.Account
         /// </summary>
         [Required(ErrorMessage = "Sektör seçimi zorunludur")]
         public string Industry { get; set; } = "";
+
+        /// <summary>
+        /// Þirket sektörü (alternatif alan adý)
+        /// View'larda Sector olarak kullanýlýr
+        /// </summary>
+        [Required(ErrorMessage = "Sektör seçimi zorunludur")]
+        public string Sector { get; set; } = "";
         
         /// <summary>
         /// Þirketin bulunduðu þehir
@@ -262,6 +291,25 @@ namespace WebUI.Models.ViewModels.Account
         [Required(ErrorMessage = "Telefon numarasý zorunludur")]
         [Phone(ErrorMessage = "Geçerli bir telefon numarasý giriniz")]
         public string PhoneNumber { get; set; } = "";
+
+        /// <summary>
+        /// Þirket telefonu (alternatif alan adý)
+        /// View'larda Phone olarak kullanýlýr
+        /// </summary>
+        [Phone(ErrorMessage = "Geçerli bir telefon numarasý giriniz")]
+        public string? Phone { get; set; }
+
+        /// <summary>
+        /// Þirket vergi numarasý
+        /// Resmi kayýt kontrolü için
+        /// </summary>
+        public string? TaxNumber { get; set; }
+
+        /// <summary>
+        /// Yetkili kiþinin þirketteki pozisyonu
+        /// ÝK Müdürü, Staj Koordinatörü vb.
+        /// </summary>
+        public string? RoleInCompany { get; set; }
         
         /// <summary>
         /// Þirket web sitesi URL'i
