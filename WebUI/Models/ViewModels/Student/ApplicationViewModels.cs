@@ -5,7 +5,9 @@ using Core.Entity;
 
 namespace WebUI.Models.ViewModels.Student
 {
-    // Application related ViewModels
+    // Baþvuru görünüm modelleri
+    
+    // Baþvuru listesi modeli
     public class ApplicationListViewModel
     {
         public List<ApplicationItemVM> Applications { get; set; } = new();
@@ -17,6 +19,7 @@ namespace WebUI.Models.ViewModels.Student
         public ApplicationStatsVM Stats { get; set; } = new();
     }
 
+    // Baþvuru liste öðesi modeli
     public class ApplicationItemVM
     {
         public int Id { get; set; }
@@ -31,9 +34,10 @@ namespace WebUI.Models.ViewModels.Student
         public int DocumentCount { get; set; }
         public string AdvisorName { get; set; } = "";
         public string AdvisorComment { get; set; } = "";
-        public bool IsCompulsory { get; set; } // display tag if compulsory
+        public bool IsCompulsory { get; set; }
     }
 
+    // Baþvuru istatistikleri modeli
     public class ApplicationStatsVM
     {
         public int TotalApplications { get; set; }
@@ -44,6 +48,7 @@ namespace WebUI.Models.ViewModels.Student
         public double SuccessRate { get; set; }
     }
 
+    // Baþvuru detay modeli
     public class ApplicationDetailsViewModel
     {
         public int Id { get; set; }
@@ -66,35 +71,36 @@ namespace WebUI.Models.ViewModels.Student
         public DateTime? ApprovedDate { get; set; }
         public DateTime? RejectedDate { get; set; }
         public OfferDetailsViewModel? OfferDetails { get; set; }
-        // Indicates whether an InternshipDiary exists for this application
         public bool HasDiary { get; set; } = false;
         public int? DiaryId { get; set; }
-        public bool IsCompulsory { get; set; } // new
+        public bool IsCompulsory { get; set; }
     }
 
+    // Baþvuru oluþturma modeli
     public class ApplicationCreateViewModel
     {
-        [Required(ErrorMessage = "Staj teklifi se?imi zorunludur")]
+        [Required(ErrorMessage = "Staj teklifi seçimi zorunludur")]
         public int SelectedOfferId { get; set; }
 
-        [Required(ErrorMessage = "Ba?lang?? tarihi zorunludur")]
+        [Required(ErrorMessage = "Baþlangýç tarihi zorunludur")]
         [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
 
-        [Required(ErrorMessage = "Biti? tarihi zorunludur")]
+        [Required(ErrorMessage = "Bitiþ tarihi zorunludur")]
         [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
 
-        [StringLength(1000, ErrorMessage = "A??klama en fazla 1000 karakter olabilir")]
+        [StringLength(1000, ErrorMessage = "Açýklama en fazla 1000 karakter olabilir")]
         public string? Description { get; set; }
 
-        public bool IsCompulsory { get; set; } // new field bound to checkbox
+        public bool IsCompulsory { get; set; }
 
         public List<int> SelectedDocumentIds { get; set; } = new();
         public List<OfferSelectViewModel> AvailableOffers { get; set; } = new();
         public List<StudentDocumentVM> AvailableDocuments { get; set; } = new();
     }
 
+    // Ýlan seçim modeli
     public class OfferSelectViewModel
     {
         public int OfferId { get; set; }
@@ -105,6 +111,7 @@ namespace WebUI.Models.ViewModels.Student
         public DateTime? ApplicationDeadline { get; set; }
     }
 
+    // Belge görünüm modeli
     public class DocumentViewModel
     {
         public int Id { get; set; }
@@ -118,6 +125,7 @@ namespace WebUI.Models.ViewModels.Student
         public string? Description { get; set; }
     }
 
+    // Ýlan detay modeli
     public class OfferDetailsViewModel
     {
         public int Id { get; set; }
@@ -133,7 +141,6 @@ namespace WebUI.Models.ViewModels.Student
         public string Location { get; set; } = "";
         public string Position { get; set; } = "";
         public int Quota { get; set; }
-        // New properties
         public string ReferenceNumber { get; set; } = string.Empty;
         public List<string> Tags { get; set; } = new List<string>();
         public string CompanyPhone { get; set; } = string.Empty;
@@ -142,33 +149,24 @@ namespace WebUI.Models.ViewModels.Student
         public string CompanyAddress { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
-
-        // New: company description (Hakkýmýzda)
         public string CompanyDescription { get; set; } = string.Empty;
-
-        // Salary fields
         public decimal? Salary { get; set; }
         public Core.Entity.CurrencyType SalaryCurrency { get; set; } = Core.Entity.CurrencyType.TRY;
-
-        // Related offers to show under details
         public List<OfferSelectViewModel> RelatedOffers { get; set; } = new List<OfferSelectViewModel>();
-        // New: other companies' offers list
         public List<OfferSelectViewModel> OtherCompanyOffers { get; set; } = new List<OfferSelectViewModel>();
-
-        // Display mode: if true, render ecommerce-like layout for students/home; otherwise keep company-style
         public bool ShowEcommerceMode { get; set; } = false;
-
-        // New: student state
         public bool HasApplied { get; set; } = false;
         public bool IsFavorite { get; set; } = false;
     }
 
+    // Favori ilanlar modeli
     public class FavoritesListViewModel
     {
         public List<OfferSelectViewModel> Favorites { get; set; } = new();
         public int TotalCount => Favorites?.Count ?? 0;
     }
 
+    // Baþvuru durumu numaralandýrmasý
     public enum ApplicationStatus
     {
         Pending,
