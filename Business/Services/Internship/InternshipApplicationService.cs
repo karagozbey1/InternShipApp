@@ -29,9 +29,7 @@ namespace Business.Services.Internship
         public async Task<List<InternshipApplication>> GetApplicationsByStudentIdAsync(int studentId)
         {
             if (studentId <= 0)
-                {
                 throw new ArgumentException("Geçersiz Öğrenci ID", nameof(studentId));
-            }
 
             return await _unitOfWork.InternshipApplications.GetApplicationsByStudentIdAsync(studentId);
         }
@@ -93,7 +91,6 @@ namespace Business.Services.Internship
             if (offer.ApplicationDeadline < DateTime.UtcNow)
                 throw new InvalidOperationException("Staj teklifinin süresi dolmuş");
 
-            // Varsayılan değerler
             application.Status = CoreApplicationStatus.Pending;
             application.CreatedAt = DateTime.UtcNow;
 
