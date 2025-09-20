@@ -9,18 +9,44 @@ using Business.Utils;
 
 namespace Business.Services.Internship
 {
+    /// <summary>
+    /// Staj başvuru işlemleri servis sınıfı
+    /// Öğrencilerin staj başvurularını yönetir, durum güncellemeleri yapar
+    /// Şirketlerin başvuruları değerlendirme süreçlerini koordine eder
+    /// </summary>
     public class InternshipApplicationService : IInternshipApplicationService
     {
+        /// <summary>
+        /// Veritabanı işlemleri için Unit of Work pattern'i
+        /// Tüm repository'lere merkezi erişim sağlar
+        /// </summary>
         private readonly IUnitOfWork _unitOfWork;
+        
+        /// <summary>
+        /// Bildirim servisi - başvuru durumu değişikliklerinde kullanıcıları bilgilendirir
+        /// E-posta ve sistem bildirimleri gönderir
+        /// </summary>
         private readonly IINotificationService _notificationService;
-     
 
+        /// <summary>
+        /// InternshipApplicationService constructor
+        /// Bağımlılıkları dependency injection ile alır
+        /// </summary>
+        /// <param name="unitOfWork">Veritabanı işlemleri için Unit of Work</param>
+        /// <param name="notificationService">Bildirim gönderim servisi</param>
         public InternshipApplicationService(IUnitOfWork unitOfWork, IINotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
         }
 
+        /// <summary>
+        /// Belirli bir öğrencinin tüm başvurularını getirir
+        /// Öğrenci dashboard'ında başvuru geçmişini göstermek için kullanılır
+        /// </summary>
+        /// <param name="studentId">Öğrenci ID'si</param>
+        /// <returns>Öğrencinin başvuru listesi</returns>
+        /// <exception cref="ArgumentException">Geçersiz öğrenci ID durumunda</exception>
         public async Task<List<InternshipApplication>> GetApplicationsByStudentIdAsync(int studentId)
         {
             if (studentId <= 0)
@@ -31,6 +57,13 @@ namespace Business.Services.Internship
             return await _unitOfWork.InternshipApplications.GetApplicationsByStudentIdAsync(studentId);
         }
 
+        /// <summary>
+        /// Belirli bir staj teklifine yapılan tüm başvuruları getirir
+        /// Şirket temsilcilerinin başvuru listesini görmesi için kullanılır
+        /// </summary>
+        /// <param name="offerId">Staj teklifi ID'si</param>
+        /// <returns>İlana yapılan başvuru listesi</returns>
+        /// <exception cref="ArgumentException">Geçersiz teklif ID durumunda</exception>
         public async Task<List<InternshipApplication>> GetApplicationsByOfferIdAsync(int offerId)
         {
             if (offerId <= 0)
@@ -39,6 +72,13 @@ namespace Business.Services.Internship
             return await _unitOfWork.InternshipApplications.GetApplicationsByOfferIdAsync(offerId);
         }
 
+        /// <summary>
+        /// Başvuru detaylarını ilişkili verilerle birlikte getirir
+        /// Şirket, öğrenci, teklif bilgilerini include eder
+        /// </summary>
+        /// <param name="applicationId">Başvuru ID'si</param>
+        /// <returns>Detaylı başvuru bilgisi</returns>
+        /// <exception cref="ArgumentException">Geçersiz başvuru ID durumunda</exception>
         public async Task<InternshipApplication?> GetApplicationWithDetailsAsync(int applicationId)
         {
             if (applicationId <= 0)
@@ -47,6 +87,13 @@ namespace Business.Services.Internship
             return await _unitOfWork.InternshipApplications.GetApplicationWithDetailsAsync(applicationId);
         }
 
+        /// <summary>
+        /// Belirli durumdaki tüm başvuruları getirir
+        /// Admin panelinde filtreleme için kullanılır
+        /// </summary>
+        /// <param name="status">Başvuru durumu (Pending, Approved, Rejected)</param>
+        /// <returns>Belirtilen durumdaki başvuru listesi</returns>
+        /// <exception cref="ArgumentException">Geçersiz durum durumunda</exception>
         public async Task<List<InternshipApplication>> GetApplicationsByStatusAsync(string status)
         {
             if (string.IsNullOrWhiteSpace(status) || !Enum.TryParse<CoreApplicationStatus>(status, out _))
@@ -55,6 +102,15 @@ namespace Business.Services.Internship
             return await _unitOfWork.InternshipApplications.GetApplicationsByStatusAsync(status);
         }
 
+        /// <summary>
+        /// Yeni bir staj başvurusu oluşturur
+        /// İş mantığı kontrollerini yapar ve bildirim gönderir
+        /// </summary>
+        /// <param name="application">Oluşturulacak başvuru bilgileri</param>
+        /// <returns>Oluşturulan başvuru</returns>
+        /// <exception cref="ArgumentNullException">Başvuru null ise</exception>
+        /// <exception cref="ArgumentException">Geçersiz öğrenci veya teklif ID'si</exception>
+        /// <exception cref="InvalidOperationException">İş kuralı ihlali durumunda</exception>
         public async Task<InternshipApplication> AddApplicationAsync(InternshipApplication application)
         {
             // İş mantığı: Başvuru oluşturmadan önce öğrenciyi ve staj teklifini doğrula
@@ -85,11 +141,11 @@ namespace Business.Services.Internship
             if (offer.ApplicationDeadline < DateTime.UtcNow)
                 throw new InvalidOperationException("Staj teklifinin süresi dolmuş");
 
-            // Prepare application
+            // Başvuruyu hazırla
             application.Status = CoreApplicationStatus.Pending;
             application.CreatedAt = DateTime.UtcNow;
 
-            // Log payload before save
+            // Kaydetmeden önce debug bilgileri logla
             DiagnosticsLogger.Log("AddApplication_BeforeSave", new { application.StudentId, application.InternshipOfferId, application.StartDate, application.EndDate });
 
             await _unitOfWork.InternshipApplications.AddAsync(application);
@@ -99,13 +155,13 @@ namespace Business.Services.Internship
                 var saveResult = await _unitOfWork.SaveAsync();
                 DiagnosticsLogger.Log("AddApplication_AfterSave", new { saveResult, applicationId = application.Id });
 
-                // Yeni eklenen kısım: şirketteki tüm kullanıcıları bildirime dahil et
+                // Şirketteki tüm kullanıcıları bildirime dahil et
                 try
                 {
                     // Teklifin sahibi şirketin kullanıcılarını al
                     var companyUsers = await _unitOfWork.CompanyUsers.GetUsersByCompanyIdAsync(offer.CompanyId);
 
-                    // Log to temp file for debugging
+                    // Debug logging - geçici dosyaya yaz
                     try
                     {
                         var logPath = Path.Combine(Path.GetTempPath(), "NotifyCompany_Debug.log");
@@ -118,7 +174,7 @@ namespace Business.Services.Internship
                         }
                         System.IO.File.AppendAllText(logPath, sb.ToString());
                     }
-                    catch { /* ignore logging errors */ }
+                    catch { /* Logging hatalarını görmezden gel */ }
 
                     // Öğrenci bilgilerini al (gönderen adı için)
                     var student = await _unitOfWork.Users.GetByIdAsync(application.StudentId);
@@ -127,7 +183,7 @@ namespace Business.Services.Internship
                     var title = "Yeni Başvuru";
                     var message = $"{studentName} ilanınıza '{offer.Title}' için başvurdu.";
 
-                    // Yeni: grup bildirimi oluştur
+                    // Grup bildirimi oluştur
                     try
                     {
                         var userIds = companyUsers?.Select(cu => cu.UserId).Distinct().ToList() ?? new List<int>();
@@ -177,17 +233,17 @@ namespace Business.Services.Internship
             }
             catch (DbUpdateException dbEx)
             {
-                // Log detailed exception via DiagnosticsLogger
+                // Detaylı hata bilgilerini logla
                 DiagnosticsLogger.Log("AddApplication_DbUpdateException", new { application.StudentId, application.InternshipOfferId, application.StartDate, application.EndDate }, dbEx);
 
-                // Also write to temp for quick access
+                // Hızlı erişim için geçici dosyaya da yaz
                 try
                 {
                     var logPath = Path.Combine(Path.GetTempPath(), "AddApplication_DbUpdateError.log");
                     var details = $"{DateTime.UtcNow:o} - DbUpdateException while saving application:\n{dbEx}\nInner: {dbEx.InnerException}\nPayload: StudentId={application.StudentId}, OfferId={application.InternshipOfferId}, Start={application.StartDate}, End={application.EndDate}\n\n";
                     File.AppendAllText(logPath, details);
                 }
-                catch { /* ignore logging errors */ }
+                catch { /* Logging hatalarını görmezden gel */ }
 
                 var innerMsg = dbEx.InnerException?.Message ?? dbEx.Message;
                 throw new InvalidOperationException($"Veritabanı hatası: {innerMsg}", dbEx);
@@ -196,6 +252,17 @@ namespace Business.Services.Internship
             return application;
         }
 
+        /// <summary>
+        /// Başvuru durumunu günceller (Onaylama/Reddetme)
+        /// Yetki kontrolü yapar ve bildirim gönderir
+        /// </summary>
+        /// <param name="applicationId">Güncellenecek başvuru ID'si</param>
+        /// <param name="newStatus">Yeni durum (Approved/Rejected)</param>
+        /// <param name="actingUserId">İşlemi yapan kullanıcı ID'si</param>
+        /// <param name="actingUserRole">İşlemi yapan kullanıcının rolü</param>
+        /// <exception cref="ArgumentException">Geçersiz parametreler durumunda</exception>
+        /// <exception cref="InvalidOperationException">İş kuralı ihlali durumunda</exception>
+        /// <exception cref="UnauthorizedAccessException">Yetkisiz işlem durumunda</exception>
         public async Task UpdateApplicationStatusAsync(int applicationId, string newStatus, int actingUserId, string actingUserRole)
         {
             // İş mantığı: Durum geçişini doğrula
@@ -212,27 +279,27 @@ namespace Business.Services.Internship
             if (application.Status == CoreApplicationStatus.Rejected && statusEnum == CoreApplicationStatus.Pending)
                 throw new InvalidOperationException("Reddedilen başvuru beklemeye alınamaz");
 
-            // Authorization: who can change status?
-            // - Company: can change statuses for applications belonging to their offers
-            // - Admin: can change any status
-            // - Advisor: optional, not handled here
+            // Yetki kontrolü: kimler durum değiştirebilir?
+            // - Şirket: Kendi ilanlarına yapılan başvuruların durumunu değiştirebilir
+            // - Admin: Tüm durumları değiştirebilir
+            // - Danışman: Opsiyonel, burada işlenmiyor
             if (actingUserRole.Equals("Company", StringComparison.OrdinalIgnoreCase))
             {
-                // verify company owns the offer
+                // Şirketin ilan sahibi olduğunu doğrula
                 var offer = await _unitOfWork.InternshipOffers.GetByIdAsync(application.InternshipOfferId);
                 if (offer == null) throw new InvalidOperationException("İlgili ilan bulunamadı");
 
                 var company = await _unitOfWork.Companies.GetByIdAsync(offer.CompanyId);
                 if (company == null) throw new InvalidOperationException("İlgili şirket bulunamadı");
 
-                // find company user id
+                // Şirket kullanıcı ID'sini bul
                 var userCompany = await _unitOfWork.CompanyUsers.GetCompanyByUserIdAsync(actingUserId);
                 if (userCompany == null || userCompany.CompanyId != company.CompanyId)
                     throw new UnauthorizedAccessException("Bu işlemi gerçekleştirme yetkiniz yok.");
             }
             else if (!actingUserRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
             {
-                // other roles not allowed
+                // Diğer roller izinli değil
                 throw new UnauthorizedAccessException("Bu işlemi gerçekleştirme yetkiniz yok.");
             }
 
@@ -257,7 +324,7 @@ namespace Business.Services.Internship
                      throw new InvalidOperationException("Bu ilan için kontenjan dolmuştur. Daha fazla başvuru onaylanamaz.");
                  }
 
-                 // If the offer has an associated period, add the student to that period (many-to-many)
+                 // Eğer ilan ilişkili bir dönem varsa, öğrenciyi o döneme ekle (many-to-many)
                  if (offer.PeriodId > 0)
                  {
                      var periodId = offer.PeriodId;
@@ -265,7 +332,7 @@ namespace Business.Services.Internship
                      if (!isInPeriod)
                      {
                          await _unitOfWork.InternshipPeriods.AddStudentToPeriodAsync(periodId, application.StudentId);
-                         // Save will be called after updating application to persist the join entry
+                         // Başvuru güncellendikten sonra Save çağrılacak, join entry'yi persist edecek
                      }
                  }
              }
@@ -275,7 +342,7 @@ namespace Business.Services.Internship
              _unitOfWork.InternshipApplications.Update(application);
              await _unitOfWork.SaveAsync();
 
-             // Send notification to student about status change
+             // Durum değişikliği hakkında öğrenciye bildirim gönder
              try
              {
                  if (statusEnum == CoreApplicationStatus.Approved)
@@ -289,10 +356,13 @@ namespace Business.Services.Internship
              }
              catch
              {
-                 // Notification failure should not block main flow
+                 // Bildirim hatası ana akışı engellememeli
              }
          }
 
+         /// <summary>
+         /// Başvuruya yorum ekler - şirket, öğrenci veya danışman yorumu
+         /// </summary>
          public async Task AddCommentAsync(InternshipComment comment)
          {
              if (comment == null)
@@ -317,6 +387,9 @@ namespace Business.Services.Internship
              await _unitOfWork.SaveAsync();
          }
 
+         /// <summary>
+         /// Öğrencinin başvurularını getirir - dashboard için
+         /// </summary>
          public async Task<List<InternshipApplication>> GetStudentApplicationsAsync(int studentId)
          {
              if (studentId <= 0)
@@ -326,6 +399,9 @@ namespace Business.Services.Internship
                  .GetApplicationsByStudentIdAsync(studentId);
          }
 
+         /// <summary>
+         /// Başvuruyu geri çeker - öğrenci tarafından iptal edilir
+         /// </summary>
          public async Task<bool> WithdrawApplicationAsync(int applicationId)
          {
              if (applicationId <= 0)
@@ -345,6 +421,9 @@ namespace Business.Services.Internship
              return true;
          }
 
+         /// <summary>
+         /// Başvuruyu kalıcı olarak siler - sadece reddedilen başvurular
+         /// </summary>
          public async Task DeleteApplicationAsync(int applicationId)
          {
              if (applicationId <= 0)
@@ -354,11 +433,11 @@ namespace Business.Services.Internship
              if (application == null)
                  throw new InvalidOperationException("Başvuru bulunamadı");
 
-             // Only allow deleting if application is Withdrawn/Rejected
+             // Sadece geri çekilmiş/reddedilmiş başvuruların silinmesine izin ver
              if (application.Status != CoreApplicationStatus.Rejected)
                  throw new InvalidOperationException("Sadece geri çekilmiş başvurular silinebilir.");
 
-             // Optionally delete related documents links (do not delete files)
+             // İlişkili belge bağlantılarını temizle (dosyaları silme)
              var docs = await _unitOfWork.InternshipDocuments.Where(d => d.ApplicationId == applicationId);
              foreach (var d in docs)
              {
@@ -370,6 +449,9 @@ namespace Business.Services.Internship
              await _unitOfWork.SaveAsync();
          }
 
+         /// <summary>
+         /// ID'ye göre başvuru getirir - detay sayfası için
+         /// </summary>
          public async Task<InternshipApplication> GetByIdAsync(int applicationId)
          {
              if (applicationId <= 0)
@@ -382,6 +464,9 @@ namespace Business.Services.Internship
              return app;
          }
 
+         /// <summary>
+         /// Öğrencinin onaylanmış başvurularını getirir - staj formu için
+         /// </summary>
          public async Task<List<InternshipApplication>> GetApprovedByStudentIdAsync(int studentId)
          {
              return await _unitOfWork.InternshipApplications
