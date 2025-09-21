@@ -37,6 +37,62 @@ namespace WebUI.Models.Student
         public int DraftCount { get; set; }
     }
 
+    // Onay formu oluþturma modeli
+    public class ApprovalFormCreateViewModel
+    {
+        [Required(ErrorMessage = "Þirket adý zorunludur")]
+        [StringLength(200, ErrorMessage = "Þirket adý 200 karakterden uzun olamaz")]
+        public string CompanyName { get; set; } = "";
+        
+        [Required(ErrorMessage = "Staj koordinatörü adý zorunludur")]
+        [StringLength(200, ErrorMessage = "Koordinatör adý 200 karakterden uzun olamaz")]
+        public string InternshipCoordinator { get; set; } = "";
+        
+        [Phone(ErrorMessage = "Geçerli bir telefon numarasý giriniz")]
+        public string CoordinatorPhone { get; set; } = "";
+        
+        [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz")]
+        public string CoordinatorEmail { get; set; } = "";
+        
+        [Required(ErrorMessage = "Ýþ yeri adresi zorunludur")]
+        [StringLength(500, ErrorMessage = "Adres 500 karakterden uzun olamaz")]
+        public string WorkplaceAddress { get; set; } = "";
+        
+        [Required(ErrorMessage = "Baþlangýç tarihi zorunludur")]
+        public DateTime StartDate { get; set; }
+        
+        [Required(ErrorMessage = "Bitiþ tarihi zorunludur")]
+        public DateTime EndDate { get; set; }
+        
+        [Range(1, 60, ErrorMessage = "Haftalýk çalýþma saati 1-60 arasýnda olmalýdýr")]
+        public int WeeklyWorkHours { get; set; } = 40;
+        
+        [Required(ErrorMessage = "Staj açýklamasý zorunludur")]
+        [StringLength(1000, ErrorMessage = "Staj açýklamasý 1000 karakterden uzun olamaz")]
+        public string InternshipDescription { get; set; } = "";
+        
+        [StringLength(500, ErrorMessage = "Öðrenci notu 500 karakterden uzun olamaz")]
+        public string StudentNote { get; set; } = "";
+    }
+
+    // Onay formu gözden geçirme modeli
+    public class ApprovalFormReviewViewModel
+    {
+        public int Id { get; set; }
+        public string CompanyName { get; set; } = "";
+        public string InternshipCoordinator { get; set; } = "";
+        public string CoordinatorPhone { get; set; } = "";
+        public string CoordinatorEmail { get; set; } = "";
+        public string WorkplaceAddress { get; set; } = "";
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public int WeeklyWorkHours { get; set; }
+        public string InternshipDescription { get; set; } = "";
+        public string StudentNote { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime CreatedAt { get; set; }
+    }
+
     public class ApprovalFormDetailsViewModel
     {
         public int Id { get; set; }

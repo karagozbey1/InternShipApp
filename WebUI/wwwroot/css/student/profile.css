@@ -1,0 +1,43 @@
+/* Öðrenci profil sayfasý stilleri */
+
+.info-line {
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    background: rgba(99, 102, 241, 0.03);
+    transition: all 0.2s ease;
+}
+
+.info-line:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Profil düzenleme geçiþ animasyonlarý */
+#displaySection,
+#editSection {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Form animasyonlarý */
+.profile-form input:focus,
+.change-password-form input:focus {
+    transform: scale(1.02);
+}
+
+/* Mesaj animasyonlarý */
+.bg-green-100,
+.bg-red-100 {
+    animation: slideInFromTop 0.5s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

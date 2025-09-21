@@ -228,8 +228,8 @@ namespace WebUI.Controllers.Company
             };
         }
 
-        // Durum dönüþtürücüler
-        private ApplicationStatus MapToViewModelStatus(InternshipApplicationStatus coreStatus) => coreStatus switch
+        // Durum dönüþtürücüler - baseclass'taki methodu gizler
+        private new ApplicationStatus MapToViewModelStatus(InternshipApplicationStatus coreStatus) => coreStatus switch
         {
             InternshipApplicationStatus.Pending => ApplicationStatus.Pending,
             InternshipApplicationStatus.Approved => ApplicationStatus.Approved,
