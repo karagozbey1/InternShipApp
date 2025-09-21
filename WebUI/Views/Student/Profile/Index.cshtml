@@ -242,42 +242,11 @@
     </div>
 </div>
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/student/profile.css" asp-append-version="true" />
+}
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const passwordForm = document.querySelector('.change-password-form');
-            const newPassword = passwordForm.querySelector('input[name="NewPassword"]');
-            const confirmPassword = passwordForm.querySelector('input[name="ConfirmPassword"]');
-            function validatePasswords() { confirmPassword.setCustomValidity(newPassword.value !== confirmPassword.value ? 'Þifreler eþleþmiyor' : ''); }
-            newPassword.addEventListener('input', validatePasswords);
-            confirmPassword.addEventListener('input', validatePasswords);
-            passwordForm.addEventListener('submit', function(e) { if (newPassword.value !== confirmPassword.value) { e.preventDefault(); alert('Þifreler eþleþmiyor. Lütfen kontrol edin.'); }});
-
-            const btn = document.getElementById('btnEditToggle');
-            const display = document.getElementById('displaySection');
-            const edit = document.getElementById('editSection');
-            const cancelBtn = document.getElementById('btnCancelEdit');
-            function toEdit(){ display.classList.add('hidden'); edit.classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'}); }
-            function toDisplay(){ edit.classList.add('hidden'); display.classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'}); }
-            if(btn) btn.addEventListener('click', toEdit);
-            if(cancelBtn) cancelBtn.addEventListener('click', toDisplay);
-
-            // Auto-hide messages after 5 seconds
-            const messages = document.querySelectorAll('.bg-green-100, .bg-red-100');
-            messages.forEach(function(message) {
-                setTimeout(function() {
-                    message.style.transition = 'opacity 0.5s ease-out';
-                    message.style.opacity = '0';
-                    setTimeout(function() {
-                        message.remove();
-                    }, 500);
-                }, 5000);
-            });
-        });
-    </script>
-    <style>
-        .info-line{padding:.75rem 1rem;border:1px solid rgba(0,0,0,.06);border-radius:12px;background:rgba(99,102,241,.03)}
-    </style>
+    <script src="~/js/student/profile.js" asp-append-version="true"></script>
 }

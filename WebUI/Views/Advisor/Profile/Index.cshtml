@@ -5,30 +5,14 @@
     Layout = "_AppLayout";
 }
 
-@if (TempData["SuccessMessage"] != null)
-{
-<div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-    <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-</div>
-}
-
-@if (TempData["ErrorMessage"] != null)
-{
-<div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-    <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
-</div>
-}
-
 <div class="space-y-6">
     <!-- Header -->
     <div class="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700 flex items-start justify-between">
         <div>
             <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
-                <i class="fas fa-user-cog me-3"></i>Profil
+                <i class="fas fa-user-tie me-3"></i>Danýþman Profili
             </h1>
-            <p class="text-blue-600 dark:text-blue-300">
-                Danýþman profil bilgilerinizi görüntüleyin ve düzenleyin
-            </p>
+            <p class="text-blue-600 dark:text-blue-300">Bilgilerinizi görüntüleyin ve düzenleyin</p>
         </div>
         <div>
             <button id="btnEditToggle" class="px-4 py-2 rounded-xl text-white shadow-sm hover:shadow transition-all duration-150" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);">
@@ -39,28 +23,27 @@
 
     <!-- DISPLAY SECTION -->
     <div id="displaySection" class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
+        <!-- TempData Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+        <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+        <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["ErrorMessage"]
+        </div>
+        }
+
         <div class="rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-            <!-- Centered avatar + name -->
-            <div class="flex flex-col items-center text-center mb-6">
-                <div class="relative">
-                    <img src="@Url.Action("Avatar","AdvisorProfile")" alt="Avatar" class="w-24 h-24 rounded-full object-cover border" />
-                    <form asp-action="UploadAvatar" method="post" enctype="multipart/form-data" class="absolute -bottom-2 -right-2" title="Profil resmini deðiþtir">
-                        @Html.AntiForgeryToken()
-                        <label class="cursor-pointer w-9 h-9 rounded-full flex items-center justify-center text-white shadow" style="background:linear-gradient(45deg,#7C3AED,#6D28D9);">
-                            <i class="fas fa-camera"></i>
-                            <input type="file" name="AvatarFile" accept="image/*" class="hidden" onchange="this.form.submit()" />
-                        </label>
-                    </form>
-                </div>
-                <form asp-action="RemoveAvatar" method="post" class="mt-2">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Profil Resmini Kaldýr</button>
-                </form>
-                <h2 class="mt-4 text-2xl font-extrabold text-gray-900 dark:text-gray-100">@Model.FullName</h2>
-                @if (!string.IsNullOrWhiteSpace(Model.Title))
-                {
-                    <div class="text-gray-500 dark:text-gray-400">@Model.Title</div>
-                }
+            <!-- Centered name -->
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-extrabold text-gray-900 dark:text-gray-100">@Model.FullName</h2>
+                <div class="text-gray-500 dark:text-gray-400">@Model.Title - @Model.Department</div>
+                <div class="text-sm text-gray-400 dark:text-gray-500">@Model.UniversityName</div>
             </div>
 
             <!-- Info grid -->
@@ -74,26 +57,26 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3 info-line">
-                        <i class="fas fa-phone text-emerald-600"></i>
+                        <i class="fas fa-award text-indigo-600"></i>
                         <div>
-                            <div class="text-xs text-gray-500">Telefon</div>
-                            <div class="font-medium">@(string.IsNullOrWhiteSpace(Model.Phone)?"-":Model.Phone)</div>
+                            <div class="text-xs text-gray-500">Unvan</div>
+                            <div class="font-medium">@Model.Title</div>
                         </div>
                     </div>
                 </div>
                 <div class="space-y-3">
                     <div class="flex items-center gap-3 info-line">
-                        <i class="fas fa-graduation-cap text-indigo-600"></i>
+                        <i class="fas fa-graduation-cap text-fuchsia-600"></i>
                         <div>
-                            <div class="text-xs text-gray-500">Üniversite</div>
-                            <div class="font-medium">@(string.IsNullOrWhiteSpace(Model.UniversityName)?"-":Model.UniversityName)</div>
+                            <div class="text-xs text-gray-500">Bölüm</div>
+                            <div class="font-medium">@Model.Department</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 info-line">
-                        <i class="fas fa-sitemap text-fuchsia-600"></i>
+                        <i class="fas fa-university text-purple-600"></i>
                         <div>
-                            <div class="text-xs text-gray-500">Bölüm</div>
-                            <div class="font-medium">@(string.IsNullOrWhiteSpace(Model.Department)?"-":Model.Department)</div>
+                            <div class="text-xs text-gray-500">Üniversite</div>
+                            <div class="font-medium">@Model.UniversityName</div>
                         </div>
                     </div>
                 </div>
@@ -101,7 +84,7 @@
         </div>
     </div>
 
-    <!-- EDIT SECTION (existing forms) -->
+    <!-- EDIT SECTION -->
     <div id="editSection" class="hidden space-y-6">
         <!-- Profile Information -->
         <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
@@ -109,10 +92,11 @@
                 <i class="fas fa-user me-2"></i>Profil Bilgileri
             </h3>
 
-            <form asp-action="Update" method="post" class="profile-form">
+            <form asp-action="UpdateProfile" method="post" class="profile-form">
                 @Html.AntiForgeryToken()
-                <input type="hidden" asp-for="Id" />
                 
+                <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label asp-for="FullName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -122,34 +106,41 @@
                                class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
                                placeholder="Adýnýzý ve soyadýnýzý girin" 
                                required />
+                        <span asp-validation-for="FullName" class="text-red-600 text-sm"></span>
                     </div>
 
                     <div>
                         <label asp-for="Email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             <i class="fas fa-envelope me-1"></i>E-posta
                         </label>
-                        <input asp-for="Email" type="email" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="E-posta adresinizi girin" required />
-                    </div>
-
-                    <div>
-                        <label asp-for="Phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <i class="fas fa-phone me-1"></i>Telefon
-                        </label>
-                        <input asp-for="Phone" type="tel" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Telefon numaranýzý girin" />
-                    </div>
-
-                    <div>
-                        <label asp-for="Department" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <i class="fas fa-sitemap me-1"></i>Bölüm
-                        </label>
-                        <input asp-for="Department" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Bölümünüzü girin" />
+                        <input asp-for="Email" 
+                               type="email"
+                               class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                               placeholder="E-posta adresinizi girin" 
+                               readonly />
+                        <span asp-validation-for="Email" class="text-red-600 text-sm"></span>
                     </div>
 
                     <div>
                         <label asp-for="Title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <i class="fas fa-id-badge me-1"></i>Ünvan
+                            <i class="fas fa-award me-1"></i>Unvan
                         </label>
-                        <input asp-for="Title" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Ünvanýnýzý girin" />
+                        <input asp-for="Title" 
+                               class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                               placeholder="Akademik unvanýnýz" 
+                               required />
+                        <span asp-validation-for="Title" class="text-red-600 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Department" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-graduation-cap me-1"></i>Bölüm
+                        </label>
+                        <input asp-for="Department" 
+                               class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark(text-gray-200" 
+                               placeholder="Bölümünüz" 
+                               required />
+                        <span asp-validation-for="Department" class="text-red-600 text-sm"></span>
                     </div>
                 </div>
 
@@ -174,11 +165,15 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             <i class="fas fa-key me-1"></i>Mevcut Þifre
                         </label>
-                        <input type="password" name="CurrentPassword" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Mevcut þifrenizi girin" required />
+                        <input type="password" 
+                               name="CurrentPassword" 
+                               class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" 
+                               placeholder="Mevcut þifrenizi girin" 
+                               required />
                     </div>
 
                     <div>
-                        <label class="block text sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             <i class="fas fa-lock me-1"></i>Yeni Þifre
                         </label>
                         <input type="password" name="NewPassword" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" placeholder="Yeni þifrenizi girin (en az 6 karakter)" minlength="6" required />
@@ -200,20 +195,10 @@
     </div>
 </div>
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/advisor/profile.css" asp-append-version="true" />
+}
+
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('btnEditToggle');
-            const display = document.getElementById('displaySection');
-            const edit = document.getElementById('editSection');
-            const cancelBtn = document.getElementById('btnCancelEdit');
-            function toEdit(){ display.classList.add('hidden'); edit.classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'}); }
-            function toDisplay(){ edit.classList.add('hidden'); display.classList.remove('hidden'); window.scrollTo({top:0, behavior:'smooth'}); }
-            if(btn) btn.addEventListener('click', toEdit);
-            if(cancelBtn) cancelBtn.addEventListener('click', toDisplay);
-        });
-    </script>
-    <style>
-        .info-line{padding:.75rem 1rem;border:1px solid rgba(0,0,0,.06);border-radius:12px;background:rgba(99,102,241,.03)}
-    </style>
+    <script src="~/js/advisor/profile.js" asp-append-version="true"></script>
 }

@@ -1,167 +1,85 @@
-@model ModernApprovalViewModel
+@using WebUI.Models.Student
+@model ApprovalFormReviewViewModel
 @{
-    ViewData["Title"] = "Adým 4: Gözden Geçir ve Gönder";
+    ViewData["Title"] = "Baþvuru Gözden Geçir";
     Layout = "_AppLayout";
 }
 
-@section Styles {
-    <style>
-        .approval-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.95) 100%);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .review-section { transition: all 0.3s ease; }
-        .review-section:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); }
-    </style>
-}
-
-<div class="space-y-6">
-    <!-- Header Section -->
-    <div class="approval-card p-8 rounded-3xl">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent mb-3">
-                    <i class="fas fa-eye me-3"></i>Adým 4: Gözden Geçir ve Gönder
-                </h1>
-                <p class="text-gray-600 dark:text-gray-300 text-lg">Tüm bilgilerinizi kontrol edin ve baþvurunuzu gönderin</p>
-            </div>
-            <div class="text-center">
-                <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center mb-2">
-                    <i class="fas fa-paper-plane text-white text-2xl"></i>
-                </div>
-                <p class="text-sm text-gray-500">Son Kontrol</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Review Form -->
-    <form asp-action="Step4Submit" method="post" class="space-y-6">
-        @Html.AntiForgeryToken()
-
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="p-4 rounded-lg bg-red-100 border border-red-200 text-red-700">
-                <strong>Hata:</strong> @TempData["ErrorMessage"]
-                @if (TempData["ErrorDetails"] != null)
-                {
-                    <pre class="mt-2 text-xs text-red-700 overflow-auto">@TempData["ErrorDetails"]</pre>
-                }
-            </div>
-        }
-
-        <!-- Selected Documents Review (dynamic) -->
-        <div class="approval-card p-6 rounded-3xl review-section">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                <i class="fas fa-file-alt text-blue-500 mr-3"></i>Seçilen Belgeler
-            </h3>
-
-            @if (Model.SelectedDocuments != null && Model.SelectedDocuments.Any())
-            {
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    @foreach (var doc in Model.SelectedDocuments)
-                    {
-                        <div class="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border">
-                            <i class="fas fa-file-pdf text-red-500 mr-3"></i>
-                            <div>
-                                <div class="text-sm font-medium text-gray-800 dark:text-gray-200">@doc.Title</div>
-                                <div class="text-xs text-gray-500">@doc.FileName</div>
-                            </div>
-                            <div class="ms-auto text-xs text-gray-400">@((doc.FileSize/1024.0/1024.0)>=1 ? (doc.FileSize/1024.0/1024.0).ToString("0.00") + " MB" : (doc.FileSize/1024.0).ToString("0") + " KB")</div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-muted">Henüz belge seçilmemiþ.</div>
-            }
+<div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-clipboard-check text-blue-500 mr-2"></i>
+                Baþvuru Gözden Geçirme
+            </h1>
+            <p class="text-gray-600">Bilgilerinizi kontrol edin ve baþvurunuzu gönderin</p>
         </div>
 
-        <!-- Selected Company Review (dynamic) -->
-        <div class="approval-card p-6 rounded-3xl review-section">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                <i class="fas fa-building text-green-500 mr-3"></i>Seçilen Firma Bilgileri
-            </h3>
-
-            @if (Model.SelectedCompany != null)
-            {
-                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border">
-                    <div class="flex items-center mb-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-briefcase text-white"></i>
-                        </div>
-                        <div>
-                            <div class="font-semibold text-gray-800 dark:text-gray-200">@Model.SelectedCompany.CompanyName</div>
-                            <div class="text-sm text-gray-500">@Model.SelectedCompany.Position</div>
-                            <div class="text-xs text-gray-400">@Model.SelectedCompany.StartDate.ToString("dd.MM.yyyy") - @Model.SelectedCompany.EndDate.ToString("dd.MM.yyyy")</div>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="text-muted">Seçilen firma bilgisi yok.</div>
-            }
-        </div>
-
-        <!-- Selected Advisor Review (dynamic) -->
-        @if (Model.SelectedAdvisor != null)
-        {
-            <div class="approval-card p-6 rounded-3xl review-section">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                    <i class="fas fa-user-tie text-purple-500 mr-3"></i>Seçilen Danýþman
+        <!-- Bilgi kartlarý -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Þirket bilgileri -->
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-blue-800 mb-3">
+                    <i class="fas fa-building mr-2"></i>Þirket Bilgileri
                 </h3>
-
-                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mr-4">
-                            <i class="fas fa-user text-white"></i>
-                        </div>
-                        <div>
-                            <div class="font-semibold text-gray-800 dark:text-gray-200">@Model.SelectedAdvisor.FullName</div>
-                            <div class="text-sm text-gray-500">@Model.SelectedAdvisor.Department</div>
-                            <div class="text-xs text-gray-400">@Model.SelectedAdvisor.Email</div>
-                        </div>
-                    </div>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Þirket:</strong> @Model.CompanyName</div>
+                    <div><strong>Pozisyon:</strong> @Model.InternshipDescription</div>
+                    <div><strong>Adres:</strong> @Model.WorkplaceAddress</div>
                 </div>
+            </div>
+
+            <!-- Tarih bilgileri -->
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-green-800 mb-3">
+                    <i class="fas fa-calendar mr-2"></i>Staj Tarihleri
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <div><strong>Baþlangýç:</strong> @Model.StartDate.ToString("dd/MM/yyyy")</div>
+                    <div><strong>Bitiþ:</strong> @Model.EndDate.ToString("dd/MM/yyyy")</div>
+                    <div><strong>Haftalýk Saat:</strong> @Model.WeeklyWorkHours saat</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ýrtibat bilgileri -->
+        <div class="bg-yellow-50 p-4 rounded-lg mb-6">
+            <h3 class="font-semibold text-yellow-800 mb-3">
+                <i class="fas fa-user-tie mr-2"></i>Staj Koordinatörü
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div><strong>Ad Soyad:</strong> @Model.InternshipCoordinator</div>
+                <div><strong>Telefon:</strong> @Model.CoordinatorPhone</div>
+                <div><strong>E-posta:</strong> @Model.CoordinatorEmail</div>
+            </div>
+        </div>
+
+        <!-- Öðrenci notu -->
+        @if (!string.IsNullOrEmpty(Model.StudentNote))
+        {
+            <div class="bg-purple-50 p-4 rounded-lg mb-6">
+                <h3 class="font-semibold text-purple-800 mb-3">
+                    <i class="fas fa-sticky-note mr-2"></i>Öðrenci Notu
+                </h3>
+                <p class="text-sm text-gray-700">@Model.StudentNote</p>
             </div>
         }
 
-        <!-- Student Note -->
-        <div class="approval-card p-6 rounded-3xl">
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
-                <i class="fas fa-sticky-note text-yellow-500 mr-3"></i>Danýþmanýnýza Not
-            </h3>
-
-            <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                <label asp-for="StudentNote" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Danýþmanýnýza Not (Ýsteðe baðlý)</label>
-                <textarea asp-for="StudentNote" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white" placeholder="Danýþmanýnýza iletmek istediðiniz özel notlar..."></textarea>
-                <span asp-validation-for="StudentNote" class="text-red-500 text-sm"></span>
+        <!-- Form gönderimi -->
+        <form method="post" asp-action="SubmitApproval">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@Model.Id" />
+            
+            <div class="text-center">
+                <button type="submit" id="submitBtn" 
+                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+                    <i class="fas fa-paper-plane mr-2"></i>Baþvuruyu Gönder
+                </button>
             </div>
-        </div>
-
-        <!-- Navigation -->
-        <div class="flex justify-between">
-            <a asp-action="Step3Advisor" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-xl font-medium transition-all duration-200">
-                <i class="fas fa-arrow-left mr-2"></i>Önceki
-            </a>
-            <button type="submit" id="submitBtn" class="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white rounded-xl font-medium transition-all duration-200 transform hover:scale-105">
-                <i class="fas fa-paper-plane mr-2"></i>Baþvuruyu Gönder
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() { setupFormSubmission(); });
-        function setupFormSubmission() {
-            const form = document.querySelector('form');
-            const submitBtn = document.getElementById('submitBtn');
-            if (form && submitBtn) { form.addEventListener('submit', function(e) { submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Gönderiliyor...'; submitBtn.disabled = true; }); }
-        }
-    </script>
+    <script src="~/js/student/approval-review.js" asp-append-version="true"></script>
 }
