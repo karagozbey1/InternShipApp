@@ -1,6 +1,6 @@
-// Enhanced interactions for approval details page with document preview modal
+// Belge önizleme modalý ile onay detaylarý sayfasý için geliþmiþ etkileþimler
 document.addEventListener('DOMContentLoaded', function(){
-  // fade-in observer
+  // fade-in gözlemcisi
   const faders = document.querySelectorAll('.fade-in');
   const obs = new IntersectionObserver(entries =>{
     entries.forEach(e =>{
@@ -9,15 +9,15 @@ document.addEventListener('DOMContentLoaded', function(){
   }, { threshold: 0.15 });
   faders.forEach(f => obs.observe(f));
 
-  // document preview modal elements
+  // belge önizleme modal elementleri
   const modal = document.createElement('div');
   modal.id = 'doc-modal';
   modal.innerHTML = `
-    <div class="doc-modal-content" role="dialog" aria-modal="true" aria-label="Belge önizleme">
+    <div class="doc-modal-content" role="dialog" aria-modal="true" aria-label="Belge Önizleme">
       <div class="doc-modal-header">
         <strong id="doc-title">Belge</strong>
         <div>
-          <button class="doc-modal-close" aria-label="Kapat">?</button>
+          <button class="doc-modal-close" aria-label="Kapat">×</button>
         </div>
       </div>
       <div class="doc-modal-body"><iframe class="doc-iframe" src="about:blank"></iframe></div>
@@ -28,12 +28,12 @@ document.addEventListener('DOMContentLoaded', function(){
   const titleEl = modal.querySelector('#doc-title');
   const closeBtn = modal.querySelector('.doc-modal-close');
 
-  // Open doc in modal
+  // Belgeyi modalda aç
   function openDoc(url, title){
     titleEl.textContent = title || 'Belge';
     iframe.src = url;
     modal.classList.add('open');
-    // trap focus
+    // odaðý yakala
     closeBtn.focus();
   }
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function(){
   modal.addEventListener('click', function(e){ if(e.target === modal) closeDoc(); });
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeDoc(); });
 
-  // document link handlers
+  // belge baðlantýsý iþleyicileri
   document.querySelectorAll('.doc-view').forEach(a=>{
     a.setAttribute('role','button');
     a.setAttribute('tabindex','0');
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const title = a.getAttribute('aria-label') || a.textContent || 'Belge';
     a.addEventListener('click', function(e){
       e.preventDefault();
-      // if file is PDF, open modal, else open in new tab
+      // dosya PDF ise modalda aç, deðilse yeni sekmede aç
       if(href && href.toLowerCase().endsWith('.pdf')){
         openDoc(href, title.replace('Belgeyi görüntüle: ', ''));
       } else if(href){
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function(){
     a.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); } });
   });
 
-  // mobile sidebar toggle
+  // mobil kenar çubuðu geçiþi
   const toggle = document.querySelector('.sidebar-toggle');
   const rightCol = document.querySelector('.right');
   if(toggle && rightCol){
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function(){
       rightCol.classList.toggle('collapsed');
       const expanded = !rightCol.classList.contains('collapsed');
       toggle.setAttribute('aria-expanded', expanded);
-      // move focus to first interactive in sidebar when open
+      // açýldýðýnda kenar çubuðundaki ilk etkileþimli öðeye odaklan
       if(expanded){
         const first = rightCol.querySelector('a, button, [tabindex]');
         if(first) first.focus();
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // sticky fallback subtle effect
+  // yapýþkan yedek hafif efekt
   const right = document.querySelector('.right');
   if(right && window.innerWidth > 900){
     const top = right.getBoundingClientRect().top + window.pageYOffset;
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  // keyboard activation for generic buttons
+  // genel butonlar için klavye etkinleþtirmesi
   document.querySelectorAll('button, a').forEach(el=>{
     el.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter') el.click();

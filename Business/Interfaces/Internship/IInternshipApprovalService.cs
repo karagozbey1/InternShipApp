@@ -13,6 +13,7 @@ namespace Business.Interfaces.Internship
         Task<InternshipApprovalForm?> GetApprovalFormByApplicationIdAsync(int applicationId);
         Task<InternshipApprovalForm> CreateApprovalFormAsync(InternshipApprovalForm form);
         Task UpdateApprovalFormAsync(InternshipApprovalForm form);
+        Task DeleteApprovalFormAsync(int formId);
         Task ApproveFormAsync(int formId, string? advisorNote = null);
         Task RejectFormAsync(int formId, string rejectionReason, string? advisorNote = null);
         Task ReturnForRevisionAsync(int formId, string revisionNote);

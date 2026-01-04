@@ -153,29 +153,16 @@
                                 <tbody>
                                     @foreach (var form in Model.ApprovalForms)
                                     {
-                                        var statusClass = form.Status switch
-                                        {
-                                            "Pending" => "warning",
-                                            "Approved" => "success", 
-                                            "Rejected" => "danger",
-                                            "Revision" => "warning",
-                                            _ => "secondary"
-                                        };
-                                        var statusText = form.Status switch
-                                        {
-                                            "Pending" => "Beklemede",
-                                            "Approved" => "Onaylandý",
-                                            "Rejected" => "Reddedildi", 
-                                            "Revision" => "Revizyonda",
-                                            _ => form.Status
-                                        };
+                                        // Durum kontrolü
+                                        var isNewRevision = form.Status == "Revision";
+                                        var isLegacyRevision = form.Status == "Rejected" && !string.IsNullOrEmpty(form.AdvisorComment) && form.AdvisorComment.StartsWith("REVISION:");
+                                        var isRevision = isNewRevision || isLegacyRevision;
+                                        var isPending = form.Status == "Pending";
+                                        var isApproved = form.Status == "Approved";
+                                        var isRejected = form.Status == "Rejected" && !isLegacyRevision;
 
-                                        // Legacy revision durumunu kontrol et
-                                        if (form.Status == "Rejected" && !string.IsNullOrEmpty(form.AdvisorComment) && form.AdvisorComment.StartsWith("REVISION:"))
-                                        {
-                                            statusClass = "warning";
-                                            statusText = "Revizyonda";
-                                        }
+                                        var statusClass = isRevision ? "info" : (isPending ? "warning" : (isApproved ? "success" : (isRejected ? "danger" : "secondary")));
+                                        var statusText = isRevision ? "Revizyonda" : (isPending ? "Beklemede" : (isApproved ? "Onaylandý" : (isRejected ? "Reddedildi" : form.Status)));
 
                                         <tr>
                                             <td>
@@ -193,10 +180,10 @@
                                                        class="btn btn-sm btn-outline-info" title="Detaylarý Görüntüle">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    @if (form.Status == "Pending" || form.Status == "Revision" || (form.Status == "Rejected" && !string.IsNullOrEmpty(form.AdvisorComment) && form.AdvisorComment.StartsWith("REVISION:")))
+                                                    @if (isRevision)
                                                     {
                                                         <a asp-action="Edit" asp-route-id="@form.Id" 
-                                                           class="btn btn-sm btn-outline-warning" title="Düzenle">
+                                                           class="btn btn-sm btn-outline-warning" title="Revizyon Düzenle">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                     }

@@ -3,6 +3,8 @@ using Core.Entity;
 using DataAccess.Unit.Interface;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace Business.Services.Internship
 {
@@ -69,6 +71,27 @@ namespace Business.Services.Internship
             // Tarih kontrolü
             if (offer.ApplicationDeadline.HasValue && offer.ApplicationDeadline.Value <= DateTime.UtcNow)
                 throw new InvalidOperationException("Başvuru son tarihi geçmiş bir tarih olamaz");
+
+            // Prevent accidental double-submit: check for a very recently created offer with same title/city/company
+            try
+            {
+                var existingOffers = await _unitOfWork.InternshipOffers.GetOffersByCompanyIdAsync(offer.CompanyId);
+                var dup = existingOffers.FirstOrDefault(o =>
+                    string.Equals((o.Title ?? string.Empty).Trim(), (offer.Title ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase)
+                    && string.Equals((o.City ?? string.Empty).Trim(), (offer.City ?? string.Empty).Trim(), StringComparison.OrdinalIgnoreCase)
+                    && Math.Abs((DateTime.UtcNow - o.CreatedAt).TotalSeconds) < 10 // created within last 10 seconds
+                );
+
+                if (dup != null)
+                {
+                    // Return existing to avoid duplicate entries when form is submitted twice quickly
+                    return dup;
+                }
+            }
+            catch
+            {
+                // ignore duplicate-check failures and continue with normal flow
+            }
 
             // Varsayılan değerler
             offer.CreatedAt = DateTime.UtcNow;

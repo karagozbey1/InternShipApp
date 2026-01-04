@@ -1,4 +1,4 @@
-@* Þirket raporlarý ana sayfasý *@
+@* Sirket raporlari ana sayfasi *@
 @model WebUI.Models.ViewModels.Company.CompanyReportViewModel
 
 @{
@@ -6,195 +6,270 @@
     Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
-@* Ana container *@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+@section Styles {
+    <style>
+        .reports-hero {
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #8b5cf6 100%);
+            border-radius: 24px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .stat-card-premium {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        .stat-card-premium.blue::before { background: linear-gradient(90deg, #0ea5e9, #3b82f6); }
+        .stat-card-premium.green::before { background: linear-gradient(90deg, #10b981, #059669); }
+        .stat-card-premium.purple::before { background: linear-gradient(90deg, #8b5cf6, #6366f1); }
+        .stat-card-premium.orange::before { background: linear-gradient(90deg, #f59e0b, #ea580c); }
+        .dark .stat-card-premium { background: rgba(30, 41, 59, 0.95); border-color: rgba(71, 85, 105, 0.3); }
+        .stat-card-premium:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15); }
+        .chart-container-premium {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        .dark .chart-container-premium { background: rgba(30, 41, 59, 0.95); border-color: rgba(71, 85, 105, 0.3); }
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .dark .action-card { background: rgba(30, 41, 59, 0.95); border-color: rgba(71, 85, 105, 0.3); }
+        .btn-action {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+        .btn-excel { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-pdf { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .btn-email { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; }
+        .suggestion-card { border-radius: 16px; padding: 18px; display: flex; align-items: flex-start; gap: 14px; }
+        .suggestion-card.warning { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .suggestion-card.info { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .suggestion-card.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .suggestion-card.purple { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); }
+        .suggestion-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .legend-item { display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.02); }
+        .dark .legend-item { background: rgba(255, 255, 255, 0.05); }
+        .legend-dot { width: 14px; height: 14px; border-radius: 6px; }
+    </style>
+}
+
+<div class="min-h-screen py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        @* Sayfa baþlýðý *@
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                <i class="fas fa-chart-bar text-blue-600 dark:text-blue-400 mr-3"></i>
-                Þirket Raporlarý
-            </h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-300">
-                Stajyerleriniz ve baþvuru süreçleriniz hakkýnda detaylý analiz ve raporlar
-            </p>
+        <!-- Hero Section -->
+        <div class="reports-hero">
+            <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">
+                        <i class="fas fa-chart-bar mr-3"></i>Sirket Raporlari
+                    </h1>
+                    <p class="text-white/80">Stajyerleriniz ve basvuru surecleriniz hakkinda detayli analiz</p>
+                </div>
+                <a asp-controller="Company" asp-action="Index" class="px-6 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl font-semibold transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i>Dashboard
+                </a>
+            </div>
         </div>
 
-        @* Ýstatistik kartlarý *@
+        <!-- Istatistik kartlari -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            @* Toplam baþvuru sayýsý *@
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="stat-card-premium blue">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Toplam Baþvuru</p>
-                        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">@Model.TotalApplications</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Toplam Basvuru</p>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">@Model.TotalApplications</p>
+                        <p class="text-blue-500 text-sm mt-2">Tum zamanlar</p>
                     </div>
-                    <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
-                        <i class="fas fa-file-alt text-blue-600 dark:text-blue-400 text-xl"></i>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                        <i class="fas fa-file-alt text-white text-xl"></i>
                     </div>
                 </div>
             </div>
-
-            @* Bu ayki baþvuru sayýsý *@
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="stat-card-premium green">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Bu Ay</p>
-                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">@Model.ThisMonthApplications</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Bu Ay</p>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">@Model.ThisMonthApplications</p>
+                        <p class="text-green-500 text-sm mt-2">Yeni basvurular</p>
                     </div>
-                    <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
-                        <i class="fas fa-calendar text-green-600 dark:text-green-400 text-xl"></i>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                        <i class="fas fa-calendar text-white text-xl"></i>
                     </div>
                 </div>
             </div>
-
-            @* Aktif stajyer sayýsý *@
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="stat-card-premium purple">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Aktif Stajyerler</p>
-                        <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">@Model.ActiveInterns</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Aktif Stajyerler</p>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">@Model.ActiveInterns</p>
+                        <p class="text-purple-500 text-sm mt-2">Su anda calisan</p>
                     </div>
-                    <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
-                        <i class="fas fa-users text-purple-600 dark:text-purple-400 text-xl"></i>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-users text-white text-xl"></i>
                     </div>
                 </div>
             </div>
-
-            @* Onaylanma oraný *@
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="stat-card-premium orange">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Onaylanma Oraný</p>
-                        <p class="text-3xl font-bold text-orange-600 dark:text-orange-400">%@Model.ApprovalRate.ToString("F1")</p>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Onaylanma Orani</p>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">%@Model.ApprovalRate.ToString("F1")</p>
+                        <p class="text-orange-500 text-sm mt-2">Basari orani</p>
                     </div>
-                    <div class="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
-                        <i class="fas fa-percentage text-orange-600 dark:text-orange-400 text-xl"></i>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center">
+                        <i class="fas fa-percentage text-white text-xl"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        @* Ana içerik alaný - iki kolon *@
+        <!-- Ana icerik -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            @* Sol kolon - grafikler *@
+            <!-- Sol kolon -->
             <div class="lg:col-span-2 space-y-6">
-                @* Aylýk baþvuru trendi grafiði *@
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        <i class="fas fa-chart-line text-blue-600 dark:text-blue-400 mr-2"></i>
-                        Aylýk Baþvuru Trendi
+                <div class="chart-container-premium">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-line text-white"></i>
+                        </div>
+                        Aylik Basvuru Trendi
                     </h3>
                     <canvas id="monthlyApplicationsChart" width="400" height="200"></canvas>
                 </div>
 
-                @* Baþvuru durumlarý pasta grafiði *@
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        <i class="fas fa-chart-pie text-green-600 dark:text-green-400 mr-2"></i>
-                        Baþvuru Durumlarý
+                <div class="chart-container-premium">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mr-3">
+                            <i class="fas fa-chart-pie text-white"></i>
+                        </div>
+                        Basvuru Durumlari
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <canvas id="applicationStatusChart" width="200" height="200"></canvas>
-                        <div class="space-y-2">
-                            @* Durum legendasý *@
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">Beklemede: @Model.PendingApplications</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center justify-center">
+                            <canvas id="applicationStatusChart" width="200" height="200"></canvas>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="legend-item">
+                                <div class="legend-dot bg-yellow-400"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Beklemede</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.PendingApplications</p>
+                                </div>
                             </div>
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">Onaylý: @Model.ApprovedApplications</span>
+                            <div class="legend-item">
+                                <div class="legend-dot bg-green-400"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Onayli</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.ApprovedApplications</p>
+                                </div>
                             </div>
-                            <div class="flex items-center">
-                                <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">Reddedilen: @Model.RejectedApplications</span>
+                            <div class="legend-item">
+                                <div class="legend-dot bg-red-400"></div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Reddedilen</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">@Model.RejectedApplications</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            @* Sað kolon - eylemler ve öneriler *@
+            <!-- Sag kolon -->
             <div class="space-y-6">
-                @* Hýzlý eylemler kartý *@
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        <i class="fas fa-bolt text-yellow-600 dark:text-yellow-400 mr-2"></i>
-                        Hýzlý Eylemler
+                <div class="action-card">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center mr-3">
+                            <i class="fas fa-bolt text-white"></i>
+                        </div>
+                        Hizli Eylemler
                     </h3>
                     <div class="space-y-3">
-                        @* Excel export butonu *@
-                        <button onclick="exportToExcel()" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                            <i class="fas fa-file-excel mr-2"></i>
-                            Excel'e Aktar
+                        <button onclick="exportToExcel()" class="btn-action btn-excel">
+                            <i class="fas fa-file-excel"></i>Excel'e Aktar
                         </button>
-                        
-                        @* PDF rapor butonu *@
-                        <button onclick="generatePDFReport()" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                            <i class="fas fa-file-pdf mr-2"></i>
-                            PDF Rapor
+                        <button onclick="generatePDFReport()" class="btn-action btn-pdf">
+                            <i class="fas fa-file-pdf"></i>PDF Rapor
                         </button>
-                        
-                        @* E-posta raporu butonu *@
-                        <button onclick="emailReport()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                            <i class="fas fa-envelope mr-2"></i>
-                            E-posta Gönder
+                        <button onclick="emailReport()" class="btn-action btn-email">
+                            <i class="fas fa-envelope"></i>E-posta Gonder
                         </button>
                     </div>
                 </div>
 
-                @* Öneriler ve uyarýlar *@
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        <i class="fas fa-lightbulb text-yellow-600 dark:text-yellow-400 mr-2"></i>
-                        Öneriler
+                <div class="action-card">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mr-3">
+                            <i class="fas fa-lightbulb text-white"></i>
+                        </div>
+                        Oneriler
                     </h3>
                     <div class="space-y-4">
-                        @* Düþük onaylanma oraný uyarýsý *@
                         @if (Model.ApprovalRate < 50)
                         {
-                            <div class="flex items-start p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-                                <i class="fas fa-exclamation-triangle text-orange-500 dark:text-orange-400 mr-3 mt-1"></i>
+                            <div class="suggestion-card warning">
+                                <div class="suggestion-icon bg-gradient-to-br from-yellow-400 to-orange-500">
+                                    <i class="fas fa-exclamation-triangle text-white"></i>
+                                </div>
                                 <div>
-                                    <h4 class="font-medium text-orange-800 dark:text-orange-300">Onaylanma Oraný Düþük</h4>
-                                    <p class="text-sm text-orange-700 dark:text-orange-400 mt-1">Onaylanma oranýnýz %@Model.ApprovalRate.ToString("F1") seviyesinde. Ýlan kriterlerinizi gözden geçirmeyi ve daha açýk job tanýmlarý yazmayý düþünün.</p>
+                                    <h4 class="font-semibold text-yellow-800 dark:text-yellow-300">Onaylanma Orani Dusuk</h4>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">Onaylanma oraniniz %@Model.ApprovalRate.ToString("F1") seviyesinde.</p>
                                 </div>
                             </div>
                         }
-                        
-                        @* Kapasite artýrým önerisi *@
                         @if (Model.ActiveInterns < 5)
                         {
-                            <div class="flex items-start p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                                <i class="fas fa-info-circle text-blue-500 dark:text-blue-400 mr-3 mt-1"></i>
+                            <div class="suggestion-card info">
+                                <div class="suggestion-icon bg-gradient-to-br from-blue-400 to-indigo-500">
+                                    <i class="fas fa-info-circle text-white"></i>
+                                </div>
                                 <div>
-                                    <h4 class="font-medium text-blue-800 dark:text-blue-300">Kapasite Artýrýmý</h4>
-                                    <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">Þu anda @Model.ActiveInterns stajyer ile çalýþýyorsunuz. Daha fazla stajyer alarak þirket kapasitesini artýrabilir ve yetenekli öðrencilerle tanýþabilirsiniz.</p>
+                                    <h4 class="font-semibold text-blue-800 dark:text-blue-300">Kapasite Artirimi</h4>
+                                    <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">Su anda @Model.ActiveInterns stajyer ile calisiyorsunuz.</p>
                                 </div>
                             </div>
                         }
-                        
-                        @* Baþarýlý performans tebriði *@
-                        @if (Model.ThisMonthApplications > Model.TotalApplications / 6)
-                        {
-                            <div class="flex items-start p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                <i class="fas fa-check-circle text-green-500 dark:text-green-400 mr-3 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-green-800 dark:text-green-300">Baþarýlý Performans</h4>
-                                    <p class="text-sm text-green-700 dark:text-green-400 mt-1">Bu ay baþvuru sayýnýz ortalamanýn üzerinde! Bu momentum'u korumak için sosyal medya paylaþýmlarýnýzý artýrabilirsiniz.</p>
-                                </div>
+                        <div class="suggestion-card purple">
+                            <div class="suggestion-icon bg-gradient-to-br from-purple-400 to-indigo-500">
+                                <i class="fas fa-chart-line text-white"></i>
                             </div>
-                        }
-                        
-                        @* Genel geliþim önerisi *@
-                        <div class="flex items-start p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                            <i class="fas fa-chart-line text-purple-500 dark:text-purple-400 mr-3 mt-1"></i>
                             <div>
-                                <h4 class="font-medium text-purple-800 dark:text-purple-300">Geliþim Önerisi</h4>
-                                <p class="text-sm text-purple-700 dark:text-purple-400 mt-1">Stajyer memnuniyetini artýrmak için düzenli feedback toplantýlarý düzenlemeyi ve mentorluk programlarý geliþtirmeyi göz önünde bulundurun.</p>
+                                <h4 class="font-semibold text-purple-800 dark:text-purple-300">Gelisim Onerisi</h4>
+                                <p class="text-sm text-purple-700 dark:text-purple-400 mt-1">Stajyer memnuniyetini artirmak icin duzenli feedback toplantilari duzenleyin.</p>
                             </div>
                         </div>
                     </div>
@@ -204,11 +279,51 @@
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/company-reports.css" asp-append-version="true" />
-}
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="~/js/company/reports.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var monthlyCtx = document.getElementById('monthlyApplicationsChart');
+            if (monthlyCtx) {
+                new Chart(monthlyCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Oca', 'Sub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Agu', 'Eyl', 'Eki', 'Kas', 'Ara'],
+                        datasets: [{
+                            label: 'Basvurular',
+                            data: [12, 19, 15, 25, 22, 30, 28, 35, 40, 32, 28, @Model.ThisMonthApplications],
+                            borderColor: 'rgb(99, 102, 241)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+            var statusCtx = document.getElementById('applicationStatusChart');
+            if (statusCtx) {
+                new Chart(statusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Beklemede', 'Onayli', 'Reddedilen'],
+                        datasets: [{
+                            data: [@Model.PendingApplications, @Model.ApprovedApplications, @Model.RejectedApplications],
+                            backgroundColor: ['rgb(251, 191, 36)', 'rgb(16, 185, 129)', 'rgb(239, 68, 68)'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, cutout: '65%', plugins: { legend: { display: false } } }
+                });
+            }
+        });
+        function exportToExcel() { window.location.href = '/Company/Interns/Export'; }
+        function generatePDFReport() { alert('PDF raporu olusturuluyor...'); }
+        function emailReport() { alert('E-posta gonderiliyor...'); }
+    </script>
 }

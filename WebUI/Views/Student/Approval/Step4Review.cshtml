@@ -1,85 +1,583 @@
-@using WebUI.Models.Student
-@model ApprovalFormReviewViewModel
+@using WebUI.Models.ViewModels.Student
+@model ModernApprovalViewModel
 @{
-    ViewData["Title"] = "Baþvuru Gözden Geçir";
+    ViewData["Title"] = "Adým 4: Gözden Geçir";
     Layout = "_AppLayout";
 }
 
-<div class="max-w-4xl mx-auto p-6">
-    <div class="bg-white rounded-lg shadow-md p-8">
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">
-                <i class="fas fa-clipboard-check text-blue-500 mr-2"></i>
-                Baþvuru Gözden Geçirme
-            </h1>
-            <p class="text-gray-600">Bilgilerinizi kontrol edin ve baþvurunuzu gönderin</p>
-        </div>
-
-        <!-- Bilgi kartlarý -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Þirket bilgileri -->
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <h3 class="font-semibold text-blue-800 mb-3">
-                    <i class="fas fa-building mr-2"></i>Þirket Bilgileri
-                </h3>
-                <div class="space-y-2 text-sm">
-                    <div><strong>Þirket:</strong> @Model.CompanyName</div>
-                    <div><strong>Pozisyon:</strong> @Model.InternshipDescription</div>
-                    <div><strong>Adres:</strong> @Model.WorkplaceAddress</div>
-                </div>
-            </div>
-
-            <!-- Tarih bilgileri -->
-            <div class="bg-green-50 p-4 rounded-lg">
-                <h3 class="font-semibold text-green-800 mb-3">
-                    <i class="fas fa-calendar mr-2"></i>Staj Tarihleri
-                </h3>
-                <div class="space-y-2 text-sm">
-                    <div><strong>Baþlangýç:</strong> @Model.StartDate.ToString("dd/MM/yyyy")</div>
-                    <div><strong>Bitiþ:</strong> @Model.EndDate.ToString("dd/MM/yyyy")</div>
-                    <div><strong>Haftalýk Saat:</strong> @Model.WeeklyWorkHours saat</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ýrtibat bilgileri -->
-        <div class="bg-yellow-50 p-4 rounded-lg mb-6">
-            <h3 class="font-semibold text-yellow-800 mb-3">
-                <i class="fas fa-user-tie mr-2"></i>Staj Koordinatörü
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div><strong>Ad Soyad:</strong> @Model.InternshipCoordinator</div>
-                <div><strong>Telefon:</strong> @Model.CoordinatorPhone</div>
-                <div><strong>E-posta:</strong> @Model.CoordinatorEmail</div>
-            </div>
-        </div>
-
-        <!-- Öðrenci notu -->
-        @if (!string.IsNullOrEmpty(Model.StudentNote))
-        {
-            <div class="bg-purple-50 p-4 rounded-lg mb-6">
-                <h3 class="font-semibold text-purple-800 mb-3">
-                    <i class="fas fa-sticky-note mr-2"></i>Öðrenci Notu
-                </h3>
-                <p class="text-sm text-gray-700">@Model.StudentNote</p>
-            </div>
+@section Styles {
+    @Html.Raw(@"<style>
+        /* Premium Card Styles */
+        .premium-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
-        <!-- Form gönderimi -->
-        <form method="post" asp-action="SubmitApproval">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="Id" value="@Model.Id" />
-            
+        .premium-card:hover {
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12), 0 5px 15px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+
+        /* Header Gradient */
+        .header-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Progress Steps */
+        .progress-step {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .progress-step.completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .progress-step.current {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.5);
+            transform: scale(1.15);
+        }
+
+        .wizard-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #e2e8f0, #f1f5f9);
+            border-radius: 999px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wizard-bar.filled {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .info-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .info-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .info-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.02em;
+        }
+
+        /* Avatar */
+        .premium-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Info Row */
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        /* Document Item */
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+        }
+
+        .document-item:hover {
+            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+            border-color: rgba(59, 130, 246, 0.2);
+            transform: translateX(4px);
+        }
+
+        .document-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            font-size: 18px;
+        }
+
+        /* Company Info Grid */
+        .company-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .company-item {
+            padding: 16px;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .company-item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: white;
+        }
+
+        .company-item-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .company-item-value {
+            font-size: 0.95rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        /* Textarea */
+        .premium-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        .premium-textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+            background: #ffffff;
+        }
+
+        /* Buttons */
+        .btn-premium-back {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
+        }
+
+        .btn-premium-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+            color: white;
+        }
+
+        .btn-premium-submit {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #a855f7 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-premium-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Step Labels */
+        .step-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            transition: all 0.3s ease;
+        }
+
+        .step-label.completed { color: #10b981; }
+        .step-label.current { color: #8b5cf6; }
+        .step-label.pending { color: #94a3b8; }
+
+        @media (max-width: 768px) {
+            .company-grid { grid-template-columns: 1fr; }
+            .main-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>")
+}
+
+<div class="space-y-6 p-4">
+    <!-- Header Section -->
+    <div class="premium-card p-8">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-3xl font-bold header-gradient mb-2">
+                    <i class="fas fa-clipboard-check me-3"></i>Gözden Geçir & Gönder
+                </h1>
+                <p class="text-gray-500 text-lg">
+                    Tüm bilgilerinizi kontrol edin ve baþvurunuzu gönderin
+                </p>
+            </div>
             <div class="text-center">
-                <button type="submit" id="submitBtn" 
-                        class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
-                    <i class="fas fa-paper-plane mr-2"></i>Baþvuruyu Gönder
+                <div class="premium-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <p class="text-sm text-gray-500 mt-2 font-semibold">Son Adým</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="premium-card p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-gray-800">Baþvuru Süreci</h3>
+            <span class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                Adým 4 / 4
+            </span>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <div class="progress-step completed">
+                <i class="fas fa-check text-sm"></i>
+            </div>
+            <div class="flex-1 mx-4">
+                <div class="wizard-bar filled"></div>
+            </div>
+            <div class="progress-step completed">
+                <i class="fas fa-check text-sm"></i>
+            </div>
+            <div class="flex-1 mx-4">
+                <div class="wizard-bar filled"></div>
+            </div>
+            <div class="progress-step completed">
+                <i class="fas fa-check text-sm"></i>
+            </div>
+            <div class="flex-1 mx-4">
+                <div class="wizard-bar"></div>
+            </div>
+            <div class="progress-step current">4</div>
+        </div>
+
+        <div class="flex justify-between text-center">
+            <span class="step-label completed flex-1">
+                <i class="fas fa-check-circle me-1"></i>Belgeler
+            </span>
+            <span class="step-label completed flex-1">
+                <i class="fas fa-check-circle me-1"></i>Firma
+            </span>
+            <span class="step-label completed flex-1">
+                <i class="fas fa-check-circle me-1"></i>Danýþman
+            </span>
+            <span class="step-label current flex-1">
+                <i class="fas fa-paper-plane me-1"></i>Gönder
+            </span>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <form asp-controller="Approval" asp-action="Step4Submit" method="post" id="step4Form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="hidden" name="SelectedDocumentIdsFromForm" value="@((Model.SelectedDocumentIds != null) ? string.Join(",", Model.SelectedDocumentIds) : string.Empty)" />
+        <input type="hidden" name="SelectedApplicationIdFromForm" value="@Model.SelectedApplicationId" />
+        <input type="hidden" name="SelectedAdvisorIdFromForm" value="@Model.SelectedAdvisorId" />
+        <input type="hidden" name="CompanyName" value="@Model.CompanyName" />
+        <input type="hidden" name="StartDate" value="@(Model.StartDate != default ? Model.StartDate.ToString("o") : string.Empty)" />
+        <input type="hidden" name="EndDate" value="@(Model.EndDate != default ? Model.EndDate.ToString("o") : string.Empty)" />
+        <input type="hidden" name="Position" value="@Model.InternshipDescription" />
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 main-grid">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <!-- Advisor Card -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <span class="info-card-title">Danýþman Bilgileri</span>
+                    </div>
+
+                    @if (Model.SelectedAdvisor != null)
+                    {
+                        var advName = Model.SelectedAdvisor.FullName ?? "?";
+                        var initial = advName.Length > 0 ? advName.Substring(0, 1).ToUpper() : "?";
+                        <div class="info-row">
+                            <div class="premium-avatar" style="background: linear-gradient(135deg, #8b5cf6, #a855f7); width: 56px; height: 56px; font-size: 20px;">
+                                @initial
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-gray-800 text-lg">@Model.SelectedAdvisor.FullName</div>
+                                <div class="text-gray-500 text-sm mt-1">
+                                    <i class="fas fa-building me-1"></i>@Model.SelectedAdvisor.Department
+                                </div>
+                                <div class="text-gray-400 text-sm mt-1">
+                                    <i class="fas fa-envelope me-1"></i>@Model.SelectedAdvisor.Email
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-gray-400 text-center py-4">
+                            <i class="fas fa-user-slash fa-2x mb-2"></i>
+                            <p>Danýþman bilgisi mevcut deðil</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Documents Card -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-icon" style="background: linear-gradient(135deg, #3b82f6, #06b6d4);">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <span class="info-card-title">Seçilen Belgeler</span>
+                        <span class="ml-auto px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                            @(Model.SelectedDocuments?.Count ?? 0) Belge
+                        </span>
+                    </div>
+
+                    @if (Model.SelectedDocuments != null && Model.SelectedDocuments.Any())
+                    {
+                        <div class="space-y-3">
+                            @foreach (var d in Model.SelectedDocuments)
+                            {
+                                <div class="document-item">
+                                    <div class="document-icon">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="font-semibold text-gray-800">
+                                            @((!string.IsNullOrEmpty(d.Title)) ? d.Title : d.FileName)
+                                        </div>
+                                        <div class="text-xs text-gray-400 mt-1">
+                                            <i class="fas fa-hdd me-1"></i>
+                                            @((d.FileSize / 1024.0 / 1024.0) >= 1 ? (d.FileSize / 1024.0 / 1024.0).ToString("0.0") + " MB" : (d.FileSize / 1024.0).ToString("0") + " KB")
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-check-circle text-green-500"></i>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-gray-400 text-center py-4">
+                            <i class="fas fa-folder-open fa-2x mb-2"></i>
+                            <p>Seçilen belge yok</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Company Card -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <span class="info-card-title">Firma Bilgileri</span>
+                    </div>
+
+                    <div class="company-grid">
+                        <div class="company-item">
+                            <div class="company-item-icon" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="company-item-label">Þirket</div>
+                            <div class="company-item-value">
+                                @(!string.IsNullOrWhiteSpace(Model.CompanyName) ? Model.CompanyName : "-")
+                            </div>
+                        </div>
+
+                        <div class="company-item">
+                            <div class="company-item-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="company-item-label">Pozisyon</div>
+                            <div class="company-item-value">
+                                @(!string.IsNullOrWhiteSpace(Model.InternshipDescription) ? Model.InternshipDescription : "-")
+                            </div>
+                        </div>
+
+                        <div class="company-item">
+                            <div class="company-item-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="company-item-label">Baþlangýç</div>
+                            <div class="company-item-value">
+                                @(Model.StartDate != default ? Model.StartDate.ToString("dd MMMM yyyy") : "-")
+                            </div>
+                        </div>
+
+                        <div class="company-item">
+                            <div class="company-item-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="company-item-label">Bitiþ</div>
+                            <div class="company-item-value">
+                                @(Model.EndDate != default ? Model.EndDate.ToString("dd MMMM yyyy") : "-")
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.WorkplaceAddress))
+                    {
+                        <div class="company-item mt-4">
+                            <div class="company-item-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="company-item-label">Adres</div>
+                            <div class="company-item-value">@Model.WorkplaceAddress</div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Note Card -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div class="info-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <span class="info-card-title">Danýþmana Not</span>
+                    </div>
+
+                    <textarea 
+                        id="studentNote" 
+                        name="StudentNote" 
+                        class="premium-textarea"
+                        placeholder="Danýþmanýnýza iletmek istediðiniz notlarý buraya yazabilirsiniz...">@Model.StudentNote</textarea>
+                    
+                    <p class="text-xs text-gray-400 mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Bu not danýþmanýnýz tarafýndan görüntülenecektir.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="premium-card p-6 mt-6">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <a asp-action="Step3Advisor" asp-controller="Approval" class="btn-premium-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Önceki Adým
+                </a>
+                
+                <button type="submit" id="submitStep4" class="btn-premium-submit">
+                    <i class="fas fa-paper-plane"></i>
+                    Baþvuruyu Gönder
+                    <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    <script src="~/js/student/approval-review.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ta = document.querySelector('textarea.premium-textarea');
+            if (ta) ta.setAttribute('aria-label', 'Danýþmana gönderilecek öðrenci notu');
+
+            // Form submit animation
+            const form = document.getElementById('step4Form');
+            const submitBtn = document.getElementById('submitStep4');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function() {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gönderiliyor...';
+                });
+            }
+        });
+    </script>
 }

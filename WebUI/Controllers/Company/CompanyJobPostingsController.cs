@@ -150,11 +150,15 @@ namespace WebUI.Controllers.Company
                 if (matched != null) model.LocationId = matched.Id;
                 if (offer.PeriodId > 0)
                 {
+                    // Offer uses a predefined period -> set DateMode accordingly
                     model.UsePeriod = true; model.PeriodId = offer.PeriodId;
+                    model.DateMode = DateSelectionMode.Period;
                 }
                 else
                 {
+                    // Offer had explicit start/end -> treat as fixed range
                     model.UsePeriod = false;
+                    model.DateMode = DateSelectionMode.FixedRange;
                     model.StartDate = offer.Period?.StartDate ?? DateTime.UtcNow.AddDays(30);
                     model.EndDate = offer.Period?.EndDate ?? DateTime.UtcNow.AddDays(90);
                 }
@@ -164,128 +168,163 @@ namespace WebUI.Controllers.Company
 
         private async Task<IActionResult> SaveCreateEditModel(JobPostingCreateViewModel model)
         {
-            model.AvailableDurations = Enum.GetValues(typeof(OfferDurationType)).Cast<OfferDurationType>().ToList();
-            model.AvailableLocations = (await _provinceRepo.GetAllAsync()).ToList();
-            model.AvailablePeriods = await _periodService.GetActivePeriodsAsync();
-            if (!ModelState.IsValid) return View("~/Views/Company/JobPostings/Create.cshtml", model);
+            try
+            {
+                model.AvailableDurations = Enum.GetValues(typeof(OfferDurationType)).Cast<OfferDurationType>().ToList();
+                model.AvailableLocations = (await _provinceRepo.GetAllAsync()).ToList();
+                model.AvailablePeriods = await _periodService.GetActivePeriodsAsync();
 
-            DateTime start; DateTime end;
-            if (model.UsePeriod)
-            {
-                if (model.PeriodId <= 0)
-                {
-                    ModelState.AddModelError("PeriodId", "Dönem seçimi zorunludur.");
-                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
-                }
-                var period = await _periodService.GetPeriodByIdAsync(model.PeriodId);
-                if (period == null)
-                {
-                    ModelState.AddModelError("PeriodId", "Seçilen dönem bulunamadý.");
-                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
-                }
-                start = period.StartDate; end = period.EndDate;
-            }
-            else
-            {
-                start = model.StartDate; end = model.EndDate;
-                if (end <= start)
-                {
-                    ModelState.AddModelError("EndDate", "Bitiþ tarihi baþlangýçtan sonra olmalýdýr.");
-                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
-                }
-            }
-            if (model.ApplicationDeadline >= start)
-            {
-                ModelState.AddModelError("ApplicationDeadline", "Son baþvuru tarihi baþlangýçtan önce olmalýdýr.");
-                return View("~/Views/Company/JobPostings/Create.cshtml", model);
-            }
-            var companyId = await GetCurrentCompanyIdAsync();
-            if (companyId <= 0)
-            {
-                TempData["ErrorMessage"] = "Þirket hesabýnýz bulunamadý.";
-                return View("~/Views/Company/JobPostings/Create.cshtml", model);
-            }
-            var cityName = (await _provinceRepo.GetByIdAsync(model.LocationId))?.Name ?? string.Empty;
+                // Ensure server uses DateMode to determine whether to use a period or manual dates
+                model.UsePeriod = model.DateMode == DateSelectionMode.Period;
 
-            if (model.Id > 0)
-            {
-                var existing = await _offerService.GetByIdAsync(model.Id);
-                if (existing == null || existing.CompanyId != companyId)
+                if (!ModelState.IsValid)
                 {
-                    TempData["ErrorMessage"] = "Ýlan bulunamadý veya yetkiniz yok.";
-                    return RedirectToAction("List");
+                    // Collect model state errors to show to the user
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                        .Select(e => string.IsNullOrEmpty(e.ErrorMessage) ? e.Exception?.Message : e.ErrorMessage)
+                        .Where(m => !string.IsNullOrWhiteSpace(m))
+                        .ToList();
+                    if (errors.Any()) TempData["ErrorMessage"] = string.Join("; ", errors);
+                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
                 }
-                existing.Title = model.Title;
-                existing.Description = model.Description;
-                existing.Requirements = model.Requirements;
-                existing.City = cityName;
-                existing.Field = model.Position;
-                existing.AvailablePositions = model.Quota;
-                existing.IsActive = model.IsActive;
-                existing.ApplicationDeadline = model.ApplicationDeadline.ToUniversalTime();
-                existing.Duration = model.Duration.GetValueOrDefault(OfferDurationType.Kisa);
-                existing.JobType = model.JobType switch
-                {
-                    JobPostingType.Job => OfferJobType.Job,
-                    JobPostingType.Both => OfferJobType.Both,
-                    _ => OfferJobType.Internship
-                };
-                existing.MonthlySalary = model.MonthlySalary;
-                existing.MonthlySalaryCurrency = model.MonthlySalaryCurrency;
+
+                DateTime start; DateTime end;
                 if (model.UsePeriod)
-                    existing.PeriodId = model.PeriodId;
+                {
+                    if (model.PeriodId <= 0)
+                    {
+                        ModelState.AddModelError("PeriodId", "Dönem seçimi zorunludur.");
+                        TempData["ErrorMessage"] = "Dönem seçimi zorunludur.";
+                        return View("~/Views/Company/JobPostings/Create.cshtml", model);
+                    }
+                    var period = await _periodService.GetPeriodByIdAsync(model.PeriodId);
+                    if (period == null)
+                    {
+                        ModelState.AddModelError("PeriodId", "Seçilen dönem bulunamadý.");
+                        TempData["ErrorMessage"] = "Seçilen dönem bulunamadý.";
+                        return View("~/Views/Company/JobPostings/Create.cshtml", model);
+                    }
+                    start = period.StartDate; end = period.EndDate;
+                }
                 else
                 {
-                    var p = new InternshipPeriod
+                    start = model.StartDate; end = model.EndDate;
+                    if (end <= start)
+                    {
+                        ModelState.AddModelError("EndDate", "Bitiþ tarihi baþlangýçtan sonra olmalýdýr.");
+                        TempData["ErrorMessage"] = "Bitiþ tarihi baþlangýçtan sonra olmalýdýr.";
+                        return View("~/Views/Company/JobPostings/Create.cshtml", model);
+                    }
+                }
+                if (model.ApplicationDeadline >= start)
+                {
+                    ModelState.AddModelError("ApplicationDeadline", "Son baþvuru tarihi baþlangýçtan önce olmalýdýr.");
+                    TempData["ErrorMessage"] = "Son baþvuru tarihi baþlangýçtan önce olmalýdýr.";
+                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
+                }
+                var companyId = await GetCurrentCompanyIdAsync();
+                if (companyId <= 0)
+                {
+                    TempData["ErrorMessage"] = "Þirket hesabýnýz bulunamadý.";
+                    return View("~/Views/Company/JobPostings/Create.cshtml", model);
+                }
+                var cityName = (await _provinceRepo.GetByIdAsync(model.LocationId))?.Name ?? string.Empty;
+
+                if (model.Id > 0)
+                {
+                    var existing = await _offerService.GetByIdAsync(model.Id);
+                    if (existing == null || existing.CompanyId != companyId)
+                    {
+                        TempData["ErrorMessage"] = "Ýlan bulunamadý veya yetkiniz yok.";
+                        return RedirectToAction("List");
+                    }
+                    existing.Title = model.Title;
+                    existing.Description = model.Description;
+                    existing.Requirements = model.Requirements;
+                    existing.City = cityName;
+                    existing.Field = model.Position;
+                    existing.AvailablePositions = model.Quota;
+                    existing.IsActive = model.IsActive;
+                    existing.ApplicationDeadline = model.ApplicationDeadline.ToUniversalTime();
+                    existing.Duration = model.Duration.GetValueOrDefault(OfferDurationType.Kisa);
+                    existing.JobType = model.JobType switch
+                    {
+                        JobPostingType.Job => OfferJobType.Job,
+                        JobPostingType.Both => OfferJobType.Both,
+                        _ => OfferJobType.Internship
+                    };
+                    existing.MonthlySalary = model.MonthlySalary;
+                    existing.MonthlySalaryCurrency = model.MonthlySalaryCurrency;
+                    if (model.UsePeriod)
+                        existing.PeriodId = model.PeriodId;
+                    else
+                    {
+                        var p = new InternshipPeriod
+                        {
+                            PeriodName = $"{model.StartDate:yyyy-MM-dd} - {model.EndDate:yyyy-MM-dd}",
+                            StartDate = DateTime.SpecifyKind(model.StartDate.Date, DateTimeKind.Utc),
+                            EndDate = DateTime.SpecifyKind(model.EndDate.Date, DateTimeKind.Utc)
+                        };
+                        var added = await _periodService.AddPeriodAsync(p);
+                        existing.PeriodId = added.PeriodId;
+                    }
+                    await _offerService.UpdateOfferAsync(existing);
+                    TempData["CompanySuccessMessage"] = "Ýlan güncellendi.";
+                    return RedirectToAction("List");
+                }
+
+                var offer = new InternshipOffer
+                {
+                    Title = model.Title,
+                    Description = model.Description,
+                    Requirements = model.Requirements,
+                    City = cityName,
+                    Field = model.Position,
+                    AvailablePositions = model.Quota,
+                    IsActive = model.IsActive,
+                    CompanyId = companyId,
+                    Duration = model.Duration.GetValueOrDefault(OfferDurationType.Kisa),
+                    JobType = model.JobType switch
+                    {
+                        JobPostingType.Job => OfferJobType.Job,
+                        JobPostingType.Both => OfferJobType.Both,
+                        _ => OfferJobType.Internship
+                    },
+                    MonthlySalary = model.MonthlySalary,
+                    MonthlySalaryCurrency = model.MonthlySalaryCurrency,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                // normalize application deadline to UTC
+                var appDeadline = model.ApplicationDeadline;
+                if (appDeadline.Kind == DateTimeKind.Unspecified)
+                    appDeadline = DateTime.SpecifyKind(appDeadline, DateTimeKind.Utc);
+                else if (appDeadline.Kind == DateTimeKind.Local)
+                    appDeadline = appDeadline.ToUniversalTime();
+
+                offer.ApplicationDeadline = appDeadline;
+
+                if (model.UsePeriod) offer.PeriodId = model.PeriodId; else
+                {
+                    var np = new InternshipPeriod
                     {
                         PeriodName = $"{model.StartDate:yyyy-MM-dd} - {model.EndDate:yyyy-MM-dd}",
-                        StartDate = model.StartDate.Date,
-                        EndDate = model.EndDate.Date
+                        StartDate = DateTime.SpecifyKind(model.StartDate.Date, DateTimeKind.Utc),
+                        EndDate = DateTime.SpecifyKind(model.EndDate.Date, DateTimeKind.Utc)
                     };
-                    var added = await _periodService.AddPeriodAsync(p);
-                    existing.PeriodId = added.PeriodId;
+                    var added = await _periodService.AddPeriodAsync(np);
+                    offer.PeriodId = added.PeriodId;
                 }
-                await _offerService.UpdateOfferAsync(existing);
-                TempData["SuccessMessage"] = "Ýlan güncellendi.";
+                await _offerService.AddOfferAsync(offer);
+                TempData["CompanySuccessMessage"] = "Ýlan oluþturuldu.";
                 return RedirectToAction("List");
             }
-
-            var offer = new InternshipOffer
+            catch (Exception ex)
             {
-                Title = model.Title,
-                Description = model.Description,
-                Requirements = model.Requirements,
-                City = cityName,
-                Field = model.Position,
-                AvailablePositions = model.Quota,
-                IsActive = model.IsActive,
-                ApplicationDeadline = model.ApplicationDeadline.ToUniversalTime(),
-                CompanyId = companyId,
-                Duration = model.Duration.GetValueOrDefault(OfferDurationType.Kisa),
-                JobType = model.JobType switch
-                {
-                    JobPostingType.Job => OfferJobType.Job,
-                    JobPostingType.Both => OfferJobType.Both,
-                    _ => OfferJobType.Internship
-                },
-                MonthlySalary = model.MonthlySalary,
-                MonthlySalaryCurrency = model.MonthlySalaryCurrency,
-                CreatedAt = DateTime.UtcNow
-            };
-            if (model.UsePeriod) offer.PeriodId = model.PeriodId; else
-            {
-                var np = new InternshipPeriod
-                {
-                    PeriodName = $"{model.StartDate:yyyy-MM-dd} - {model.EndDate:yyyy-MM-dd}",
-                    StartDate = model.StartDate.Date,
-                    EndDate = model.EndDate.Date
-                };
-                var added = await _periodService.AddPeriodAsync(np);
-                offer.PeriodId = added.PeriodId;
+                // Surface exception to user and keep them on the form for correction
+                TempData["CompanyErrorMessage"] = "Kaydetme sýrasýnda hata: " + ex.Message;
+                return View("~/Views/Company/JobPostings/Create.cshtml", model);
             }
-            await _offerService.AddOfferAsync(offer);
-            TempData["SuccessMessage"] = "Ýlan oluþturuldu.";
-            return RedirectToAction("List");
         }
 
         // Durum deðiþtir

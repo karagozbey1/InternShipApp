@@ -2,173 +2,531 @@
 @using WebUI.Models.ViewModels.Student
 @model ApplicationDetailsViewModel
 @{
-    ViewData["Title"] = "Baþvuru Detayý";
+    ViewData["Title"] = "Basvuru Detayi";
     Layout = "_AppLayout";
 
     string statusText = Model.Status switch
     {
         InternshipApplicationStatus.Pending => "Beklemede",
-        InternshipApplicationStatus.Approved => "Onaylandý",
+        InternshipApplicationStatus.Approved => "Onaylandi",
         InternshipApplicationStatus.Rejected => "Reddedildi",
         _ => Model.Status.ToString()
     };
 
-    string startDateText = Model.StartDate != DateTime.MinValue ? Model.StartDate.ToString("dd MMMM yyyy") : "-";
-    string endDateText = Model.EndDate != DateTime.MinValue ? Model.EndDate.ToString("dd MMMM yyyy") : "-";
+    string startDateText = Model.StartDate != DateTime.MinValue ? Model.StartDate.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR")) : "-";
+    string endDateText = Model.EndDate != DateTime.MinValue ? Model.EndDate.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR")) : "-";
+    
+    var duration = Model.EndDate > Model.StartDate ? (Model.EndDate - Model.StartDate).Days : 0;
+    var weeks = duration / 7;
+    
+    var statusClass = Model.Status == InternshipApplicationStatus.Approved ? "approved" : 
+                      Model.Status == InternshipApplicationStatus.Pending ? "pending" : "rejected";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/approval-details.css" />
-    <style>
-        /* Compact hero and centered status */
-        .hero { border-radius:14px; padding:18px 24px; color:#fff; display:flex; align-items:center; justify-content:space-between; min-height:110px; }
-        .hero-left { display:flex; align-items:center; gap:16px; }
-        .avatar { width:64px; height:64px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px; color:#fff; }
-        .hero-meta h2 { margin:0; font-size:18px; font-weight:700; }
-        .hero-meta .meta { color:rgba(255,255,255,0.9); font-size:13px; }
-        .status-pill { background:rgba(255,255,255,0.08); padding:12px 18px; border-radius:10px; text-align:center; }
-
-        /* Layout */
-        .grid { display:flex; gap:20px; align-items:flex-start; }
-        .main { flex:1; }
-        #right-sidebar { width:320px; }
-        .card { border-radius:12px; box-shadow: 0 6px 20px rgba(12, 16, 26, 0.06); background:#fff; margin-bottom:18px; }
-        .section-title { font-weight:700; margin-bottom:12px; }
-
-        /* Timeline steps */
-        .timeline-steps { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-        .step { display:flex; align-items:center; gap:10px; padding:12px; background:#fbfbfb; border-radius:10px; min-width:180px; }
-        .step .icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; color:white; }
-        .step.pending .icon { background:#f59e0b; }
-        .step.completed .icon { background:#10b981; }
-        .step.rejected .icon { background:#ef4444; }
-        .step .label { font-weight:700; }
-        .arrow { font-size:20px; color:#cbd5e1; }
-
-        /* Basic responsive: stack columns on small screens using flex-wrap */
-        @@media screen and (max-width: 991px) {
-            .grid { flex-direction:column; }
-            #right-sidebar { width:100%; }
-        }
-    </style>
+<style>
+    .detail-hero {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+        border-radius: 24px;
+        padding: 2.5rem;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    .detail-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 80%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    }
+    .company-avatar-lg {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+    }
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 20px;
+        font-size: 14px;
+        backdrop-blur: 10px;
+    }
+    .compulsory-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .status-hero-card {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px 28px;
+        text-align: center;
+        min-width: 140px;
+    }
+    
+    .premium-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    .dark .premium-card {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(71, 85, 105, 0.3);
+    }
+    .card-header-premium {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .dark .card-header-premium {
+        background: rgba(51, 65, 85, 0.3);
+        border-color: rgba(71, 85, 105, 0.3);
+    }
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .card-body-premium {
+        padding: 1.5rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .info-item {
+        padding: 1rem;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    }
+    .dark .info-item {
+        background: rgba(51, 65, 85, 0.3);
+    }
+    .info-item label {
+        display: block;
+        font-size: 11px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+    .info-item .value {
+        font-size: 1rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+    .dark .info-item .value {
+        color: #e5e7eb;
+    }
+    
+    .description-box {
+        padding: 1.25rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+        border-radius: 14px;
+        border-left: 4px solid #8b5cf6;
+    }
+    .description-box p {
+        color: #4c1d95;
+        line-height: 1.7;
+        margin: 0;
+    }
+    .dark .description-box p {
+        color: #c4b5fd;
+    }
+    
+    .timeline-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 1.25rem;
+        background: #f8fafc;
+        border-radius: 16px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    .dark .timeline-item {
+        background: rgba(51, 65, 85, 0.3);
+    }
+    .timeline-item:hover {
+        transform: translateX(8px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .timeline-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        flex-shrink: 0;
+    }
+    .timeline-icon.pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .timeline-icon.completed { background: linear-gradient(135deg, #10b981, #059669); }
+    .timeline-icon.rejected { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    
+    .status-display {
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: center;
+    }
+    .status-display.pending {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+    }
+    .status-display.approved {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    }
+    .status-display.rejected {
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+    }
+    .status-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    .status-display.pending .status-icon { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .status-display.approved .status-icon { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .status-display.rejected .status-icon { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .status-text {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .status-display.pending .status-text { color: #92400e; }
+    .status-display.approved .status-text { color: #065f46; }
+    .status-display.rejected .status-text { color: #991b1b; }
+    
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .quick-stat {
+        padding: 1rem;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 14px;
+        text-align: center;
+    }
+    .dark .quick-stat {
+        background: rgba(51, 65, 85, 0.3);
+    }
+    .quick-stat .value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .quick-stat .label {
+        font-size: 11px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .document-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px;
+        background: #f8fafc;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    .dark .document-item {
+        background: rgba(51, 65, 85, 0.3);
+    }
+    .document-item:hover {
+        background: #f1f5f9;
+        transform: translateX(4px);
+    }
+    .doc-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .doc-btn {
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .doc-btn-view { background: #e2e8f0; color: #475569; }
+    .doc-btn-download { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+    
+    .btn-action {
+        padding: 14px 24px;
+        border-radius: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        text-decoration: none;
+        width: 100%;
+    }
+    .btn-primary-action {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(99, 102, 241, 0.4);
+        color: white;
+    }
+    .btn-danger-action {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    .btn-danger-action:hover {
+        transform: translateY(-2px);
+        color: white;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: white;
+        border-radius: 14px;
+        color: #6366f1;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    .back-link:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+        color: #4f46e5;
+    }
+    .dark .back-link {
+        background: rgba(30, 41, 59, 0.95);
+        color: #a5b4fc;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 2rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+    }
+</style>
 }
 
-<div class="container-fluid approval-page">
-    <div class="d-flex justify-content-between align-items-start mb-3">
-        <div>
-            <h1 class="h5 mb-1">Baþvuru Detayý</h1>
-            <div class="text-muted">@Model.CompanyName baþvurusunun detaylarý</div>
-        </div>
-        <a asp-action="Index" asp-controller="Application" class="btn btn-ghost"><i class="fas fa-arrow-left me-1"></i> Baþvurulara Dön</a>
-    </div>
+<div class="space-y-6">
+    <a asp-action="Index" asp-controller="Application" class="back-link">
+        <i class="fas fa-arrow-left"></i>Basvurulara Don
+    </a>
 
-    <div class="hero" style="background:linear-gradient(90deg,#5b21b6,#6d28d9);">
-        <div class="hero-left">
-            <div class="avatar" style="background:linear-gradient(135deg,#7c3aed,#06b6d4);">@(!string.IsNullOrEmpty(Model.CompanyName) ? Model.CompanyName.Substring(0,1).ToUpper() : "F")</div>
-            <div class="hero-meta">
-                <h2>@Model.CompanyName @if(Model.IsCompulsory){<span class="badge bg-warning text-dark ms-2" style="font-size:11px;vertical-align:middle;">Zorunlu</span>}</h2>
-                <div class="meta">@(!string.IsNullOrEmpty(Model.OfferDetails?.Title) ? Model.OfferDetails.Title : Model.Position)</div>
-                <div class="meta small-muted">@statusText • @Model.AppliedDate.ToString("dd MMMM yyyy")</div>
-            </div>
-        </div>
-
-        <div class="hero-right">
-            <div class="status-pill">
-                <div style="font-weight:700;">@statusText</div>
-                <div class="small-muted" style="color:rgba(255,255,255,0.9);">Durum</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="main">
-            <div class="card p-4" aria-labelledby="info-heading">
-                <div id="info-heading" class="section-title"><i class="fas fa-info-circle me-2"></i> Ýlan Bilgileri</div>
-                <p class="text-muted mb-0">@(!string.IsNullOrEmpty(Model.OfferDetails?.Description) ? Model.OfferDetails.Description : Model.Description)</p>
-            </div>
-
-            <div class="card p-4">
-                <div class="section-title"><i class="fas fa-user-graduate me-2"></i> Baþvuru Bilgileri</div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <dl>
-                            <dt class="small-muted">Pozisyon</dt>
-                            <dd>@Model.Position</dd>
-
-                            <dt class="small-muted">Ücret</dt>
-                            <dd>
-                                @if (Model.OfferDetails?.Salary.HasValue ?? false)
-                                {
-                                    var cur = Model.OfferDetails.SalaryCurrency;
-                                    var symbol = cur == Core.Entity.CurrencyType.TRY ? "?" : cur == Core.Entity.CurrencyType.USD ? "$" : "€";
-                                    @($"{Model.OfferDetails.Salary.Value:N0} {symbol}")
-                                }
-                                else
-                                {
-                                    @:Belirtilmemiþ
-                                }
-                            </dd>
-
-                            @if(!string.IsNullOrEmpty(Model.StudentNote))
-                            {
-                                <dt class="small-muted">Ön Yazý</dt>
-                                <dd>@Model.StudentNote</dd>
-                            }
-                        </dl>
+    <!-- Hero Section -->
+    <div class="detail-hero animate-fade-in-up">
+        <div class="relative z-10 flex flex-col md:flex-row items-start justify-between gap-6">
+            <div class="flex items-start gap-5">
+                <div class="company-avatar-lg">
+                    @(!string.IsNullOrEmpty(Model.CompanyName) ? Model.CompanyName.Substring(0, 1) : "S")
+                </div>
+                <div>
+                    <div class="flex items-center gap-3 flex-wrap mb-2">
+                        <h1 class="text-2xl font-bold text-white">@Model.CompanyName</h1>
+                        @if (Model.IsCompulsory)
+                        {
+                            <span class="compulsory-badge text-white">Zorunlu</span>
+                        }
                     </div>
-                    <div class="col-md-6">
-                        <dl>
-                            <dt class="small-muted">Baþlangýç</dt>
-                            <dd>@startDateText</dd>
+                    <p class="text-white/80 text-lg mb-4">
+                        @(!string.IsNullOrEmpty(Model.OfferDetails?.Title) ? Model.OfferDetails.Title : Model.Position)
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <span class="hero-badge text-white">
+                            <i class="fas fa-calendar"></i>@Model.AppliedDate.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("tr-TR"))
+                        </span>
+                        @if (duration > 0)
+                        {
+                            <span class="hero-badge text-white">
+                                <i class="fas fa-clock"></i>@weeks Hafta
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="status-hero-card text-white">
+                <p class="text-sm opacity-80 mb-1">Durum</p>
+                <p class="text-xl font-bold">@statusText</p>
+            </div>
+        </div>
+    </div>
 
-                            <dt class="small-muted">Bitiþ</dt>
-                            <dd>@endDateText</dd>
-                        </dl>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- About -->
+            <div class="premium-card animate-fade-in-up">
+                <div class="card-header-premium">
+                    <div class="header-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Ilan Hakkinda</h3>
+                </div>
+                <div class="card-body-premium">
+                    <div class="description-box">
+                        <p>@(!string.IsNullOrEmpty(Model.OfferDetails?.Description) ? Model.OfferDetails.Description : Model.Description ?? "Ilan detaylari bulunmuyor.")</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Timeline steps -->
-            <div class="card p-4">
-                <div class="section-title"><i class="fas fa-history me-2"></i> Zaman Çizelgesi</div>
-                <div class="timeline-steps">
-                    <div class="step completed">
-                        <div class="icon"><i class="fas fa-paper-plane"></i></div>
-                        <div>
-                            <div class="label">Baþvuru Gönderildi</div>
-                            <div class="text-muted small">@Model.AppliedDate.ToString("dd MMMM yyyy HH:mm")</div>
+            <!-- Application Info -->
+            <div class="premium-card animate-fade-in-up">
+                <div class="card-header-premium">
+                    <div class="header-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Basvuru Bilgileri</h3>
+                </div>
+                <div class="card-body-premium">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Pozisyon</label>
+                            <div class="value">@Model.Position</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Ucret</label>
+                            <div class="value">
+                                @if (Model.OfferDetails?.Salary.HasValue ?? false)
+                                {
+                                    var symbol = Model.OfferDetails.SalaryCurrency == CurrencyType.TRY ? "TL" : Model.OfferDetails.SalaryCurrency == CurrencyType.USD ? "$" : "EUR";
+                                    @($"{Model.OfferDetails.Salary.Value:N0} {symbol}")
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">Belirtilmemis</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <label>Baslangic</label>
+                            <div class="value">@startDateText</div>
+                        </div>
+                        <div class="info-item">
+                            <label>Bitis</label>
+                            <div class="value">@endDateText</div>
                         </div>
                     </div>
+                    @if (!string.IsNullOrEmpty(Model.StudentNote))
+                    {
+                        <div class="info-item mt-4" style="grid-column: span 2;">
+                            <label>On Yaziniz</label>
+                            <div class="value" style="font-weight: normal; line-height: 1.6;">@Model.StudentNote</div>
+                        </div>
+                    }
+                </div>
+            </div>
 
-                    <div class="arrow"><i class="fas fa-chevron-right"></i></div>
-
+            <!-- Timeline -->
+            <div class="premium-card animate-fade-in-up">
+                <div class="card-header-premium">
+                    <div class="header-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Basvuru Sureci</h3>
+                </div>
+                <div class="card-body-premium">
+                    <div class="timeline-item">
+                        <div class="timeline-icon completed"><i class="fas fa-paper-plane"></i></div>
+                        <div>
+                            <h4 class="font-bold text-gray-900 dark:text-white">Basvuru Gonderildi</h4>
+                            <p class="text-sm text-gray-500">@Model.AppliedDate.ToString("dd MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR"))</p>
+                        </div>
+                    </div>
+                    
                     @if (Model.Status == InternshipApplicationStatus.Pending)
                     {
-                        <div class="step pending">
-                            <div class="icon"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="text-center py-2 text-gray-300"><i class="fas fa-chevron-down"></i></div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon pending"><i class="fas fa-hourglass-half"></i></div>
                             <div>
-                                <div class="label">Onay Bekleniyor</div>
-                                <div class="text-muted small">Þu anda danýþman onayý bekleniyor</div>
+                                <h4 class="font-bold text-gray-900 dark:text-white">Degerlendirme Bekleniyor</h4>
+                                <p class="text-sm text-gray-500">Basvurunuz inceleniyor</p>
                             </div>
                         </div>
                     }
                     else if (Model.Status == InternshipApplicationStatus.Approved)
                     {
-                        <div class="step completed">
-                            <div class="icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="text-center py-2 text-gray-300"><i class="fas fa-chevron-down"></i></div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon completed"><i class="fas fa-check-circle"></i></div>
                             <div>
-                                <div class="label">Baþvuru Onaylandý</div>
-                                <div class="text-muted small">@Model.ApprovedDate?.ToString("dd MMMM yyyy HH:mm")</div>
+                                <h4 class="font-bold text-gray-900 dark:text-white">Basvuru Onaylandi</h4>
+                                <p class="text-sm text-gray-500">@(Model.ApprovedDate?.ToString("dd MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR")) ?? "")</p>
                             </div>
                         </div>
                     }
                     else if (Model.Status == InternshipApplicationStatus.Rejected)
                     {
-                        <div class="step rejected">
-                            <div class="icon"><i class="fas fa-times-circle"></i></div>
+                        <div class="text-center py-2 text-gray-300"><i class="fas fa-chevron-down"></i></div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon rejected"><i class="fas fa-times-circle"></i></div>
                             <div>
-                                <div class="label">Baþvuru Reddedildi</div>
-                                <div class="text-muted small">@Model.RejectedDate?.ToString("dd MMMM yyyy HH:mm")</div>
+                                <h4 class="font-bold text-gray-900 dark:text-white">Basvuru Reddedildi</h4>
+                                <p class="text-sm text-gray-500">@(Model.RejectedDate?.ToString("dd MMMM yyyy, HH:mm", new System.Globalization.CultureInfo("tr-TR")) ?? "")</p>
                             </div>
                         </div>
                     }
@@ -176,67 +534,107 @@
             </div>
         </div>
 
-        <div id="right-sidebar">
-            <div class="card p-3">
-                <div class="section-title"><i class="fas fa-tasks me-2"></i> Durum Yönetimi</div>
-                <div class="p-3" style="background:linear-gradient(180deg,#f0f9f4,#ffffff);border-radius:8px;">
-                    <div class="small-muted">@statusText</div>
-                    <div class="mt-3 d-grid gap-2">
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Status -->
+            <div class="premium-card animate-fade-in-up">
+                <div class="card-header-premium">
+                    <i class="fas fa-chart-pie text-indigo-500"></i>
+                    <h4 class="font-bold text-gray-900 dark:text-white">Durum</h4>
+                </div>
+                <div class="card-body-premium">
+                    <div class="status-display @statusClass">
+                        <div class="status-icon">
+                            @if (Model.Status == InternshipApplicationStatus.Pending)
+                            {
+                                <i class="fas fa-clock"></i>
+                            }
+                            else if (Model.Status == InternshipApplicationStatus.Approved)
+                            {
+                                <i class="fas fa-check"></i>
+                            }
+                            else
+                            {
+                                <i class="fas fa-times"></i>
+                            }
+                        </div>
+                        <div class="status-text">@statusText</div>
+                    </div>
+                    <div class="mt-4 space-y-3">
                         @if (Model.Status == InternshipApplicationStatus.Pending)
                         {
-                            <form asp-action="Withdraw" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Bu baþvuruyu geri çekmek istediðinize emin misiniz?')">
-                                <button type="submit" class="btn btn-danger">Geri Çek</button>
+                            <form asp-action="Withdraw" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Basvuruyu geri cekmek istiyor musunuz?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-action btn-danger-action">
+                                    <i class="fas fa-undo"></i>Geri Cek
+                                </button>
                             </form>
                         }
-
-                        @* Diary actions *@
                         @if (Model.HasDiary && Model.DiaryId.HasValue)
                         {
-                            <a asp-controller="DiaryNotebook" asp-action="Detail" asp-route-id="@Model.DiaryId" class="btn btn-primary">Defteri Aç</a>
+                            <a asp-controller="DiaryNotebook" asp-action="Detail" asp-route-id="@Model.DiaryId" class="btn-action btn-primary-action">
+                                <i class="fas fa-book"></i>Staj Defteri
+                            </a>
                         }
-                        @* No create-diary action here anymore. Diary creation moved to Defterlerim (DiaryCards) cart. *@
-                     </div>
-                 </div>
+                    </div>
+                </div>
+            </div>
 
-            <div class="card p-3">
-                <div class="section-title"><i class="fas fa-folder me-2"></i> Belgeler</div>
-                @if (Model.Documents != null && Model.Documents.Any())
-                {
-                    foreach (var d in Model.Documents)
+            <!-- Summary -->
+            <div class="premium-card animate-fade-in-up">
+                <div class="card-header-premium">
+                    <i class="fas fa-chart-bar text-indigo-500"></i>
+                    <h4 class="font-bold text-gray-900 dark:text-white">Ozet</h4>
+                </div>
+                <div class="card-body-premium">
+                    <div class="quick-stats">
+                        <div class="quick-stat">
+                            <div class="value">@(duration > 0 ? weeks.ToString() : "-")</div>
+                            <div class="label">Hafta</div>
+                        </div>
+                        <div class="quick-stat">
+                            <div class="value">@(duration > 0 ? duration.ToString() : "-")</div>
+                            <div class="label">Gun</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="premium-card animate-fade-in-up">
+                <div class="card-header-premium">
+                    <i class="fas fa-folder-open text-indigo-500"></i>
+                    <h4 class="font-bold text-gray-900 dark:text-white">Belgeler</h4>
+                </div>
+                <div class="card-body-premium">
+                    @if (Model.Documents != null && Model.Documents.Any())
                     {
-                        var title = !string.IsNullOrEmpty(d.Title) ? d.Title : d.FileName;
-                        <div class="d-flex align-items-center justify-content-between mb-2 p-2 rounded" style="background:#fbfbfb;">
-                            <div class="d-flex align-items-center gap-3">
-                                <i class="fas fa-file-pdf text-danger"></i>
-                                <div>
-                                    <div class="font-weight-bold small mb-0">@title</div>
-                                    <div class="text-muted small">@((d.FileSize/1024.0/1024.0)>=1 ? (d.FileSize/1024.0/1024.0).ToString("0.0") + " MB" : (d.FileSize/1024.0).ToString("0") + " KB")</div>
+                        @foreach (var d in Model.Documents)
+                        {
+                            var title = !string.IsNullOrEmpty(d.Title) ? d.Title : d.FileName;
+                            var sizeText = (d.FileSize / 1024.0 / 1024.0) >= 1 ? (d.FileSize / 1024.0 / 1024.0).ToString("0.0") + " MB" : (d.FileSize / 1024.0).ToString("0") + " KB";
+                            <div class="document-item">
+                                <div class="doc-icon"><i class="fas fa-file-pdf"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">@title</p>
+                                    <p class="text-xs text-gray-500">@sizeText</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <a href="@d.FilePath" target="_blank" class="doc-btn doc-btn-view"><i class="fas fa-eye"></i></a>
+                                    <a href="@d.FilePath" download class="doc-btn doc-btn-download"><i class="fas fa-download"></i></a>
                                 </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <a href="@d.FilePath" target="_blank" class="btn btn-sm btn-outline-secondary">Gör</a>
-                                <a href="@d.FilePath" download class="btn btn-sm btn-primary">Ýndir</a>
-                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>Belge yok</p>
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="small-muted">Henüz belge yüklenmemiþ.</div>
-                }
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // small enhancement: if button is disabled add tooltip
-        document.addEventListener('DOMContentLoaded', function() {
-            var withdrawBtn = document.querySelector('form[action*="Withdraw"] button');
-            if (withdrawBtn && withdrawBtn.disabled) {
-                withdrawBtn.title = 'Onaylandýktan sonra baþvuru geri çekilemez.';
-            }
-        });
-    </script>
-}

@@ -7,77 +7,382 @@
     var month = Model.CurrentDate;
     var firstOfMonth = new DateTime(month.Year, month.Month, 1);
     var daysInMonth = DateTime.DaysInMonth(month.Year, month.Month);
-    var startOffset = ((int)firstOfMonth.DayOfWeek + 6) % 7; // Monday first
-    string[] weekDays = new[] { "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz" };
+    var startOffset = ((int)firstOfMonth.DayOfWeek + 6) % 7;
+    string[] weekDays = new[] { "Pzt", "Sal", "Car", "Per", "Cum", "Cmt", "Paz" };
     var prev = month.AddMonths(-1);
     var next = month.AddMonths(1);
 }
 
+@section Styles {
+    <style>
+        .calendar-hero {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .calendar-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        }
+        .calendar-container {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+        .dark .calendar-container {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .calendar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        }
+        .dark .calendar-header {
+            background: rgba(51, 65, 85, 0.3);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .calendar-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .calendar-nav-btn:hover {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border-color: transparent;
+            transform: scale(1.05);
+        }
+        .dark .calendar-nav-btn {
+            background: rgba(51, 65, 85, 0.5);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .weekday-header {
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b7280;
+            padding: 12px 0;
+        }
+        .dark .weekday-header { color: #9ca3af; }
+        .calendar-day {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border: 2px solid transparent;
+        }
+        .calendar-day:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            transform: scale(1.05);
+        }
+        .calendar-day.today {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+        .calendar-day.selected {
+            border-color: #6366f1;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+        }
+        .calendar-day.has-events::after {
+            content: '';
+            position: absolute;
+            bottom: 6px;
+            display: flex;
+            gap: 3px;
+        }
+        .event-dots {
+            position: absolute;
+            bottom: 6px;
+            display: flex;
+            gap: 3px;
+        }
+        .event-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .event-dot.period { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .event-dot.application { background: linear-gradient(135deg, #3b82f6, #0ea5e9); }
+        .event-dot.diary { background: linear-gradient(135deg, #10b981, #059669); }
+        
+        .event-panel {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .dark .event-panel {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .event-panel-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        }
+        .dark .event-panel-header {
+            background: rgba(51, 65, 85, 0.3);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .event-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #6366f1;
+        }
+        .dark .event-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .event-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+        }
+        .event-card.period { border-left-color: #8b5cf6; }
+        .event-card.application { border-left-color: #3b82f6; }
+        .event-card.diary { border-left-color: #10b981; }
+        
+        .event-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .event-badge.period { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.15)); color: #7c3aed; }
+        .event-badge.application { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(14, 165, 233, 0.15)); color: #2563eb; }
+        .event-badge.diary { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)); color: #059669; }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.02);
+            transition: all 0.2s ease;
+        }
+        .legend-item:hover { background: rgba(99, 102, 241, 0.1); }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .legend-dot.period { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .legend-dot.application { background: linear-gradient(135deg, #3b82f6, #0ea5e9); }
+        .legend-dot.diary { background: linear-gradient(135deg, #10b981, #059669); }
+        
+        .empty-events {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+        .empty-events-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-events-icon i { font-size: 1.5rem; color: #6366f1; }
+        
+        .clear-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .clear-btn:hover { background: #ef4444; color: white; }
+    </style>
+}
+
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Takvim</h1>
-        <div class="flex items-center gap-2">
-            <a asp-area="Student" asp-controller="Calendar" asp-action="Index" asp-route-year="@prev.Year" asp-route-month="@prev.Month" class="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fas fa-chevron-left"></i></a>
-            <span class="px-4 py-2 text-gray-600 dark:text-gray-300">@Model.MonthTitle</span>
-            <a asp-area="Student" asp-controller="Calendar" asp-action="Index" asp-route-year="@next.Year" asp-route-month="@next.Month" class="px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fas fa-chevron-right"></i></a>
+    <!-- Hero Section -->
+    <div class="calendar-hero animate-fade-in-up">
+        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">
+                    <i class="fas fa-calendar-alt mr-3"></i>Staj Takvimi
+                </h1>
+                <p class="text-white/80">Staj sureclerinizi takip edin</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a asp-area="Student" asp-controller="Calendar" asp-action="Index" asp-route-year="@prev.Year" asp-route-month="@prev.Month" class="calendar-nav-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                <div class="px-6 py-3 bg-white/20 rounded-xl text-white font-bold text-lg backdrop-blur">
+                    @Model.MonthTitle
+                </div>
+                <a asp-area="Student" asp-controller="Calendar" asp-action="Index" asp-route-year="@next.Year" asp-route-month="@next.Month" class="calendar-nav-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
         </div>
     </div>
 
     <div class="grid lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2 rounded-2xl shadow-sm bg-white/80 dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700">
-            <div class="px-6 py-4 border-b border-gray-200/70 dark:border-gray-700 flex items-center justify-between">
-                <div class="text-lg font-semibold text-gray-700 dark:text-gray-200">Staj Takvimi</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">@month.ToString("MMMM yyyy", culture)</div>
+        <!-- Takvim -->
+        <div class="lg:col-span-2 calendar-container">
+            <div class="calendar-header flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-calendar text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">@month.ToString("MMMM yyyy", culture)</h2>
+                        <p class="text-sm text-gray-500">Etkinliklerinizi goruntulemek icin bir gun secin</p>
+                    </div>
+                </div>
             </div>
 
             <div class="p-6">
-                <div class="grid grid-cols-7 gap-y-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
-                    @foreach (var wd in weekDays) { <div>@wd</div> }
+                <!-- Hafta Gunleri -->
+                <div class="grid grid-cols-7 gap-2 mb-4">
+                    @foreach (var wd in weekDays)
+                    {
+                        <div class="weekday-header text-center">@wd</div>
+                    }
                 </div>
 
-                <div class="grid grid-cols-7 gap-2 text-center select-none">
-                    @for (var i = 0; i < startOffset; i++) { <div class="py-3"></div> }
+                <!-- Gunler -->
+                <div class="grid grid-cols-7 gap-2">
+                    @for (var i = 0; i < startOffset; i++)
+                    {
+                        <div class="calendar-day opacity-0"></div>
+                    }
                     @for (var day = 1; day <= daysInMonth; day++)
                     {
                         var isToday = day == DateTime.Today.Day && month.Month == DateTime.Today.Month && month.Year == DateTime.Today.Year;
                         var hasPeriod = Model.PeriodDays.Contains(day);
                         var hasApp = Model.ApplicationDays.Contains(day);
                         var hasDiary = Model.DiaryDays.Contains(day);
-                        <button type="button" data-day="@day" class="calendar-day w-full py-3 rounded-xl transition-all duration-150 relative focus:outline-none focus:ring-2 focus:ring-blue-400
-                                @(isToday ? "bg-blue-600 text-white shadow" : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700/50")">
+                        var hasAnyEvent = hasPeriod || hasApp || hasDiary;
+                        
+                        <button type="button" 
+                                data-day="@day" 
+                                class="calendar-day @(isToday ? "today" : "") text-gray-700 dark:text-gray-200">
                             <span>@day</span>
-                            <div class="absolute left-1/2 -translate-x-1/2 -bottom-1.5 flex gap-1">
-                                @if (hasPeriod) { <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"></span> }
-                                @if (hasApp) { <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span> }
-                                @if (hasDiary) { <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> }
-                            </div>
+                            @if (hasAnyEvent)
+                            {
+                                <div class="event-dots">
+                                    @if (hasPeriod) { <span class="event-dot period"></span> }
+                                    @if (hasApp) { <span class="event-dot application"></span> }
+                                    @if (hasDiary) { <span class="event-dot diary"></span> }
+                                </div>
+                            }
                         </button>
                     }
                 </div>
 
-                <div class="mt-6 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-indigo-500"></span> Dönem</div>
-                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Baþvuru</div>
-                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Günlük</div>
+                <!-- Legend -->
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="legend-item">
+                            <span class="legend-dot period"></span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Staj Donemi</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot application"></span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Basvuru</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot diary"></span>
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Gunluk Kaydi</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Side Panel -->
-        <div class="rounded-2xl shadow-sm bg-white/80 dark:bg-gray-800 border border-gray-200/70 dark:border-gray-700 flex flex-col" id="eventPanel">
-            <div class="px-6 py-4 border-b border-gray-200/70 dark:border-gray-700 flex items-center justify-between">
-                <div class="text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    <span id="panelDateLabel">Gün Seçin</span>
+        <!-- Etkinlik Paneli -->
+        <div class="event-panel" id="eventPanel">
+            <div class="event-panel-header flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-list-ul text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white" id="panelDateLabel">Gun Secin</h3>
+                        <p class="text-sm text-gray-500" id="panelSubLabel">Etkinlikler burada gorunecek</p>
+                    </div>
                 </div>
-                <button type="button" id="clearSelection" class="text-xs px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 hidden">Temizle</button>
+                <button type="button" id="clearSelection" class="clear-btn hidden">
+                    <i class="fas fa-times mr-1"></i>Temizle
+                </button>
             </div>
-            <div class="p-6 overflow-y-auto" style="max-height:500px;" id="eventList">
-                <div class="text-sm text-gray-500 dark:text-gray-400">Soldan bir gün seçerek etkinlikleri görüntüleyin.</div>
+            
+            <div class="flex-1 overflow-y-auto p-6" id="eventList">
+                <div class="empty-events">
+                    <div class="empty-events-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Gun Seciniz</h4>
+                    <p class="text-sm text-gray-500">Takvimden bir gun secerek o gune ait etkinlikleri goruntuleyebilirsiniz.</p>
+                </div>
             </div>
-            <div class="px-6 py-3 border-t border-gray-200/70 dark:border-gray-700 text-xs text-gray-500 flex gap-4">
-                <div><i class="fas fa-circle text-indigo-500 text-[8px] mr-1"></i>Dönem</div>
-                <div><i class="fas fa-circle text-blue-500 text-[8px] mr-1"></i>Staj</div>
-                <div><i class="fas fa-circle text-emerald-500 text-[8px] mr-1"></i>Günlük</div>
+            
+            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                <div class="flex items-center justify-center gap-6 text-xs text-gray-500">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        <span>Donem</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span>Staj</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Gunluk</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -86,95 +391,140 @@
 @section Scripts {
 <script>
 (function(){
-    const days = document.querySelectorAll('.calendar-day');
+    const days = document.querySelectorAll('.calendar-day[data-day]');
     const list = document.getElementById('eventList');
     const label = document.getElementById('panelDateLabel');
+    const subLabel = document.getElementById('panelSubLabel');
     const clearBtn = document.getElementById('clearSelection');
-    const year = @Model.CurrentDate.Year; const month = @Model.CurrentDate.Month;
-    const dayEventsUrl = '@Url.Action("DayEvents","Calendar")'; // correct route (no /Student prefix)
+    const year = @Model.CurrentDate.Year;
+    const month = @Model.CurrentDate.Month;
+    const dayEventsUrl = '@Url.Action("DayEvents","Calendar")';
 
-    function resetSelection(){
-        days.forEach(d=>d.classList.remove('ring-2','ring-blue-400'));    
+    function resetSelection() {
+        days.forEach(d => d.classList.remove('selected'));    
     }
 
-    function renderLoading(){
-        list.innerHTML = `<div class='flex items-center gap-2 text-sm text-gray-500'><i class="fas fa-spinner fa-spin"></i> Yükleniyor...</div>`;
+    function renderLoading() {
+        list.innerHTML = `
+            <div class="empty-events">
+                <div class="empty-events-icon">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p class="text-sm text-gray-500">Etkinlikler yukleniyor...</p>
+            </div>`;
     }
 
-    function renderEmpty(){
-        list.innerHTML = `<div class='text-sm text-gray-500'>Bu gün için kayýtlý etkinlik yok.</div>`;
+    function renderEmpty() {
+        list.innerHTML = `
+            <div class="empty-events">
+                <div class="empty-events-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Etkinlik Yok</h4>
+                <p class="text-sm text-gray-500">Bu gun icin kayitli etkinlik bulunmuyor.</p>
+            </div>`;
     }
 
-    function renderEvents(evts){
-        if(!evts.length){ renderEmpty(); return; }
-        list.innerHTML = evts.map(e=>`<div class='mb-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm'>
-            <div class='flex items-center justify-between mb-2'>
-                <h4 class='font-semibold text-sm text-gray-800 dark:text-gray-200'>${escapeHtml(e.title)}</h4>
-                <span class='px-2 py-0.5 text-[10px] rounded-full font-medium ${badgeColor(e.type)}'>${typeLabel(e.type)}</span>
+    function renderEvents(evts) {
+        if (!evts.length) { renderEmpty(); return; }
+        
+        list.innerHTML = evts.map(e => `
+            <div class="event-card ${e.type}">
+                <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-semibold text-gray-900 dark:text-white text-sm">${escapeHtml(e.title)}</h4>
+                    <span class="event-badge ${e.type}">${typeLabel(e.type)}</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                    <i class="far fa-clock"></i>
+                    <span>${formatDate(e.startDate, e.endDate)}</span>
+                </div>
+                ${e.description ? `<p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">${escapeHtml(e.description)}</p>` : ''}
             </div>
-            <div class='text-xs text-gray-500 dark:text-gray-400 mb-1'><i class='far fa-clock mr-1'></i>${formatDate(e.startDate, e.endDate)}</div>
-            ${e.description ? `<div class='text-xs text-gray-600 dark:text-gray-300 leading-snug'>${escapeHtml(e.description)}</div>` : ''}
-        </div>`).join('');
+        `).join('');
     }
 
-    function badgeColor(t){
-        switch(t){
-            case 'period': return 'bg-indigo-100 text-indigo-700';
-            case 'application': return 'bg-blue-100 text-blue-700';
-            case 'diary': return 'bg-emerald-100 text-emerald-700';
-            default: return 'bg-gray-100 text-gray-600';
-        }
-    }
-    function typeLabel(t){
-        if(t==='period') return 'Dönem';
-        if(t==='application') return 'Staj';
-        if(t==='diary') return 'Günlük';
+    function typeLabel(t) {
+        if (t === 'period') return 'Donem';
+        if (t === 'application') return 'Staj';
+        if (t === 'diary') return 'Gunluk';
         return t;
     }
-    function formatDate(s,e){
-        try { const sd=new Date(s); const ed=new Date(e); if(sd.toDateString()===ed.toDateString()) return sd.toLocaleDateString('tr-TR'); return sd.toLocaleDateString('tr-TR')+' - '+ed.toLocaleDateString('tr-TR'); } catch{ return ''; }
-    }
-    function escapeHtml(str){
-        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-        return String(str).replace(/[&<>"']/g, ch => map[ch] );
+
+    function formatDate(s, e) {
+        try {
+            const sd = new Date(s);
+            const ed = new Date(e);
+            const opts = { day: '2-digit', month: 'short', year: 'numeric' };
+            if (sd.toDateString() === ed.toDateString()) {
+                return sd.toLocaleDateString('tr-TR', opts);
+            }
+            return sd.toLocaleDateString('tr-TR', opts) + ' - ' + ed.toLocaleDateString('tr-TR', opts);
+        } catch {
+            return '';
+        }
     }
 
-    days.forEach(btn=>{
-        btn.addEventListener('click', ()=>{
+    function escapeHtml(str) {
+        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        return String(str).replace(/[&<>"']/g, ch => map[ch]);
+    }
+
+    days.forEach(btn => {
+        btn.addEventListener('click', () => {
             const day = btn.getAttribute('data-day');
-            console.log('[Calendar] Day clicked:', day);
             resetSelection();
-            btn.classList.add('ring-2','ring-blue-400');
-            label.textContent = day + ' ' + new Date(year, month-1, day).toLocaleDateString('tr-TR', { month: 'long', year:'numeric' });
+            btn.classList.add('selected');
+            
+            const dateObj = new Date(year, month - 1, day);
+            const dateStr = dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const dayName = dateObj.toLocaleDateString('tr-TR', { weekday: 'long' });
+            
+            label.textContent = dateStr;
+            subLabel.textContent = dayName.charAt(0).toUpperCase() + dayName.slice(1);
             clearBtn.classList.remove('hidden');
             fetchDayEvents(day);
         });
     });
 
-    clearBtn.addEventListener('click', ()=>{
+    clearBtn.addEventListener('click', () => {
         resetSelection();
-        list.innerHTML = `<div class='text-sm text-gray-500 dark:text-gray-400'>Soldan bir gün seçerek etkinlikleri görüntüleyin.</div>`;
-        label.textContent = 'Gün Seçin';
+        list.innerHTML = `
+            <div class="empty-events">
+                <div class="empty-events-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Gun Seciniz</h4>
+                <p class="text-sm text-gray-500">Takvimden bir gun secerek o gune ait etkinlikleri goruntuleyebilirsiniz.</p>
+            </div>`;
+        label.textContent = 'Gun Secin';
+        subLabel.textContent = 'Etkinlikler burada gorunecek';
         clearBtn.classList.add('hidden');
     });
 
-    function fetchDayEvents(day){
+    function fetchDayEvents(day) {
         renderLoading();
-        const url = `${dayEventsUrl}?year=${year}&month=${month}&day=${day}&t=${Date.now()}`; // cache buster
-        console.log('[Calendar] Fetching:', url);
-        fetch(url, { headers: { 'Accept':'application/json' }, cache:'no-store' })
+        const url = `${dayEventsUrl}?year=${year}&month=${month}&day=${day}&t=${Date.now()}`;
+        
+        fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
             .then(async r => {
                 const text = await r.text();
-                console.log('[Calendar] Raw response length:', text.length);
-                if(!text){ throw new Error('Boþ cevap'); }
-                let data; try { data = JSON.parse(text); } catch (e){ console.error('Parse error text=', text); throw new Error('Sunucudan geçersiz JSON geldi'); }
-                if(!data.success){ throw new Error(data.message || 'Ýþlem baþarýsýz'); }
+                if (!text) throw new Error('Bos cevap');
+                let data;
+                try { data = JSON.parse(text); } 
+                catch (e) { throw new Error('Gecersiz veri'); }
+                if (!data.success) throw new Error(data.message || 'Islem basarisiz');
                 return data;
             })
-            .then(d => { console.log('[Calendar] Event count:', (d.events||[]).length); renderEvents(d.events || []); })
+            .then(d => renderEvents(d.events || []))
             .catch(err => {
-                console.error('[Calendar] Fetch error:', err);
-                list.innerHTML = `<div class='text-sm text-red-600'>Hata: ${escapeHtml(err.message)}</div>`;
+                list.innerHTML = `
+                    <div class="empty-events">
+                        <div class="empty-events-icon" style="background: rgba(239, 68, 68, 0.1);">
+                            <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                        </div>
+                        <h4 class="font-semibold text-red-600 mb-2">Hata Olustu</h4>
+                        <p class="text-sm text-gray-500">${escapeHtml(err.message)}</p>
+                    </div>`;
             });
     }
 })();

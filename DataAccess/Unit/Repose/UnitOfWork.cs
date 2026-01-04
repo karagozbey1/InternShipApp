@@ -30,6 +30,7 @@ namespace DataAccess.Unit.Repose
             InternshipOffers = new InternshipOfferRepository(_context);
             InternshipApplications = new InternshipApplicationRepository(_context);
             InternshipApprovals = new InternshipApprovalRepository(_context);
+            InternEvaluations = new InternEvaluationRepository(_context);
             Notifications = new NotificationRepository(_context);
             Users = new UserRepository(_context);
             ChatRooms = new ChatRoomRepository(_context);
@@ -50,6 +51,7 @@ namespace DataAccess.Unit.Repose
         public IInternshipOfferRepository InternshipOffers { get; }
         public IInternshipApplicationRepository InternshipApplications { get; }
         public IInternshipApprovalRepository InternshipApprovals { get; }
+        public IInternEvaluationRepository InternEvaluations { get; }
         public IInternshipCommentRepository InternshipComments { get; }
         public IInternshipDocumentRepository InternshipDocuments { get; }
         public IInternshipPeriodRepository InternshipPeriods { get; }

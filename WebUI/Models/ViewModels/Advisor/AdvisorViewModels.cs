@@ -420,4 +420,46 @@ namespace WebUI.Models.ViewModels.Advisor
         public int WithApprovedInternship { get; set; }
         public int WithPendingApplications { get; set; }
     }
+
+    // Student Detail ViewModel
+    public class AdvisorStudentDetailViewModel
+    {
+        public AdvisorStudentInfoViewModel Student { get; set; } = new();
+        public int TotalApplications { get; set; }
+        public int ApprovedApplications { get; set; }
+        public int PendingApplications { get; set; }
+        public int RejectedApplications { get; set; }
+        public int TotalDiaryEntries { get; set; }
+        public int ApprovedDiaryEntries { get; set; }
+        public int PendingDiaryEntries { get; set; }
+        public string InternshipStatus { get; set; } = "Yok";
+        public DateTime? LastActivity { get; set; }
+        public List<AdvisorApplicationCardViewModel> Applications { get; set; } = new();
+        public List<Core.Entity.DiaryEntry> DiaryEntries { get; set; } = new();
+        public List<StudentDocumentViewModel> Documents { get; set; } = new();
+    }
+
+    public class AdvisorStudentInfoViewModel
+    {
+        public int Id { get; set; }
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string? Phone { get; set; }
+        public string? StudentNumber { get; set; }
+        public string? Department { get; set; }
+        public string? UniversityName { get; set; }
+        public int? Grade { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class StudentDocumentViewModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string FileName { get; set; } = "";
+        public string FilePath { get; set; } = "";
+        public string DocumentType { get; set; } = "";
+        public DateTime UploadedAt { get; set; }
+    }
 }

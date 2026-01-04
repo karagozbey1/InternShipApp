@@ -1,23 +1,23 @@
-// Modern Account Pages JavaScript - Simple and Clean
+// Modern Hesap Sayfalarý JavaScript - Basit ve Temiz
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Apply modern layout class to body
+    // Body'ye modern layout sýnýfý ekle
     document.body.classList.add('modern-account-layout');
     
-    // Add floating shapes to body
+    // Body'ye yüzen þekiller ekle
     addFloatingShapes();
     
-    // Initialize form interactions
+    // Form etkileþimlerini baþlat
     initFormInteractions();
     
-    // Initialize password toggle
+    // Þifre göster/gizle özelliðini baþlat
     initPasswordToggle();
     
-    // Initialize university dropdown
+    // Üniversite dropdown'ýný baþlat
     initUniversityDropdown();
 });
 
-// Add floating shapes to body
+// Body'ye yüzen þekiller ekle
 function addFloatingShapes() {
     if (document.querySelector('.floating-shapes')) return;
 
@@ -32,7 +32,7 @@ function addFloatingShapes() {
     
     document.body.appendChild(shapesContainer);
 
-    // Add mouse interaction to shapes
+    // Þekillere fare etkileþimi ekle
     const shapes = document.querySelectorAll('.shape');
     shapes.forEach((shape, index) => {
         shape.addEventListener('mouseenter', function() {
@@ -47,16 +47,16 @@ function addFloatingShapes() {
     });
 }
 
-// Initialize form interactions
+// Form etkileþimlerini baþlat
 function initFormInteractions() {
-    // Force text color for all inputs
+    // Tüm inputlar için metin rengini zorla
     const allInputs = document.querySelectorAll('input, textarea, select');
     allInputs.forEach(input => {
-        // Set initial color
+        // Baþlangýç rengini ayarla
         input.style.color = '#2d3748';
         input.style.webkitTextFillColor = '#2d3748';
         
-        // Maintain color on all events
+        // Tüm olaylarda rengi koru
         ['focus', 'blur', 'input', 'change'].forEach(event => {
             input.addEventListener(event, function() {
                 this.style.color = '#2d3748';
@@ -65,21 +65,21 @@ function initFormInteractions() {
         });
     });
 
-    // Enhanced form validation display
+    // Geliþmiþ form doðrulama görüntüsü
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            // Add loading state to submit button
+            // Gönder butonuna yükleniyor durumu ekle
             const submitBtn = this.querySelector('button[type="submit"]');
             if (submitBtn) {
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Ýþleniyor...';
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Yükleniyor...';
                 submitBtn.disabled = true;
             }
         });
     });
 }
 
-// Password toggle functionality
+// Þifre göster/gizle iþlevselliði
 function initPasswordToggle() {
     const toggleButtons = document.querySelectorAll('.toggle-password');
     toggleButtons.forEach(button => {
@@ -102,7 +102,7 @@ function initPasswordToggle() {
     });
 }
 
-// University dropdown functionality
+// Üniversite dropdown iþlevselliði
 function initUniversityDropdown() {
     const universityDisplay = document.getElementById('university-display');
     const universityList = document.getElementById('university-list');
@@ -113,12 +113,12 @@ function initUniversityDropdown() {
     const searchBox = universityList.querySelector('.search-box input');
     const universityItems = universityList.querySelectorAll('li');
 
-    // Toggle dropdown
+    // Dropdown'ý aç/kapat
     universityDisplay.addEventListener('click', function() {
         universityList.classList.toggle('active');
     });
 
-    // Select university
+    // Üniversite seç
     universityItems.forEach(item => {
         item.addEventListener('click', function() {
             const universityName = this.getAttribute('data-name');
@@ -126,12 +126,12 @@ function initUniversityDropdown() {
             selectedUniversityName.value = universityName;
             universityList.classList.remove('active');
             
-            // Trigger validation
+            // Doðrulamayý tetikle
             universityDisplay.dispatchEvent(new Event('change'));
         });
     });
 
-    // Search functionality
+    // Arama iþlevselliði
     if (searchBox) {
         searchBox.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -146,7 +146,7 @@ function initUniversityDropdown() {
         });
     }
 
-    // Close dropdown when clicking outside
+    // Dýþarý týklandýðýnda dropdown'ý kapat
     document.addEventListener('click', function(e) {
         if (!universityDisplay.contains(e.target) && !universityList.contains(e.target)) {
             universityList.classList.remove('active');
@@ -154,7 +154,7 @@ function initUniversityDropdown() {
     });
 }
 
-// Auto-hide alerts after 5 seconds
+// 5 saniye sonra uyarýlarý otomatik gizle
 setTimeout(() => {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {

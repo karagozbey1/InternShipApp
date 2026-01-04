@@ -23,6 +23,7 @@ namespace DataAccess.Unit.Interface
         IInternshipPeriodRepository InternshipPeriods { get; }
         IInternshipApplicationRepository InternshipApplications { get; }
         IInternshipApprovalRepository InternshipApprovals { get; }
+        IInternEvaluationRepository InternEvaluations { get; }
         INotificationRepository Notifications { get; }
         IUserRepository Users { get; }
         IChatRoomRepository ChatRooms { get; }

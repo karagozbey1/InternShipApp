@@ -97,6 +97,7 @@ builder.Services.AddScoped<IInternshipDocumentRepository, InternshipDocumentRepo
 builder.Services.AddScoped<IInternshipPeriodRepository, InternshipPeriodRepository>();
 builder.Services.AddScoped<IInternshipApplicationRepository, InternshipApplicationRepository>();
 builder.Services.AddScoped<IInternshipApprovalRepository, InternshipApprovalRepository>();
+builder.Services.AddScoped<IInternEvaluationRepository, InternEvaluationRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
@@ -116,6 +117,7 @@ builder.Services.AddScoped<IInternshipDocumentService, InternshipDocumentService
 builder.Services.AddScoped<IInternshipPeriodService, InternshipPeriodService>();
 builder.Services.AddScoped<IInternshipApplicationService, InternshipApplicationService>();
 builder.Services.AddScoped<IInternshipApprovalService, InternshipApprovalService>();
+builder.Services.AddScoped<IInternEvaluationService, InternEvaluationService>();
 builder.Services.AddScoped<IINotificationService, INotificationService>();
 builder.Services.AddScoped<IIUserService, UserService>();
 builder.Services.AddScoped<IIChatService, IChatService>();
@@ -182,3 +184,6 @@ app.MapControllerRoute(
 );
 
 app.Run();
+
+// Integration testleri için Program sýnýfýný public yap
+public partial class Program { }

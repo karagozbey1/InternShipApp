@@ -2,11 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Business.Interfaces.UserRepose;
 using Business.Interfaces.Internship;
-using Business.Interfaces; // IDiaryService
+using Business.Interfaces;
 using WebUI.Models.ViewModels.Advisor;
 using Core.Entity;
-using Business.Interfaces.Order; // IINotificationService
-using System.Text.Json;
+using Business.Interfaces.Order;
 
 namespace WebUI.Controllers.Advisor
 {
@@ -34,12 +33,11 @@ namespace WebUI.Controllers.Advisor
                 var advisor = await _userService.GetUserWithUniversityAsync(advisorId);
                 if (advisor?.UniversityId == null)
                 {
-                    TempData["ErrorMessage"] = "Danýþman bilgileri eksik.";
+                    TempData["ErrorMessage"] = "Danisman bilgileri eksik.";
                     return RedirectToAction("Index", "AdvisorDashboard");
                 }
 
                 var allStudents = await _userService.GetAllStudentsAsync();
-                // Danýþman kapsamý: ayný üniversite + (danýþman departmaný varsa ayný bölüm) + fallback
                 var scopedStudents = FilterStudentsForAdvisor(allStudents, advisor);
 
                 var query = scopedStudents.AsQueryable();
@@ -69,8 +67,8 @@ namespace WebUI.Controllers.Advisor
                     var internshipStatus = "Yok";
                     if (approvedApp != null)
                     {
-                        if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baþlayacak";
-                        else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandý";
+                        if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baslayacak";
+                        else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandi";
                         else internshipStatus = "Devam";
                     }
                     else if (apps.Any(a => a.Status == InternshipApplicationStatus.Pending)) internshipStatus = "Bekliyor";
@@ -107,7 +105,7 @@ namespace WebUI.Controllers.Advisor
                     TotalItems = items.Count,
                     ActiveCount = items.Count(i => i.IsActive),
                     PassiveCount = items.Count(i => !i.IsActive),
-                    WithApprovedInternship = items.Count(i => i.InternshipStatus == "Devam" || i.InternshipStatus == "Tamamlandý"),
+                    WithApprovedInternship = items.Count(i => i.InternshipStatus == "Devam" || i.InternshipStatus == "Tamamlandi"),
                     WithPendingApplications = items.Count(i => i.PendingApplications > 0)
                 };
                 vm.Students = items.Skip((page - 1) * vm.PageSize).Take(vm.PageSize).ToList();
@@ -115,7 +113,7 @@ namespace WebUI.Controllers.Advisor
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Öðrenci listesi yüklenirken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Ogrenci listesi yuklenirken hata olustu: " + ex.Message;
                 return RedirectToAction("Index", "AdvisorDashboard");
             }
         }
@@ -128,7 +126,7 @@ namespace WebUI.Controllers.Advisor
                 var advisorId = GetCurrentUserId();
                 var advisor = await _userService.GetUserWithUniversityAsync(advisorId);
                 if (advisor?.UniversityId == null)
-                    return Json(new { success = false, message = "Danýþman bilgileri eksik" });
+                    return Json(new { success = false, message = "Danisman bilgileri eksik" });
 
                 var allStudents = await _userService.GetAllStudentsAsync();
                 var scopedStudents = FilterStudentsForAdvisor(allStudents, advisor);
@@ -160,8 +158,8 @@ namespace WebUI.Controllers.Advisor
                     var internshipStatus = "Yok";
                     if (approvedApp != null)
                     {
-                        if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baþlayacak";
-                        else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandý";
+                        if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baslayacak";
+                        else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandi";
                         else internshipStatus = "Devam";
                     }
                     else if (apps.Any(a => a.Status == InternshipApplicationStatus.Pending)) internshipStatus = "Bekliyor";
@@ -240,11 +238,10 @@ namespace WebUI.Controllers.Advisor
             try
             {
                 if (request.StudentIds == null || !request.StudentIds.Any())
-                    return Json(new { success = false, message = "Öðrenci seçilmedi." });
+                    return Json(new { success = false, message = "Ogrenci secilmedi." });
                 if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Message))
-                    return Json(new { success = false, message = "Baþlýk ve mesaj zorunludur." });
+                    return Json(new { success = false, message = "Baslik ve mesaj zorunludur." });
 
-                var advisorId = GetCurrentUserId();
                 int sent = 0;
                 foreach (var sid in request.StudentIds.Distinct())
                 {
@@ -262,7 +259,7 @@ namespace WebUI.Controllers.Advisor
                         });
                         sent++;
                     }
-                    catch { /* ignore per-student errors */ }
+                    catch { }
                 }
                 return Json(new { success = true, sent });
             }
@@ -277,9 +274,9 @@ namespace WebUI.Controllers.Advisor
         {
             try
             {
-                var user = await _userService.GetUserByIdAsync(id);
+                var user = await _userService.GetUserWithUniversityAsync(id);
                 if (user == null)
-                    return Json(new { success = false, message = "Öðrenci bulunamadý" });
+                    return Json(new { success = false, message = "Ogrenci bulunamadi" });
 
                 var apps = await _applicationService.GetApplicationsByStudentIdAsync(id) ?? new List<InternshipApplication>();
                 var diariesFlat = (await _diaryService.GetDiariesByStudentIdAsync(id))?
@@ -290,8 +287,8 @@ namespace WebUI.Controllers.Advisor
                 var internshipStatus = "Yok";
                 if (approvedApp != null)
                 {
-                    if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baþlayacak";
-                    else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandý";
+                    if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baslayacak";
+                    else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandi";
                     else internshipStatus = "Devam";
                 }
                 else if (apps.Any(a => a.Status == InternshipApplicationStatus.Pending)) internshipStatus = "Bekliyor";
@@ -302,23 +299,143 @@ namespace WebUI.Controllers.Advisor
                     student = new
                     {
                         id = user.Id,
-                        name = user.FullName,
+                        fullName = user.FullName,
                         email = user.Email,
                         department = user.Department,
                         grade = user.Grade,
                         isActive = user.IsActive,
                         createdAt = user.CreatedAt.ToString("yyyy-MM-dd"),
+                        studentNumber = user.StudentNumber,
+                        universityName = user.University?.Name,
                         internshipStatus,
-                        totalApps = apps.Count,
-                        approvedApps = apps.Count(a => a.Status == InternshipApplicationStatus.Approved),
-                        pendingApps = apps.Count(a => a.Status == InternshipApplicationStatus.Pending),
-                        rejectedApps = apps.Count(a => a.Status == InternshipApplicationStatus.Rejected),
-                        totalDiary = diariesFlat.Count,
-                        pendingDiary = diariesFlat.Count(d => !d.IsApproved),
-                        approvedDiary = diariesFlat.Count(d => d.IsApproved),
-                        lastDiary = diariesFlat.OrderByDescending(d => d.Date).FirstOrDefault()?.Date.ToString("yyyy-MM-dd")
+                        applicationCount = apps.Count,
+                        approvedCount = apps.Count(a => a.Status == InternshipApplicationStatus.Approved),
+                        pendingCount = apps.Count(a => a.Status == InternshipApplicationStatus.Pending),
+                        rejectedCount = apps.Count(a => a.Status == InternshipApplicationStatus.Rejected),
+                        diaryEntryCount = diariesFlat.Count,
+                        pendingDiaryCount = diariesFlat.Count(d => !d.IsApproved),
+                        approvedDiaryCount = diariesFlat.Count(d => d.IsApproved)
                     }
                 });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet("AdvisorStudent/GetDetail/{id}")]
+        public async Task<IActionResult> GetDetail(int id)
+        {
+            return await Detail(id);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> StudentDetail(int id)
+        {
+            try
+            {
+                var user = await _userService.GetUserWithUniversityAsync(id);
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = "Ogrenci bulunamadi.";
+                    return RedirectToAction("Index");
+                }
+
+                var apps = await _applicationService.GetApplicationsByStudentIdAsync(id) ?? new List<InternshipApplication>();
+                var diariesFlat = (await _diaryService.GetDiariesByStudentIdAsync(id))?
+                    .SelectMany(d => d.Entries ?? new List<DiaryEntry>())
+                    .ToList() ?? new List<DiaryEntry>();
+
+                var approvedApp = apps.FirstOrDefault(a => a.Status == InternshipApplicationStatus.Approved);
+                var internshipStatus = "Yok";
+                if (approvedApp != null)
+                {
+                    if (DateTime.Now.Date < approvedApp.StartDate.Date) internshipStatus = "Baslayacak";
+                    else if (DateTime.Now.Date > approvedApp.EndDate.Date) internshipStatus = "Tamamlandi";
+                    else internshipStatus = "Devam";
+                }
+                else if (apps.Any(a => a.Status == InternshipApplicationStatus.Pending)) internshipStatus = "Bekliyor";
+
+                var vm = new AdvisorStudentDetailViewModel
+                {
+                    Student = new AdvisorStudentInfoViewModel
+                    {
+                        Id = user.Id,
+                        FullName = user.FullName ?? "",
+                        Email = user.Email ?? "",
+                        Phone = user.Phone,
+                        StudentNumber = user.StudentNumber,
+                        Department = user.Department,
+                        UniversityName = user.University?.Name,
+                        Grade = user.Grade,
+                        IsActive = user.IsActive,
+                        CreatedAt = user.CreatedAt
+                    },
+                    TotalApplications = apps.Count,
+                    ApprovedApplications = apps.Count(a => a.Status == InternshipApplicationStatus.Approved),
+                    PendingApplications = apps.Count(a => a.Status == InternshipApplicationStatus.Pending),
+                    RejectedApplications = apps.Count(a => a.Status == InternshipApplicationStatus.Rejected),
+                    TotalDiaryEntries = diariesFlat.Count,
+                    ApprovedDiaryEntries = diariesFlat.Count(d => d.IsApproved),
+                    PendingDiaryEntries = diariesFlat.Count(d => !d.IsApproved),
+                    InternshipStatus = internshipStatus,
+                    LastActivity = new[] { diariesFlat.OrderByDescending(d => d.Date).FirstOrDefault()?.Date, apps.OrderByDescending(a => a.UpdatedAt).FirstOrDefault()?.UpdatedAt }.Where(x => x.HasValue).Max(),
+                    DiaryEntries = diariesFlat.OrderByDescending(d => d.Date).ToList(),
+                    Applications = apps.Select(a => new AdvisorApplicationCardViewModel
+                    {
+                        Id = a.Id,
+                        CompanyName = a.InternshipOffer?.Company?.CompanyName ?? "Belirtilmemis",
+                        Position = a.InternshipOffer?.Field ?? a.InternshipOffer?.Title ?? "Belirtilmemis",
+                        StartDate = a.StartDate,
+                        EndDate = a.EndDate,
+                        WeeklyWorkHours = 40,
+                        Status = MapApplicationStatusToApprovalStatus(a.Status),
+                        CreatedAt = a.CreatedAt
+                    }).ToList(),
+                    Documents = new List<StudentDocumentViewModel>()
+                };
+
+                return View("~/Views/Advisor/Student/Detail.cshtml", vm);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Detay yuklenirken hata olustu: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        private Core.Entity.InternshipApprovalStatus MapApplicationStatusToApprovalStatus(InternshipApplicationStatus status)
+        {
+            return status switch
+            {
+                InternshipApplicationStatus.Approved => Core.Entity.InternshipApprovalStatus.Approved,
+                InternshipApplicationStatus.Rejected => Core.Entity.InternshipApprovalStatus.Rejected,
+                _ => Core.Entity.InternshipApprovalStatus.Pending
+            };
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendNotification(int studentId, string title, string message)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(message))
+                    return Json(new { success = false, message = "Baslik ve mesaj zorunludur." });
+
+                await _notificationService.CreateNotificationAsync(new Notification
+                {
+                    UserId = studentId,
+                    Title = title.Trim(),
+                    Message = message.Trim(),
+                    Type = "AdvisorNotification",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    IconClass = "fas fa-bell"
+                });
+
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
@@ -371,11 +488,10 @@ namespace WebUI.Controllers.Advisor
         {
             var sameUni = allStudents.Where(s => s.UniversityId == advisor.UniversityId).ToList();
             if (string.IsNullOrWhiteSpace(advisor.Department))
-                return sameUni; // danýþman bölümü yoksa üniversite bazlý tüm öðrenciler
+                return sameUni;
 
             var sameDept = sameUni.Where(s => !string.IsNullOrWhiteSpace(s.Department) && s.Department.Equals(advisor.Department, StringComparison.OrdinalIgnoreCase)).ToList();
             if (sameDept.Any()) return sameDept;
-            // fallback: bölümü boþ olanlar (önceki davranýþa uygun)
             return sameUni.Where(s => string.IsNullOrWhiteSpace(s.Department)).ToList();
         }
     }

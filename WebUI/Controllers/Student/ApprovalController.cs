@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using WebUI.Models.ViewModels.Student;
 using WebUI.Models.Student;
 using WebUI.Controllers; 
+using Microsoft.Extensions.Logging;
 
 namespace WebUI.Controllers.Student
 {
@@ -17,17 +18,20 @@ namespace WebUI.Controllers.Student
         private readonly IInternshipApprovalService _approvalService;
         private readonly IInternshipApplicationService _applicationService;
         private readonly IIUserService _userService;
+        private readonly ILogger<ApprovalController> _logger;
 
         public ApprovalController(
             IInternshipDocumentService documentService,
             IInternshipApprovalService approvalService,
             IInternshipApplicationService applicationService,
-            IIUserService userService)
+            IIUserService userService,
+            ILogger<ApprovalController> logger)
         {
             _documentService = documentService;
             _approvalService = approvalService;
             _applicationService = applicationService;
             _userService = userService;
+            _logger = logger;
         }
 
         // GENEL INDEX SAYFASI
@@ -223,7 +227,12 @@ namespace WebUI.Controllers.Student
                 try { existingForms = await _approvalService.GetApprovalFormsByStudentIdAsync(userId) ?? new(); }
                 catch { existingForms = new List<InternshipApprovalForm>(); }
 
-                var usedIds = existingForms.Where(f => f.ApplicationId > 0).Select(f => f.ApplicationId).ToHashSet();
+                // Only consider application IDs that are tied to non-rejected forms as "used".
+                // If a form was rejected by the advisor, the company should become selectable again.
+                var usedIds = existingForms
+                    .Where(f => f.ApplicationId > 0 && f.Status != Core.Entity.InternshipApprovalStatus.Rejected)
+                    .Select(f => f.ApplicationId)
+                    .ToHashSet();
 
                 var selectableApps = new List<InternshipApplication>();
                 foreach (var app in approvedApps)
@@ -373,6 +382,17 @@ namespace WebUI.Controllers.Student
                             CreatedAt = app.CreatedAt
                         };
                         vm.SelectedApplicationId = app.Id;
+
+                        // populate workplace address from the related company if available; fallback to session
+                        try
+                        {
+                            var addr = app.InternshipOffer?.Company?.Address;
+                            vm.WorkplaceAddress = !string.IsNullOrWhiteSpace(addr) ? addr : (HttpContext.Session.GetString("WorkplaceAddress") ?? string.Empty);
+                        }
+                        catch
+                        {
+                            vm.WorkplaceAddress = HttpContext.Session.GetString("WorkplaceAddress") ?? string.Empty;
+                        }
                     }
                 }
                 catch { }
@@ -395,6 +415,16 @@ namespace WebUI.Controllers.Student
                     }
                 }
                 catch { }
+                // Populate top-level display fields so view can show summary (compatibility with older views)
+                vm.CompanyName = vm.SelectedCompany?.CompanyName ?? HttpContext.Session.GetString("CompanyName") ?? string.Empty;
+                vm.InternshipDescription = vm.SelectedCompany?.Position ?? HttpContext.Session.GetString("Position") ?? string.Empty;
+                vm.StartDate = vm.SelectedCompany?.StartDate ?? (DateTime.TryParse(HttpContext.Session.GetString("StartDate"), out var sd1) ? sd1 : DateTime.UtcNow);
+                vm.EndDate = vm.SelectedCompany?.EndDate ?? (DateTime.TryParse(HttpContext.Session.GetString("EndDate"), out var ed1) ? ed1 : DateTime.UtcNow.AddMonths(2));
+                vm.WeeklyWorkHours = vm.WeeklyWorkHours > 0 ? vm.WeeklyWorkHours : 40;
+                vm.InternshipCoordinator = vm.InternshipCoordinator ?? string.Empty;
+                vm.CoordinatorPhone = vm.CoordinatorPhone ?? string.Empty;
+                vm.CoordinatorEmail = vm.CoordinatorEmail ?? string.Empty;
+                vm.StudentNote = HttpContext.Session.GetString("StudentNote") ?? vm.StudentNote ?? string.Empty;
             }
             catch
             {
@@ -407,17 +437,21 @@ namespace WebUI.Controllers.Student
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Step4Submit(string StudentNote)
+        public async Task<IActionResult> Step4Submit(string StudentNote, string SelectedDocumentIdsFromForm = null, int? SelectedApplicationIdFromForm = null, int? SelectedAdvisorIdFromForm = null)
         {
+            _logger?.LogDebug("Step4Submit invoked. Incoming StudentNote length: {len}", (StudentNote ?? string.Empty).Length);
             try
             {
-                var selectedDocIds = HttpContext.Session.GetString("SelectedDocumentIds");
-                var selectedAppId = HttpContext.Session.GetInt32("SelectedApplicationId");
-                var selectedAdvId = HttpContext.Session.GetInt32("SelectedAdvisorId");
+                var selectedDocIds = HttpContext.Session.GetString("SelectedDocumentIds") ?? SelectedDocumentIdsFromForm;
+                var selectedAppId = HttpContext.Session.GetInt32("SelectedApplicationId") ?? SelectedApplicationIdFromForm;
+                var selectedAdvId = HttpContext.Session.GetInt32("SelectedAdvisorId") ?? SelectedAdvisorIdFromForm;
+
+                _logger?.LogDebug("Session/Form SelectedDocumentIds={docs}, SelectedApplicationId={appId}, SelectedAdvisorId={advId}", selectedDocIds, selectedAppId, selectedAdvId);
 
                 if (string.IsNullOrEmpty(selectedDocIds) || !selectedAppId.HasValue || !selectedAdvId.HasValue)
                 {
                     TempData["ErrorMessage"] = "Önceki adýmlarý tamamlamanýz gerekiyor.";
+                    _logger?.LogWarning("Step4Submit aborted: missing data. Docs={docs} AppId={app} AdvId={adv}", selectedDocIds, selectedAppId, selectedAdvId);
                     return RedirectToAction("Step1Documents");
                 }
 
@@ -431,33 +465,40 @@ namespace WebUI.Controllers.Student
                     StudentNote = StudentNote ?? string.Empty,
                     CreatedAt = DateTime.UtcNow,
                     Status = InternshipApprovalStatus.Pending,
-                    CompanyName = HttpContext.Session.GetString("CompanyName") ?? "Þirket",
-                    StartDate = DateTime.TryParse(HttpContext.Session.GetString("StartDate"), out var startDate) ? DateTime.SpecifyKind(startDate, DateTimeKind.Utc) : DateTime.UtcNow.AddDays(7),
-                    EndDate = DateTime.TryParse(HttpContext.Session.GetString("EndDate"), out var endDate) ? DateTime.SpecifyKind(endDate, DateTimeKind.Utc) : DateTime.UtcNow.AddMonths(2),
+                    CompanyName = HttpContext.Session.GetString("CompanyName") ?? Request.Form["CompanyName"].FirstOrDefault() ?? "Þirket",
+                    StartDate = DateTime.TryParse(HttpContext.Session.GetString("StartDate") ?? Request.Form["StartDate"].FirstOrDefault(), out var startDate) ? DateTime.SpecifyKind(startDate, DateTimeKind.Utc) : DateTime.UtcNow.AddDays(7),
+                    EndDate = DateTime.TryParse(HttpContext.Session.GetString("EndDate") ?? Request.Form["EndDate"].FirstOrDefault(), out var endDate) ? DateTime.SpecifyKind(endDate, DateTimeKind.Utc) : DateTime.UtcNow.AddMonths(2),
                     WeeklyWorkHours = 40,
-                    InternshipDescription = HttpContext.Session.GetString("Position") ?? "Staj Pozisyonu"
+                    InternshipDescription = HttpContext.Session.GetString("Position") ?? Request.Form["Position"].FirstOrDefault() ?? "Staj Pozisyonu"
                 };
+
+                _logger?.LogDebug("Creating approval form for user {uid}, app {appId}", userId, approval.ApplicationId);
 
                 await _approvalService.CreateApprovalFormAsync(approval);
 
-                var documentIds = selectedDocIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                var documentIds = (selectedDocIds ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries)
                                                  .Select(s => int.TryParse(s, out var v) ? v : 0)
                                                  .Where(i => i > 0)
                                                  .ToArray();
                 foreach (var docId in documentIds)
                 {
+                    _logger?.LogDebug("Linking document {doc} to approval {approvalId}", docId, approval.Id);
                     await _documentService.LinkDocumentToApprovalAsync(docId, approval.Id);
                 }
 
-                // Session temizle
+                // Clear session
                 foreach (var key in new[] { "SelectedDocumentIds", "SelectedApplicationId", "SelectedAdvisorId", "CompanyName", "StartDate", "EndDate", "Position" })
                     HttpContext.Session.Remove(key);
 
-                TempData["SuccessMessage"] = "Onay formu baþarýyla gönderildi. Danýþman onayý bekleniyor.";
-                return RedirectToAction("Index");
+                TempData["SuccessMessage"] = "Onay formu baþarýyla gönderildi! Danýþman onayý bekleniyor.";
+                _logger?.LogInformation("Step4Submit completed successfully for approval id {id}", approval.Id);
+                
+                // Baþarýlý gönderim sonrasý SentForms sayfasýna yönlendir
+                return RedirectToAction("SentForms");
             }
-            catch
+            catch (Exception ex)
             {
+                _logger?.LogError(ex, "Step4Submit ERROR");
                 TempData["ErrorMessage"] = "Onay formu gönderilirken bir hata oluþtu. Lütfen daha sonra tekrar deneyin.";
                 return RedirectToAction("Step4Review");
             }
@@ -623,7 +664,7 @@ namespace WebUI.Controllers.Student
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"? Error loading student/advisor info: {ex.Message}");
-                    // ignore student/advisor loading failure
+                    
                 }
 
                 System.Diagnostics.Debug.WriteLine($"?? Details ViewModel Created:");
@@ -637,13 +678,13 @@ namespace WebUI.Controllers.Student
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Details error: {ex}");
-                TempData["ErrorMessage"] = "Onay formu detaylar? y?klenirken hata olu?tu.";
+                TempData["ErrorMessage"] = "Onay formu detaylar? yüklenirken hata olu?tu.";
                 return RedirectToAction("SentForms");
             }
         }
 
-        // REVISION EDIT ACTIONS
         [HttpGet]
+        // revizyon sayfasý 
         public async Task<IActionResult> Edit(int id)
         {
             try
@@ -655,7 +696,7 @@ namespace WebUI.Controllers.Student
                 if (form == null)
                     return NotFound();
                 
-                // Revision durumunu kontrol et (hem yeni hem eski format)
+                // Revision durumunu kontrol et
                 bool isNewRevision = form.Status == InternshipApprovalStatus.Revision;
                 bool isLegacyRevision = !string.IsNullOrEmpty(form.RejectionReason) && form.RejectionReason.StartsWith("REVISION:");
                 
@@ -663,7 +704,7 @@ namespace WebUI.Controllers.Student
                 {
                     TempData["ErrorMessage"] = "Bu form düzenlenemez.";
                     return RedirectToAction("Details", new { id });
-                }
+                    }
 
                 // Mevcut belgeleri getir
                 List<InternshipDocument> docEntities = new List<InternshipDocument>();
@@ -790,7 +831,7 @@ namespace WebUI.Controllers.Student
 
                 System.Diagnostics.Debug.WriteLine($"?? Form found - Status: {form.Status}, ApplicationId: {form.ApplicationId}");
 
-                // Revision durumunu kontrol et (hem yeni hem eski format)
+                // Revision durumunu kontrol et 
                 bool isNewRevision = form.Status == InternshipApprovalStatus.Revision;
                 bool isLegacyRevision = !string.IsNullOrEmpty(form.RejectionReason) && form.RejectionReason.StartsWith("REVISION:");
                 
@@ -803,19 +844,18 @@ namespace WebUI.Controllers.Student
                     return RedirectToAction("Details", new { id = model.Id });
                 }
 
-                // BEFORE UPDATE - Log current state
                 System.Diagnostics.Debug.WriteLine($"?? BEFORE UPDATE:");
                 System.Diagnostics.Debug.WriteLine($"   - Current StudentNote: '{form.StudentNote}'");
                 System.Diagnostics.Debug.WriteLine($"   - Current Status: {form.Status}");
                 System.Diagnostics.Debug.WriteLine($"   - Current RevisionNote: '{form.RevisionNote}'");
 
-                // Sadece belgeleri ve student note'u g?ncelle
+                // Sadece belgeleri ve student note'u güncelle
                 form.StudentNote = model.StudentNote;
                 
                 // Status'u tekrar Pending yap (revizyon sonras?)
                 form.Status = InternshipApprovalStatus.Pending;
                 
-                // Hem yeni hem eski revision format?n? temizle
+                // Hem yeni hem eski revision formatýný temizle
                 form.RevisionNote = null;
                 form.RevisedAt = null;
                 if (isLegacyRevision)
@@ -824,7 +864,6 @@ namespace WebUI.Controllers.Student
                     form.RejectedAt = null;
                 }
 
-                // AFTER CHANGES - Log new state
                 System.Diagnostics.Debug.WriteLine($"?? AFTER CHANGES:");
                 System.Diagnostics.Debug.WriteLine($"   - New StudentNote: '{form.StudentNote}'");
                 System.Diagnostics.Debug.WriteLine($"   - New Status: {form.Status}");
@@ -834,7 +873,7 @@ namespace WebUI.Controllers.Student
                 await _approvalService.UpdateApprovalFormAsync(form);
                 System.Diagnostics.Debug.WriteLine("? Approval form updated successfully!");
 
-                // Belge g?ncellemelerini yap
+                // Belge güncellemelerini yap
                 if (model.SelectedDocumentIds != null && model.SelectedDocumentIds.Any() && form.ApplicationId > 0)
                 {
                     System.Diagnostics.Debug.WriteLine($"?? Updating documents for ApplicationId: {form.ApplicationId}");
@@ -865,7 +904,7 @@ namespace WebUI.Controllers.Student
                     {
                         System.Diagnostics.Debug.WriteLine($"? Document update error: {ex.Message}");
                         System.Diagnostics.Debug.WriteLine($"? Stack trace: {ex.StackTrace}");
-                        // Belge g?ncellemesi ba?ar?s?z olsa da devam et
+                       
                     }
                 }
                 else
@@ -874,9 +913,8 @@ namespace WebUI.Controllers.Student
                 }
 
                 System.Diagnostics.Debug.WriteLine("?? Edit operation completed successfully!");
-                TempData["SuccessMessage"] = "Onay formu ba?ar?yla g?ncellendi ve tekrar de?erlendirilmeye g?nderildi.";
-                
-                // Normal redirect - cache sorunlarý için gecikmeli redirect deneme
+                TempData["SuccessMessage"] = "Onay formu Baþarýyla Güncellendi ve tekrar de?erlendirilmeye g?nderildi.";
+
                 return RedirectToAction("Details", new { id = model.Id });
             }
             catch (Exception ex)
@@ -889,6 +927,54 @@ namespace WebUI.Controllers.Student
             finally
             {
                 System.Diagnostics.Debug.WriteLine("?? ==========EDIT POST FINISHED========");
+
+
+            }
+        }
+
+        // ====== DELETE APPROVAL FORM ======
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                var form = await _approvalService.GetApprovalFormWithDetailsAsync(id);
+
+                if (form == null)
+                {
+                    TempData["ErrorMessage"] = "Baþvuru bulunamadý.";
+                    return RedirectToAction("SentForms");
+                }
+
+                // Yetki kontrolü - sadece kendi baþvurusunu silebilir
+                if (form.StudentId != userId)
+                {
+                    TempData["ErrorMessage"] = "Bu iþlemi yapmaya yetkiniz yok.";
+                    return RedirectToAction("SentForms");
+                }
+
+                // Sadece Pending, Revision veya Rejected durumundaki baþvurular silinebilir
+                if (form.Status == InternshipApprovalStatus.Approved)
+                {
+                    TempData["ErrorMessage"] = "Onaylanmýþ baþvurular silinemez.";
+                    return RedirectToAction("SentForms");
+                }
+
+                // Baþvuruyu sil
+                await _approvalService.DeleteApprovalFormAsync(id);
+
+                TempData["SuccessMessage"] = "Baþvuru baþarýyla silindi.";
+                _logger?.LogInformation("Approval form {id} deleted by user {userId}", id, userId);
+
+                return RedirectToAction("SentForms");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Delete approval form error for id {id}", id);
+                TempData["ErrorMessage"] = "Baþvuru silinirken bir hata oluþtu.";
+                return RedirectToAction("SentForms");
             }
         }
     }

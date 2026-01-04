@@ -1,0 +1,475 @@
+@model WebUI.Controllers.Advisor.AdvisorEvaluationDetailViewModel
+@{
+    ViewData["Title"] = "Degerlendirme Detayi";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/advisor-theme.css" asp-append-version="true" />
+    <style>
+        .rating-hero {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .rating-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        }
+        .rating-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 6px solid white;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+        .rating-circle-inner {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .info-card-premium {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .info-card-premium:hover {
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.1);
+        }
+        .info-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+        }
+        .rating-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .rating-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+        .star-rating { color: #f59e0b; }
+        .star-empty { color: #d1d5db; }
+        .comment-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border-left: 4px solid #6366f1;
+            border-radius: 0 12px 12px 0;
+            padding: 1.25rem;
+        }
+        .dark .info-card-premium {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+        .dark .info-card-header {
+            background: rgba(51, 65, 85, 0.3);
+        }
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Geri Buton -->
+    <div class="flex items-center justify-between animate-fade-in-up">
+        <a asp-action="Index" class="btn-premium btn-premium-outline">
+            <i class="fas fa-arrow-left"></i>
+            Degerlendirmelere Don
+        </a>
+        <div class="flex gap-2">
+            @if (Model.IsViewedByStudent)
+            {
+                <span class="px-4 py-2 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+                    <i class="fas fa-eye mr-1"></i>Ogrenci Gordu (@Model.ViewedAt?.ToString("dd.MM.yyyy"))
+                </span>
+            }
+            else
+            {
+                <span class="px-4 py-2 rounded-full bg-orange-100 text-orange-700 text-sm font-medium">
+                    <i class="fas fa-clock mr-1"></i>Ogrenci Henuz Gormedi
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Rating Hero -->
+    <div class="rating-hero animate-fade-in-up">
+        <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            <div class="rating-circle">
+                <div class="rating-circle-inner">
+                    <span class="text-4xl font-bold text-indigo-600">@Model.AverageRating.ToString("F1")</span>
+                    <span class="text-sm text-gray-500">/5 Ort.</span>
+                </div>
+            </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-bold text-white mb-2">@Model.StudentName</h1>
+                <p class="text-white/80 text-lg mb-1">@Model.StudentNumber</p>
+                <p class="text-white/70 text-sm mb-3">@Model.University - @Model.Department</p>
+                <div class="flex flex-wrap justify-center md:justify-start gap-3">
+                    <span class="px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium backdrop-blur">
+                        <i class="fas fa-building mr-2"></i>@Model.CompanyName
+                    </span>
+                    <span class="px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium backdrop-blur">
+                        <i class="fas fa-briefcase mr-2"></i>@Model.Position
+                    </span>
+                    <span class="px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium backdrop-blur">
+                        <i class="fas fa-calendar mr-2"></i>@Model.StartDate.ToString("dd.MM.yyyy") - @Model.EndDate.ToString("dd.MM.yyyy")
+                    </span>
+                </div>
+                <!-- Yildizlar -->
+                <div class="flex justify-center md:justify-start mt-4">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        if (i <= Math.Round(Model.AverageRating))
+                        {
+                            <i class="fas fa-star text-white text-2xl mx-1"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-star text-white/40 text-2xl mx-1"></i>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Sol Kolon - Detayli Puanlar -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Puan Detaylari -->
+            <div class="info-card-premium animate-fade-in-up">
+                <div class="info-card-header">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-chart-bar mr-2 text-indigo-500"></i>
+                        Detayli Performans Puanlari
+                    </h3>
+                </div>
+                <div class="p-6 space-y-5">
+                    <!-- Teknik Beceriler -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-code mr-2 text-indigo-500"></i>Teknik Beceriler
+                            </span>
+                            <span class="text-sm font-bold text-yellow-600">@Model.TechnicalSkillsRating/5</span>
+                        </div>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: @(Model.TechnicalSkillsRating * 20)%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Iletisim -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-comments mr-2 text-blue-500"></i>Iletisim Becerileri
+                            </span>
+                            <span class="text-sm font-bold text-yellow-600">@Model.CommunicationRating/5</span>
+                        </div>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: @(Model.CommunicationRating * 20)%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Takim Calismasi -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-users mr-2 text-green-500"></i>Takim Calismasi
+                            </span>
+                            <span class="text-sm font-bold text-yellow-600">@Model.TeamworkRating/5</span>
+                        </div>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: @(Model.TeamworkRating * 20)%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dakiklik -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-clock mr-2 text-purple-500"></i>Dakiklik ve Devam
+                            </span>
+                            <span class="text-sm font-bold text-yellow-600">@Model.PunctualityRating/5</span>
+                        </div>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: @(Model.PunctualityRating * 20)%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inisiyatif -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>Inisiyatif ve Ogrenme
+                            </span>
+                            <span class="text-sm font-bold text-yellow-600">@Model.InitiativeRating/5</span>
+                        </div>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: @(Model.InitiativeRating * 20)%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Problem Cozme -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-puzzle-piece mr-2 text-red-500"></i>Problem Cozme
+                            </span>
+                            <span class="text-sm font-bold text-yellow-600">@Model.ProblemSolvingRating/5</span>
+                        </div>
+                        <div class="rating-bar">
+                            <div class="rating-bar-fill" style="width: @(Model.ProblemSolvingRating * 20)%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Genel -->
+                    <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-bold text-gray-900 dark:text-white">
+                                <i class="fas fa-star mr-2 text-yellow-500"></i>Genel Degerlendirme
+                            </span>
+                            <span class="text-lg font-bold text-yellow-600">@Model.OverallRating/5</span>
+                        </div>
+                        <div class="rating-bar h-3">
+                            <div class="rating-bar-fill" style="width: @(Model.OverallRating * 20)%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yorumlar -->
+            <div class="info-card-premium animate-fade-in-up">
+                <div class="info-card-header">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-comment-alt mr-2 text-indigo-500"></i>
+                        Firma Yorumlari
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    @if (!string.IsNullOrEmpty(Model.StrengthsComment))
+                    {
+                        <div class="comment-card" style="border-left-color: #10b981;">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-thumbs-up text-green-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Guclu Yonler</h4>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">@Model.StrengthsComment</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.ImprovementAreasComment))
+                    {
+                        <div class="comment-card" style="border-left-color: #f59e0b;">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-chart-line text-yellow-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Gelistirilmesi Gereken Alanlar</h4>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">@Model.ImprovementAreasComment</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.GeneralComment))
+                    {
+                        <div class="comment-card">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-comment text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Genel Yorum</h4>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">@Model.GeneralComment</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.RecommendationComment))
+                    {
+                        <div class="comment-card" style="border-left-color: #8b5cf6;">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-lightbulb text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white mb-1">Ogrenciye Oneriler</h4>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">@Model.RecommendationComment</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (string.IsNullOrEmpty(Model.StrengthsComment) && string.IsNullOrEmpty(Model.ImprovementAreasComment) && 
+                         string.IsNullOrEmpty(Model.GeneralComment) && string.IsNullOrEmpty(Model.RecommendationComment))
+                    {
+                        <div class="text-center py-6 text-gray-500">
+                            <i class="fas fa-comment-slash text-4xl mb-3 opacity-50"></i>
+                            <p>Yazili yorum bulunmuyor</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sag Kolon -->
+        <div class="space-y-6">
+            <!-- Ozet Kart -->
+            <div class="info-card-premium animate-fade-in-up">
+                <div class="info-card-header">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-indigo-500"></i>
+                        Degerlendirme Ozeti
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="text-center mb-6">
+                        <div class="text-5xl font-bold text-indigo-600 mb-2">@Model.AverageRating.ToString("F1")</div>
+                        <div class="flex justify-center">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Round(Model.AverageRating))
+                                {
+                                    <i class="fas fa-star star-rating text-xl mx-0.5"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-star star-empty text-xl mx-0.5"></i>
+                                }
+                            }
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Ortalama Puan (7 Kriter)</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Degerlendirme Tarihi</span>
+                            <span class="font-semibold text-gray-900 dark:text-white text-sm">@Model.CreatedAt.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">Staj Suresi</span>
+                            <span class="font-semibold text-gray-900 dark:text-white text-sm">@((Model.EndDate - Model.StartDate).Days) gun</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ogrenci Bilgileri -->
+            <div class="info-card-premium animate-fade-in-up">
+                <div class="info-card-header">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-user-graduate mr-2 text-indigo-500"></i>
+                        Ogrenci Bilgileri
+                    </h3>
+                </div>
+                <div class="p-6 space-y-3">
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Ad Soyad</span>
+                        <span class="font-semibold text-gray-900 dark:text-white text-sm">@Model.StudentName</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Ogrenci No</span>
+                        <span class="font-semibold text-gray-900 dark:text-white text-sm">@Model.StudentNumber</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">E-posta</span>
+                        <span class="font-semibold text-indigo-600 text-sm truncate max-w-[150px]">@Model.StudentEmail</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firma Onerileri -->
+            <div class="info-card-premium animate-fade-in-up">
+                <div class="info-card-header">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-award mr-2 text-indigo-500"></i>
+                        Firma Onerileri
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-4 p-4 rounded-xl @(Model.WouldRecommendForHire ? "bg-green-50 dark:bg-green-900/20" : "bg-gray-50 dark:bg-gray-800/50")">
+                        <div class="w-12 h-12 rounded-xl @(Model.WouldRecommendForHire ? "bg-green-100" : "bg-gray-200") flex items-center justify-center">
+                            <i class="fas @(Model.WouldRecommendForHire ? "fa-check text-green-600" : "fa-minus text-gray-400") text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold @(Model.WouldRecommendForHire ? "text-green-700 dark:text-green-300" : "text-gray-600 dark:text-gray-400")">Ise Alim Onerisi</p>
+                            <p class="text-sm @(Model.WouldRecommendForHire ? "text-green-600" : "text-gray-500")">@(Model.WouldRecommendForHire ? "Evet, oneriyor" : "Belirtilmedi")</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 p-4 rounded-xl @(Model.WouldAcceptAgain ? "bg-blue-50 dark:bg-blue-900/20" : "bg-gray-50 dark:bg-gray-800/50")">
+                        <div class="w-12 h-12 rounded-xl @(Model.WouldAcceptAgain ? "bg-blue-100" : "bg-gray-200") flex items-center justify-center">
+                            <i class="fas @(Model.WouldAcceptAgain ? "fa-redo text-blue-600" : "fa-minus text-gray-400") text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold @(Model.WouldAcceptAgain ? "text-blue-700 dark:text-blue-300" : "text-gray-600 dark:text-gray-400")">Tekrar Stajyer Kabulu</p>
+                            <p class="text-sm @(Model.WouldAcceptAgain ? "text-blue-600" : "text-gray-500")">@(Model.WouldAcceptAgain ? "Evet, kabul eder" : "Belirtilmedi")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hizli Islemler -->
+            <div class="info-card-premium animate-fade-in-up">
+                <div class="info-card-header">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-bolt mr-2 text-indigo-500"></i>
+                        Hizli Islemler
+                    </h3>
+                </div>
+                <div class="p-6 space-y-3">
+                    <a asp-action="Index" class="w-full btn-premium btn-premium-outline py-3">
+                        <i class="fas fa-list"></i>
+                        Tum Degerlendirmeler
+                    </a>
+                    <a asp-controller="AdvisorDashboard" asp-action="Index" class="w-full btn-premium btn-premium-primary py-3">
+                        <i class="fas fa-home"></i>
+                        Ana Sayfaya Don
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Rating bar animasyonu
+            document.querySelectorAll('.rating-bar-fill').forEach(function(bar) {
+                var width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(function() { bar.style.width = width; }, 300);
+            });
+        });
+    </script>
+}

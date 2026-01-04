@@ -247,7 +247,6 @@ namespace WebUI.Controllers.Company
             _ => InternshipApplicationStatus.Pending
         };
 
-        // Eski URL desteði
         [HttpGet("/Student/CompanyApplications/Applications")]
         public async Task<IActionResult> LegacyApplicationsList()
         {

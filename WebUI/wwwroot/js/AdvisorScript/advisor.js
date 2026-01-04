@@ -1,4 +1,4 @@
-// Advisor Dashboard JavaScript Functions
+// Danýþman Dashboard JavaScript Fonksiyonlarý
 
 class AdvisorDashboard {
     constructor() {
@@ -14,7 +14,7 @@ class AdvisorDashboard {
     }
 
     initializeEventListeners() {
-        // Application approval/rejection buttons
+        // Baþvuru onaylama/reddetme butonlarý
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('approve-application-btn')) {
                 this.handleApplicationApproval(e.target);
@@ -30,7 +30,7 @@ class AdvisorDashboard {
             }
         });
 
-        // Search and filter functionality
+        // Arama ve filtreleme iþlevselliði
         const searchInputs = document.querySelectorAll('.advisor-search-input');
         searchInputs.forEach(input => {
             input.addEventListener('input', (e) => {
@@ -38,7 +38,7 @@ class AdvisorDashboard {
             });
         });
 
-        // Refresh buttons
+        // Yenileme butonlarý
         const refreshButtons = document.querySelectorAll('.advisor-refresh-btn');
         refreshButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -56,30 +56,30 @@ class AdvisorDashboard {
                 this.updateDashboardCounters(stats);
             }
         } catch (error) {
-            console.error('Error loading dashboard stats:', error);
+            console.error('Dashboard istatistikleri yüklenirken hata:', error);
         }
     }
 
     updateDashboardCounters(stats) {
-        // Update pending applications count
+        // Bekleyen baþvuru sayýsýný güncelle
         const pendingAppsElement = document.getElementById('pendingApplicationsCount');
         if (pendingAppsElement) {
             this.animateCounter(pendingAppsElement, stats.pendingApplications);
         }
 
-        // Update pending diaries count
+        // Bekleyen defter sayýsýný güncelle
         const pendingDiariesElement = document.getElementById('pendingDiariesCount');
         if (pendingDiariesElement) {
             this.animateCounter(pendingDiariesElement, stats.pendingDiaries);
         }
 
-        // Update total students count
+        // Toplam öðrenci sayýsýný güncelle
         const totalStudentsElement = document.getElementById('totalStudentsCount');
         if (totalStudentsElement) {
             this.animateCounter(totalStudentsElement, stats.totalStudents);
         }
 
-        // Update completed internships count
+        // Tamamlanan staj sayýsýný güncelle
         const completedInternshipsElement = document.getElementById('completedInternshipsCount');
         if (completedInternshipsElement) {
             this.animateCounter(completedInternshipsElement, stats.completedInternships);
@@ -111,16 +111,16 @@ class AdvisorDashboard {
         const modal = document.getElementById('approveApplicationModal');
         
         if (modal) {
-            // Set application ID in modal
+            // Modal'da baþvuru ID'sini ayarla
             const modalApplicationId = modal.querySelector('#modalApplicationId');
             if (modalApplicationId) {
                 modalApplicationId.value = applicationId;
             }
             
-            // Show modal
+            // Modal'ý göster
             this.showModal('approveApplicationModal');
         } else {
-            // Direct approval without modal
+            // Modal olmadan doðrudan onay
             await this.submitApplicationAction(applicationId, 'approve', '');
         }
     }
@@ -130,13 +130,13 @@ class AdvisorDashboard {
         const modal = document.getElementById('rejectApplicationModal');
         
         if (modal) {
-            // Set application ID in modal
+            // Modal'da baþvuru ID'sini ayarla
             const modalApplicationId = modal.querySelector('#modalApplicationId');
             if (modalApplicationId) {
                 modalApplicationId.value = applicationId;
             }
             
-            // Show modal
+            // Modal'ý göster
             this.showModal('rejectApplicationModal');
         }
     }
@@ -176,16 +176,16 @@ class AdvisorDashboard {
         const modal = document.getElementById('approveDiaryModal');
         
         if (modal) {
-            // Set entry ID in modal
+            // Modal'da girdi ID'sini ayarla
             const modalEntryId = modal.querySelector('#modalEntryId');
             if (modalEntryId) {
                 modalEntryId.value = entryId;
             }
             
-            // Show modal
+            // Modal'ý göster
             this.showModal('approveDiaryModal');
         } else {
-            // Direct approval without modal
+            // Modal olmadan doðrudan onay
             await this.submitDiaryAction(entryId, 'approve', '');
         }
     }
@@ -195,13 +195,13 @@ class AdvisorDashboard {
         const modal = document.getElementById('rejectDiaryModal');
         
         if (modal) {
-            // Set entry ID in modal
+            // Modal'da girdi ID'sini ayarla
             const modalEntryId = modal.querySelector('#modalEntryId');
             if (modalEntryId) {
                 modalEntryId.value = entryId;
             }
             
-            // Show modal
+            // Modal'ý göster
             this.showModal('rejectDiaryModal');
         }
     }
@@ -277,7 +277,7 @@ class AdvisorDashboard {
     }
 
     initializeModals() {
-        // Application approval modal
+        // Baþvuru onay modal'ý
         document.addEventListener('click', (e) => {
             if (e.target.id === 'submitApplicationApproval') {
                 const modal = document.getElementById('approveApplicationModal');
@@ -319,7 +319,7 @@ class AdvisorDashboard {
                 this.submitDiaryAction(entryId, 'reject', feedback);
             }
             
-            // Close modal buttons
+            // Modal kapatma butonlarý
             if (e.target.classList.contains('close-modal-btn')) {
                 const modalId = e.target.dataset.modalId;
                 this.hideModal(modalId);
@@ -334,7 +334,7 @@ class AdvisorDashboard {
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
             
-            // Focus on first input
+            // Ýlk input'a odaklan
             const firstInput = modal.querySelector('input, textarea');
             if (firstInput) {
                 setTimeout(() => firstInput.focus(), 100);
@@ -349,7 +349,7 @@ class AdvisorDashboard {
             modal.classList.remove('flex');
             document.body.style.overflow = 'auto';
             
-            // Clear form inputs
+            // Form input'larýný temizle
             const inputs = modal.querySelectorAll('input, textarea');
             inputs.forEach(input => {
                 if (input.type !== 'hidden') {
@@ -360,13 +360,13 @@ class AdvisorDashboard {
     }
 
     initializeCharts() {
-        // Application status chart
+        // Baþvuru durumu grafiði
         const applicationChartElement = document.getElementById('applicationStatusChart');
         if (applicationChartElement) {
             this.createApplicationStatusChart(applicationChartElement);
         }
 
-        // Monthly statistics chart
+        // Aylýk istatistik grafiði
         const monthlyChartElement = document.getElementById('monthlyStatsChart');
         if (monthlyChartElement) {
             this.createMonthlyStatsChart(monthlyChartElement);
@@ -424,7 +424,7 @@ class AdvisorDashboard {
                         tension: 0.4
                     },
                     {
-                        label: 'Staj Defteri Giriþleri',
+                        label: 'Staj Defteri Girdileri',
                         data: chartData.diaryEntries || [],
                         borderColor: '#764ba2',
                         backgroundColor: 'rgba(118, 75, 162, 0.1)',
@@ -475,7 +475,7 @@ class AdvisorDashboard {
     }
 
     initializeNotifications() {
-        // Auto-hide notifications after 5 seconds
+        // 5 saniye sonra bildirimleri otomatik gizle
         const notifications = document.querySelectorAll('.advisor-notification');
         notifications.forEach(notification => {
             setTimeout(() => {
@@ -501,7 +501,7 @@ class AdvisorDashboard {
         
         document.body.appendChild(notification);
         
-        // Auto-hide after 5 seconds
+        // 5 saniye sonra otomatik gizle
         setTimeout(() => {
             notification.style.opacity = '0';
             setTimeout(() => {
@@ -516,10 +516,10 @@ class AdvisorDashboard {
     }
 }
 
-// Initialize when DOM is loaded
+// DOM yüklendiðinde baþlat
 document.addEventListener('DOMContentLoaded', () => {
     new AdvisorDashboard();
 });
 
-// Export for global access
+// Global eriþim için dýþa aktar
 window.AdvisorDashboard = AdvisorDashboard;

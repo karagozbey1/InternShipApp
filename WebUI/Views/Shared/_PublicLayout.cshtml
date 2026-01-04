@@ -1,4 +1,4 @@
-﻿@* Updated layout removing About and Contact links *@
+﻿@* Güncellenmiş layout - About ve Contact linkleri kaldırıldı *@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -45,7 +45,13 @@
                             } else if(userRole=="Company"){
                                 <li class="nav-item"><a class="nav-link nav-auth-outline" asp-controller="Company" asp-action="Index">Panel</a></li>
                             }
-                            <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Logout">Çıkış</a></li>
+                       
+                            <li class="nav-item">
+                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline m-0 p-0">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="nav-link btn btn-link p-0 m-0" style="text-decoration:none;">Çıkış</button>
+                                </form>
+                            </li>
                         }
                         else
                         {
@@ -119,4 +125,4 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-</html></html>
+</html>

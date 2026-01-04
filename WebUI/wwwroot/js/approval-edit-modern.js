@@ -1,6 +1,6 @@
 /**
- * Modern Approval Edit JavaScript
- * Handles form interactions, document selection, and animations
+ * Modern Onay Düzenleme JavaScript
+ * Form etkileþimlerini, belge seçimini ve animasyonlarý yönetir
  */
 
 class ApprovalEdit {
@@ -19,27 +19,27 @@ class ApprovalEdit {
     }
 
     bindEvents() {
-        // Document selection
+        // Belge seçimi
         document.addEventListener('click', (e) => {
             if (e.target.closest('.document-item')) {
                 this.handleDocumentClick(e.target.closest('.document-item'));
             }
         });
 
-        // Form submission
+        // Form gönderimi
         const form = document.querySelector('form');
         if (form) {
             form.addEventListener('submit', (e) => this.handleFormSubmit(e));
         }
 
-        // Button loading states
+        // Buton yükleniyor durumlarý
         document.addEventListener('click', (e) => {
             if (e.target.closest('.btn-primary')) {
                 this.handleSubmitButton(e.target.closest('.btn-primary'));
             }
         });
 
-        // Auto-save functionality (optional)
+        // Otomatik kaydetme iþlevselliði (isteðe baðlý)
         const textarea = document.querySelector('#StudentNote');
         if (textarea) {
             let autoSaveTimeout;
@@ -51,7 +51,7 @@ class ApprovalEdit {
             });
         }
 
-        // Keyboard shortcuts
+        // Klavye kýsayollarý
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
@@ -71,13 +71,13 @@ class ApprovalEdit {
         const checkbox = item.querySelector('input[type="checkbox"]');
         if (!checkbox) return;
 
-        // Toggle checkbox state
+        // Checkbox durumunu deðiþtir
         checkbox.checked = !checkbox.checked;
         
-        // Update visual state
+        // Görsel durumu güncelle
         this.updateDocumentState(item, checkbox.checked);
         
-        // Update selected documents set
+        // Seçili belgeler setini güncelle
         const docId = parseInt(checkbox.value);
         if (checkbox.checked) {
             this.selectedDocuments.add(docId);
@@ -85,10 +85,10 @@ class ApprovalEdit {
             this.selectedDocuments.delete(docId);
         }
 
-        // Animate selection
+        // Seçim animasyonu
         this.animateDocumentSelection(item, checkbox.checked);
         
-        // Update counter
+        // Sayacý güncelle
         this.updateDocumentCounter();
     }
 
@@ -113,7 +113,7 @@ class ApprovalEdit {
             }, 300);
         }
 
-        // Add ripple effect
+        // Dalga efekti ekle
         this.createRippleEffect(item);
     }
 
@@ -149,13 +149,13 @@ class ApprovalEdit {
     }
 
     initAnimations() {
-        // Stagger animations for form sections
+        // Form bölümleri için kademeli animasyonlar
         const sections = document.querySelectorAll('.form-section');
         sections.forEach((section, index) => {
             section.style.animationDelay = `${index * 0.1}s`;
         });
 
-        // Intersection Observer for scroll animations
+        // Kaydýrma animasyonlarý için Intersection Observer
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -168,7 +168,7 @@ class ApprovalEdit {
             observer.observe(section);
         });
 
-        // Parallax effect for header
+        // Baþlýk için parallax efekti
         window.addEventListener('scroll', () => {
             const scrolled = window.pageYOffset;
             const header = document.querySelector('.page-header');
@@ -182,14 +182,14 @@ class ApprovalEdit {
         const form = document.querySelector('form');
         if (!form) return;
 
-        // Real-time validation
+        // Gerçek zamanlý doðrulama
         const inputs = form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
             input.addEventListener('blur', () => this.validateField(input));
             input.addEventListener('input', () => this.clearFieldError(input));
         });
 
-        // Custom validation rules
+        // Özel doðrulama kurallarý
         this.setupCustomValidation();
     }
 
@@ -227,17 +227,17 @@ class ApprovalEdit {
         let isValid = true;
         const errorContainer = this.getOrCreateErrorContainer(field);
 
-        // Clear previous errors
+        // Önceki hatalarý temizle
         errorContainer.innerHTML = '';
         field.classList.remove('is-invalid', 'is-valid');
 
-        // Required field validation
+        // Zorunlu alan doðrulamasý
         if (field.hasAttribute('required') && !field.value.trim()) {
             this.showFieldError(field, 'Bu alan zorunludur.');
             isValid = false;
         }
 
-        // Specific validations
+        // Özel doðrulamalar
         if (field.id === 'StudentNote' && field.value.trim()) {
             const wordCount = field.value.trim().split(/\s+/).length;
             if (wordCount < 10) {
@@ -246,7 +246,7 @@ class ApprovalEdit {
             }
         }
 
-        // Mark field as valid if no errors
+        // Hata yoksa alaný geçerli olarak iþaretle
         if (isValid && field.value.trim()) {
             field.classList.add('is-valid');
         }
@@ -281,13 +281,13 @@ class ApprovalEdit {
         
         if (this.isSubmitting) return;
         
-        // Validate form
+        // Formu doðrula
         if (!this.validateForm()) {
             this.showNotification('Lütfen form hatalarýný düzeltin.', 'error');
             return;
         }
 
-        // Check if any documents selected
+        // Herhangi bir belge seçilip seçilmediðini kontrol et
         if (this.selectedDocuments.size === 0) {
             this.showNotification('En az bir belge seçmelisiniz.', 'warning');
             return;
@@ -317,18 +317,18 @@ class ApprovalEdit {
         const submitBtn = document.querySelector('.btn-primary');
         
         try {
-            // Show loading state
+            // Yükleniyor durumunu göster
             this.setButtonLoading(submitBtn, true);
             
-            // Get form data
+            // Form verilerini al
             const formData = new FormData(document.querySelector('form'));
             
-            // Add selected documents
+            // Seçili belgeleri ekle
             this.selectedDocuments.forEach(docId => {
                 formData.append('SelectedDocumentIds', docId);
             });
 
-            // Submit form
+            // Formu gönder
             const response = await fetch(window.location.pathname, {
                 method: 'POST',
                 body: formData
@@ -337,7 +337,7 @@ class ApprovalEdit {
             if (response.ok) {
                 this.showNotification('Form baþarýyla güncellendi!', 'success');
                 
-                // Redirect after success
+                // Baþarýdan sonra yönlendir
                 setTimeout(() => {
                     const urlParams = new URLSearchParams(formData);
                     const id = urlParams.get('Id');
@@ -383,7 +383,7 @@ class ApprovalEdit {
     }
 
     initDocumentSelection() {
-        // Initialize selected documents from checkboxes
+        // Checkbox'lardan seçili belgeleri baþlat
         const checkboxes = document.querySelectorAll('input[name="SelectedDocumentIds"]:checked');
         checkboxes.forEach(checkbox => {
             this.selectedDocuments.add(parseInt(checkbox.value));
@@ -397,7 +397,7 @@ class ApprovalEdit {
     }
 
     autoSave() {
-        // Optional auto-save functionality
+        // Ýsteðe baðlý otomatik kaydetme iþlevselliði
         const data = {
             studentNote: document.querySelector('#StudentNote')?.value || '',
             selectedDocuments: Array.from(this.selectedDocuments)
@@ -417,7 +417,7 @@ class ApprovalEdit {
                 }
             }
         } catch (error) {
-            console.log('Auto-save load failed:', error);
+            console.log('Otomatik kayýt yükleme baþarýsýz:', error);
         }
     }
 
@@ -428,7 +428,7 @@ class ApprovalEdit {
     }
 
     handleNotifications() {
-        // Handle URL parameters for notifications
+        // Bildirimler için URL parametrelerini iþle
         const urlParams = new URLSearchParams(window.location.search);
         const success = urlParams.get('success');
         const error = urlParams.get('error');
@@ -440,7 +440,7 @@ class ApprovalEdit {
             this.showNotification(decodeURIComponent(error), 'error');
         }
 
-        // Load auto-save if available
+        // Mevcutsa otomatik kaydý yükle
         this.loadAutoSave();
     }
 
@@ -461,12 +461,12 @@ class ApprovalEdit {
         this.styleNotification(notification, type);
         document.body.appendChild(notification);
 
-        // Animate in
+        // Ýçeri animasyonu
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
 
-        // Auto remove
+        // Otomatik kaldýrma
         if (duration > 0) {
             setTimeout(() => {
                 notification.style.transform = 'translateX(100%)';
@@ -541,7 +541,7 @@ class ApprovalEdit {
     }
 }
 
-// Add CSS animations
+// CSS animasyonlarý ekle
 const editAnimationStyles = `
     @keyframes ripple {
         to {
@@ -567,12 +567,12 @@ const styleElement = document.createElement('style');
 styleElement.textContent = editAnimationStyles;
 document.head.appendChild(styleElement);
 
-// Initialize when DOM is loaded
+// DOM yüklendiðinde baþlat
 document.addEventListener('DOMContentLoaded', () => {
     new ApprovalEdit();
 });
 
-// Export for potential module usage
+// Potansiyel modül kullanýmý için dýþa aktar
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ApprovalEdit;
 }

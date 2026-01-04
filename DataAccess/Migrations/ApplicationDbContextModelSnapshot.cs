@@ -268,6 +268,94 @@ namespace DataAccess.Migrations
                     b.ToTable("DiaryEntries");
                 });
 
+            modelBuilder.Entity("Core.Entity.InternEvaluation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CommunicationRating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EvaluatorUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("GeneralComment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ImprovementAreasComment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("InitiativeRating")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsViewedByStudent")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("OverallRating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProblemSolvingRating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PunctualityRating")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RecommendationComment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("StrengthsComment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TeamworkRating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TechnicalSkillsRating")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ViewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("WouldAcceptAgain")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("WouldRecommendForHire")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("EvaluatorUserId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("InternEvaluations");
+                });
+
             modelBuilder.Entity("Core.Entity.InternshipApplication", b =>
                 {
                     b.Property<int>("Id")
@@ -1073,6 +1161,41 @@ namespace DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Diary");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Core.Entity.InternEvaluation", b =>
+                {
+                    b.HasOne("Core.Entity.InternshipApplication", "Application")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.User", "EvaluatorUser")
+                        .WithMany()
+                        .HasForeignKey("EvaluatorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Core.Entity.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("EvaluatorUser");
 
                     b.Navigation("Student");
                 });

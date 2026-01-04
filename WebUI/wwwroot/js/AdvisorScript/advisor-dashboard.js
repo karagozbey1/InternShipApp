@@ -1,4 +1,4 @@
-// Advisor Dashboard Management
+// Danýþman Dashboard Yönetimi
 class AdvisorDashboardManager {
     constructor() {
         this.initializeComponents();
@@ -31,13 +31,13 @@ class AdvisorDashboardManager {
     }
 
     bindStudentActions() {
-        // Student assignment actions
+        // Öðrenci atama iþlemleri
         const assignButtons = document.querySelectorAll('.assign-student-btn');
         assignButtons.forEach(btn => {
             btn.addEventListener('click', this.handleStudentAssignment.bind(this));
         });
 
-        // Student detail views
+        // Öðrenci detay görüntüleme
         const viewButtons = document.querySelectorAll('.view-student-btn');
         viewButtons.forEach(btn => {
             btn.addEventListener('click', this.handleStudentView.bind(this));
@@ -45,7 +45,7 @@ class AdvisorDashboardManager {
     }
 
     bindApprovalActions() {
-        // Approval form actions
+        // Onay formu iþlemleri
         const approveButtons = document.querySelectorAll('.approve-btn');
         const rejectButtons = document.querySelectorAll('.reject-btn');
         
@@ -90,10 +90,10 @@ class AdvisorDashboardManager {
                 this.showMessage('Öðrenci baþarýyla atandý!', 'success');
                 location.reload();
             } else {
-                throw new Error('Network response was not ok');
+                throw new Error('Að yanýtý baþarýsýz');
             }
         } catch (error) {
-            console.error('Student assignment error:', error);
+            console.error('Öðrenci atama hatasý:', error);
             this.showMessage('Öðrenci atama sýrasýnda hata oluþtu!', 'error');
         }
     }
@@ -142,10 +142,10 @@ class AdvisorDashboardManager {
                 this.showMessage('Form baþarýyla onaylandý!', 'success');
                 location.reload();
             } else {
-                throw new Error('Network response was not ok');
+                throw new Error('Að yanýtý baþarýsýz');
             }
         } catch (error) {
-            console.error('Approval error:', error);
+            console.error('Onaylama hatasý:', error);
             this.showMessage('Onaylama sýrasýnda hata oluþtu!', 'error');
         }
     }
@@ -188,10 +188,10 @@ class AdvisorDashboardManager {
                 this.showMessage('Form baþarýyla reddedildi!', 'success');
                 location.reload();
             } else {
-                throw new Error('Network response was not ok');
+                throw new Error('Að yanýtý baþarýsýz');
             }
         } catch (error) {
-            console.error('Rejection error:', error);
+            console.error('Reddetme hatasý:', error);
             this.showMessage('Reddetme sýrasýnda hata oluþtu!', 'error');
         }
     }
@@ -204,11 +204,11 @@ class AdvisorDashboardManager {
                 
                 const filterType = btn.dataset.filter;
                 
-                // Update active filter
+                // Aktif filtreyi güncelle
                 filterButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 
-                // Apply filter
+                // Filtreyi uygula
                 this.applyFilter(filterType);
             });
         });
@@ -318,7 +318,7 @@ class AdvisorDashboardManager {
                 this.updateRecentActivitiesList(activities);
             }
         } catch (error) {
-            console.error('Recent data loading error:', error);
+            console.error('Son veri yükleme hatasý:', error);
         }
     }
 
@@ -339,7 +339,7 @@ class AdvisorDashboardManager {
                         <small class="text-muted d-block">${activity.description || ''}</small>
                     </div>
                     <div class="text-end">
-                        <span class="badge bg-${this.getActivityColor(activity.type)}">${activity.type || 'general'}</span>
+                        <span class="badge bg-${this.getActivityColor(activity.type)}">${activity.type || 'genel'}</span>
                         <small class="text-muted d-block">${activity.date || ''}</small>
                     </div>
                 </div>
@@ -360,15 +360,15 @@ class AdvisorDashboardManager {
     }
 
     startDataRefresh() {
-        // Refresh every 5 minutes
+        // Her 5 dakikada bir yenile
         setInterval(() => {
             this.loadRecentData();
         }, 5 * 60 * 1000);
     }
 
-    // Message display helper
+    // Mesaj gösterme yardýmcýsý
     showMessage(message, type = 'info') {
-        // Check if ToastManager exists, otherwise use alert
+        // ToastManager varsa kullan, yoksa alert kullan
         if (typeof ToastManager !== 'undefined') {
             ToastManager.show(message, type);
         } else {
@@ -377,10 +377,10 @@ class AdvisorDashboardManager {
     }
 }
 
-// Global instance
+// Global örnek
 let advisorDashboardManager;
 
-// Initialize when page loads
+// Sayfa yüklendiðinde baþlat
 document.addEventListener('DOMContentLoaded', () => {
     advisorDashboardManager = new AdvisorDashboardManager();
 });

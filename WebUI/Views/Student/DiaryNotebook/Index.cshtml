@@ -4,394 +4,1119 @@
     Layout = "_AppLayout";
 }
 
-<div class="p-6 max-w-7xl mx-auto">
+@section Styles {
+<style>
+    /* ===== PREMIUM NOTEBOOK DESIGN - WHITE THEME ===== */
+    .diary-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+        padding: 40px 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .diary-page::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.03) 0%, transparent 70%);
+    }
+
+    /* ===== HEADER SECTION ===== */
+    .diary-header {
+        text-align: center;
+        margin-bottom: 50px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .diary-header-icon {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 24px;
+        background: linear-gradient(145deg, #fff 0%, #f8fafc 100%);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15), inset 0 -5px 20px rgba(0,0,0,0.02);
+        transform: rotate(-5deg);
+        transition: all 0.4s ease;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+
+    .diary-header-icon:hover {
+        transform: rotate(0deg) scale(1.05);
+    }
+
+    .diary-header-icon i {
+        font-size: 48px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .diary-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #475569);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 12px;
+        letter-spacing: -1px;
+    }
+
+    .diary-header p {
+        font-size: 1.1rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto 32px;
+    }
+
+    .btn-create-diary {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 36px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        border-radius: 50px;
+        text-decoration: none;
+        box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-create-diary:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.4);
+        color: white;
+    }
+
+    /* ===== NOTEBOOK GRID ===== */
+    .notebooks-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+    }
+
+    .notebooks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 32px;
+    }
+
+    /* ===== NOTEBOOK CARD - REALISTIC DESIGN ===== */
+    .notebook-card {
+        position: relative;
+        perspective: 1000px;
+    }
+
+    .notebook-inner {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 8px 24px 24px 8px;
+        overflow: hidden;
+        box-shadow: 
+            -8px 0 0 #e8d5b7,
+            -10px 0 0 #d4c4a8,
+            0 25px 80px rgba(0,0,0,0.1);
+        transform-style: preserve-3d;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-left: 4px solid #c9a76c;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .notebook-card:hover .notebook-inner {
+        transform: translateY(-12px) rotateY(-5deg);
+        box-shadow: 
+            -8px 0 0 #e8d5b7,
+            -10px 0 0 #d4c4a8,
+            15px 35px 100px rgba(0,0,0,0.15);
+    }
+
+    /* Spiral binding effect */
+    .notebook-spiral {
+        position: absolute;
+        left: -2px;
+        top: 20px;
+        bottom: 20px;
+        width: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        z-index: 10;
+    }
+
+    .spiral-ring {
+        width: 20px;
+        height: 20px;
+        border: 3px solid #64748b;
+        border-radius: 50%;
+        background: linear-gradient(145deg, #94a3b8, #64748b);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Notebook header */
+    .notebook-header {
+        padding: 28px 28px 20px 40px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 100%);
+        border-bottom: 2px dashed rgba(0,0,0,0.05);
+        position: relative;
+    }
+
+    .notebook-badge {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-active {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .badge-completed {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+    }
+
+    .notebook-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 8px;
+        line-height: 1.3;
+        padding-right: 80px;
+    }
+
+    .notebook-desc {
+        font-size: 0.9rem;
+        color: #64748b;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Company info */
+    .notebook-company {
+        padding: 16px 28px 16px 40px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .company-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .company-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #334155;
+        margin: 0 0 2px 0;
+    }
+
+    .company-info span {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    /* Stats section - like notebook pages */
+    .notebook-stats {
+        padding: 24px 28px 24px 40px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        position: relative;
+    }
+
+    /* Lined paper effect */
+    .notebook-stats::before {
+        content: '';
+        position: absolute;
+        left: 35px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #ffcccb 0%, #ffcccb 100%);
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 16px 8px;
+        background: rgba(255,255,255,0.6);
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .stat-box-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-box-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+
+    /* Progress section */
+    .notebook-progress {
+        padding: 0 28px 20px 40px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .progress-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+    }
+
+    .progress-value {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    .progress-bar-container {
+        height: 10px;
+        background: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
+        border-radius: 10px;
+        transition: width 1s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    @@keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* Date range */
+    .notebook-dates {
+        padding: 16px 28px 16px 40px;
+        background: #fafbfc;
+        display: flex;
+        gap: 20px;
+        border-top: 1px dashed rgba(0,0,0,0.08);
+    }
+
+    .date-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .date-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .date-info span {
+        display: block;
+        font-size: 0.7rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .date-info strong {
+        font-size: 0.9rem;
+        color: #334155;
+    }
+
+    /* Action buttons */
+    .notebook-actions {
+        padding: 20px 28px 24px 40px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-notebook {
+        flex: 1;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-open {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-open:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        color: white;
+    }
+
+    .btn-menu {
+        padding: 14px;
+        background: #f1f5f9;
+        color: #64748b;
+        flex: 0;
+    }
+
+    .btn-menu:hover {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    /* Dropdown menu */
+    .dropdown-menu-notebook {
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        margin-bottom: 8px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 100;
+        min-width: 200px;
+    }
+
+    .dropdown-menu-notebook.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-item-notebook {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        font-size: 0.9rem;
+        color: #334155;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+
+    .dropdown-item-notebook:hover {
+        background: #f8fafc;
+    }
+
+    .dropdown-item-notebook.danger {
+        color: #dc2626;
+    }
+
+    .dropdown-item-notebook.danger:hover {
+        background: #fef2f2;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-notebook {
+        text-align: center;
+        padding: 80px 40px;
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 30px 100px rgba(0,0,0,0.08);
+        max-width: 600px;
+        margin: 0 auto;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .empty-icon-notebook {
+        width: 140px;
+        height: 140px;
+        margin: 0 auto 32px;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .empty-icon-notebook i {
+        font-size: 60px;
+        color: #94a3b8;
+    }
+
+    .empty-icon-notebook::after {
+        content: '+';
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+    }
+
+    .empty-state-notebook h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-notebook p {
+        font-size: 1.1rem;
+        color: #64748b;
+        margin-bottom: 32px;
+        line-height: 1.6;
+    }
+
+    /* ===== CREATE MODAL ===== */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-notebook {
+        background: white;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 30px 100px rgba(0,0,0,0.3);
+        animation: modalIn 0.4s ease;
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .modal-header-notebook {
+        padding: 28px 32px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-header-notebook h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .modal-close {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(90deg);
+    }
+
+    .modal-body-notebook {
+        padding: 32px;
+    }
+
+    .form-group-notebook {
+        margin-bottom: 24px;
+    }
+
+    .form-label-notebook {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #334155;
+        margin-bottom: 10px;
+    }
+
+    .form-label-notebook i {
+        color: #6366f1;
+    }
+
+    .form-input-notebook {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-input-notebook:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .form-row-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .form-checkbox-notebook {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+
+    .form-checkbox-notebook input {
+        width: 20px;
+        height: 20px;
+        accent-color: #6366f1;
+    }
+
+    .modal-footer-notebook {
+        padding: 24px 32px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .btn-modal {
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-modal-cancel {
+        background: #e2e8f0;
+        color: #64748b;
+    }
+
+    .btn-modal-cancel:hover {
+        background: #cbd5e1;
+    }
+
+    .btn-modal-create {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-modal-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @@media (max-width: 768px) {
+        .diary-header h1 {
+            font-size: 2rem;
+        }
+
+        .notebooks-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .notebook-stats {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-box-value {
+            font-size: 1.4rem;
+        }
+
+        .notebook-dates {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-row, .form-row-3 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+}
+
+<div class="diary-page">
     <!-- Header -->
-    <div class="mb-8">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    <i class="fas fa-book text-blue-500 mr-3"></i>Staj Defterlerim
-                </h1>
-                <p class="text-gray-600 dark:text-gray-400">
-                    Staj süreçleriniz için oluþturduðunuz defterlerinizi buradan yönetebilirsiniz.
-                </p>
-            </div>
-            <div>
-                <button onclick="showCreateDiaryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors shadow-lg">
-                    <i class="fas fa-plus mr-2"></i>Yeni Defter Oluþtur
-                </button>
-            </div>
+    <div class="diary-header">
+        <div class="diary-header-icon">
+            <i class="fas fa-book-open"></i>
         </div>
+        <h1>Staj Defterlerim</h1>
+        <p>Staj sürecinizi günlük olarak kaydedin, ilerlemenizi takip edin ve deneyimlerinizi belgeleyin.</p>
+        <button onclick="showCreateModal()" class="btn-create-diary">
+            <i class="fas fa-plus"></i>
+            Yeni Defter Olustur
+        </button>
     </div>
 
-    @if (Model.HasAnyDiaries)
-    {
-        <!-- Defter Kartlarý -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach (var diary in Model.Diaries)
-            {
-                <div class="diary-notebook-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                    
-                    <!-- Card Header -->
-                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex-1">
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                                    @diary.Title
-                                </h3>
-                                @if (!string.IsNullOrEmpty(diary.Description))
-                                {
-                                    <p class="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">@diary.Description</p>
-                                }
-                            </div>
-                            <div class="ml-4">
-                                <span class="bg-@(diary.StatusColor)-100 text-@(diary.StatusColor)-800 dark:bg-@(diary.StatusColor)-900 dark:text-@(diary.StatusColor)-200 px-3 py-1 rounded-full text-xs font-medium">
-                                    @diary.StatusText
-                                </span>
-                            </div>
-                        </div>
-                        
-                        @if (!string.IsNullOrEmpty(diary.CompanyName))
-                        {
-                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                <i class="fas fa-building mr-2"></i>
-                                <span>@diary.CompanyName</span>
-                                @if (!string.IsNullOrEmpty(diary.Department))
-                                {
-                                    <span class="mx-2">•</span>
-                                    <span>@diary.Department</span>
-                                }
-                            </div>
-                        }
-                        
-                        <div class="flex items-center text-sm text-gray-500 dark:text-gray-500">
-                            <i class="fas fa-calendar mr-2"></i>
-                            <span>@diary.DurationText</span>
-                        </div>
-                    </div>
-
-                    <!-- Card Body - Ýstatistikler -->
-                    <div class="p-6">
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">@diary.TotalEntries</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Toplam Girdi</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-green-600 dark:text-green-400">@diary.CompletedDays</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400">Tamamlanan Gün</div>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        @if (diary.TotalDays.HasValue && diary.TotalDays > 0)
-                        {
-                            <div class="mb-4">
-                                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                    <span>Ýlerleme</span>
-                                    <span>%@diary.CompletionPercentage.ToString("F1")</span>
-                                </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300" 
-                                         style="width: @diary.CompletionPercentage.ToString("F1")%"></div>
-                                </div>
-                            </div>
-                        }
-
-                        <!-- Badges -->
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs">
-                                @diary.RequiredText
-                            </span>
-                            @if (diary.LastEntryDate.HasValue)
+    <!-- Notebooks Container -->
+    <div class="notebooks-container">
+        @if (Model.HasAnyDiaries)
+        {
+            <div class="notebooks-grid">
+                @foreach (var diary in Model.Diaries)
+                {
+                    <div class="notebook-card">
+                        <!-- Spiral binding -->
+                        <div class="notebook-spiral">
+                            @for (int i = 0; i < 8; i++)
                             {
-                                <span class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full text-xs">
-                                    Son: @diary.LastEntryDate.Value.ToString("dd.MM.yyyy")
-                                </span>
+                                <div class="spiral-ring"></div>
                             }
                         </div>
-                    </div>
 
-                    <!-- Card Footer -->
-                    <div class="p-6 pt-0">
-                        <div class="flex gap-2">
-                            <a asp-action="Detail" asp-route-id="@diary.Id" 
-                               class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium text-center transition-colors">
-                                <i class="fas fa-eye mr-2"></i>Defteri Aç
-                            </a>
-                            <div class="dropdown relative">
-                                <button onclick="toggleDropdown(@diary.Id)" 
-                                        class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <div id="dropdown-@diary.Id" class="hidden absolute right-0 bottom-full mb-2 w-48 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-10">
-                                    <form asp-action="ToggleCompletion" asp-route-id="@diary.Id" method="post" class="inline w-full">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600">
-                                            <i class="fas fa-@(diary.IsCompleted ? "play" : "check") mr-2"></i>@(diary.IsCompleted ? "Tekrar Aktifleþtir" : "Tamamlandý Olarak Ýþaretle")
-                                        </button>
-                                    </form>
-                                    <form method="post" onsubmit="event.preventDefault(); setMainDiary(@diary.Id);" class="inline w-full">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 dark:text-indigo-300 dark:hover:bg-indigo-900/40">
-                                            <i class="fas fa-star mr-2"></i>Ana Staj Yap
-                                        </button>
-                                    </form>
-                                    <form asp-action="Delete" asp-route-id="@diary.Id" method="post" class="inline w-full">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
-                                                onclick="return confirm('Bu defteri silmek istediðinizden emin misiniz? Tüm girdi verileriniz kaybolacak!')">
-                                            <i class="fas fa-trash mr-2"></i>Defteri Sil
-                                        </button>
-                                    </form>
+                        <div class="notebook-inner">
+                            <!-- Header -->
+                            <div class="notebook-header">
+                                <span class="notebook-badge @(diary.IsCompleted ? "badge-completed" : "badge-active")">
+                                    @(diary.IsCompleted ? "Tamamlandi" : "Aktif")
+                                </span>
+                                <h3 class="notebook-title">@diary.Title</h3>
+                                @if (!string.IsNullOrEmpty(diary.Description))
+                                {
+                                    <p class="notebook-desc">@diary.Description</p>
+                                }
+                            </div>
+
+                            <!-- Company Info -->
+                            @if (!string.IsNullOrEmpty(diary.CompanyName))
+                            {
+                                <div class="notebook-company">
+                                    <div class="company-icon">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div class="company-info">
+                                        <h4>@diary.CompanyName</h4>
+                                        @if (!string.IsNullOrEmpty(diary.Department))
+                                        {
+                                            <span>@diary.Department</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Stats -->
+                            <div class="notebook-stats">
+                                <div class="stat-box">
+                                    <div class="stat-box-value">@diary.TotalEntries</div>
+                                    <div class="stat-box-label">Girdi</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-value">@diary.CompletedDays</div>
+                                    <div class="stat-box-label">Gun</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-box-value">@(diary.TotalDays.HasValue ? diary.TotalDays : "-")</div>
+                                    <div class="stat-box-label">Hedef</div>
+                                </div>
+                            </div>
+
+                            <!-- Progress -->
+                            @if (diary.TotalDays.HasValue && diary.TotalDays > 0)
+                            {
+                                <div class="notebook-progress">
+                                    <div class="progress-header">
+                                        <span class="progress-label">Ilerleme Durumu</span>
+                                        <span class="progress-value">%@diary.CompletionPercentage.ToString("F0")</span>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-fill" style="width: @diary.CompletionPercentage%"></div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Dates -->
+                            <div class="notebook-dates">
+                                @if (diary.InternshipStartDate.HasValue)
+                                {
+                                    <div class="date-item">
+                                        <div class="date-icon">
+                                            <i class="fas fa-play"></i>
+                                        </div>
+                                        <div class="date-info">
+                                            <span>Baslangic</span>
+                                            <strong>@diary.InternshipStartDate.Value.ToString("dd MMM yyyy")</strong>
+                                        </div>
+                                    </div>
+                                }
+                                @if (diary.InternshipEndDate.HasValue)
+                                {
+                                    <div class="date-item">
+                                        <div class="date-icon">
+                                            <i class="fas fa-flag-checkered"></i>
+                                        </div>
+                                        <div class="date-info">
+                                            <span>Bitis</span>
+                                            <strong>@diary.InternshipEndDate.Value.ToString("dd MMM yyyy")</strong>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="notebook-actions">
+                                <a asp-action="Detail" asp-route-id="@diary.Id" class="btn-notebook btn-open">
+                                    <i class="fas fa-book-reader"></i>
+                                    Defteri Ac
+                                </a>
+                                <div style="position: relative;">
+                                    <button type="button" class="btn-notebook btn-menu" onclick="toggleMenu(@diary.Id)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div id="menu-@diary.Id" class="dropdown-menu-notebook">
+                                        <form asp-action="ToggleCompletion" asp-route-id="@diary.Id" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item-notebook">
+                                                <i class="fas fa-@(diary.IsCompleted ? "play" : "check")"></i>
+                                                @(diary.IsCompleted ? "Tekrar Aktiflestir" : "Tamamlandi")
+                                            </button>
+                                        </form>
+                                        <form method="post" onsubmit="event.preventDefault(); setMainDiary(@diary.Id);">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item-notebook">
+                                                <i class="fas fa-star"></i>
+                                                Ana Staj Yap
+                                            </button>
+                                        </form>
+                                        <form asp-action="Delete" asp-route-id="@diary.Id" method="post" 
+                                              onsubmit="return confirm('Bu defteri silmek istediginize emin misiniz?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="dropdown-item-notebook danger">
+                                                <i class="fas fa-trash"></i>
+                                                Defteri Sil
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state-notebook">
+                <div class="empty-icon-notebook">
+                    <i class="fas fa-book"></i>
                 </div>
-            }
-        </div>
-    }
-    else
-    {
-        <!-- Boþ Durum -->
-        <div class="text-center py-16">
-            <div class="max-w-md mx-auto">
-                <i class="fas fa-book text-8xl text-gray-300 dark:text-gray-600 mb-6"></i>
-                <h3 class="text-2xl font-semibold text-gray-600 dark:text-gray-400 mb-4">Henüz Staj Defteriniz Yok</h3>
-                <p class="text-gray-500 dark:text-gray-500 mb-8">
-                    Staj süreçlerinizi takip etmek için ilk defterinizi oluþturun. 
-                    Her staj için ayrý defter tutabilir, günlük ilerlemenizi kaydedebilirsiniz.
-                </p>
-                <button onclick="showCreateDiaryModal()" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg transition-colors shadow-lg">
-                    <i class="fas fa-plus mr-2"></i>Ýlk Defterimi Oluþtur
+                <h2>Henuz Staj Defteriniz Yok</h2>
+                <p>Staj sürecinizi profesyonelce takip etmek icin ilk defterinizi olusturun. Gunluk calismalarinizi kaydedin, ogrendiklerinizi belgeleyin.</p>
+                <button onclick="showCreateModal()" class="btn-create-diary">
+                    <i class="fas fa-plus"></i>
+                    Ilk Defterimi Olustur
                 </button>
             </div>
-        </div>
-    }
+        }
+    </div>
 </div>
 
-<!-- Yeni Defter Oluþturma Modal -->
-<div id="createDiaryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        <i class="fas fa-plus text-blue-500 mr-2"></i>Yeni Staj Defteri Oluþtur
-                    </h2>
-                    <button onclick="closeCreateDiaryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-                
-                <form asp-action="Create" method="post" class="space-y-6">
-                    @Html.AntiForgeryToken()
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <i class="fas fa-heading mr-1"></i>Defter Baþlýðý *
-                        </label>
-                        <input name="Title" type="text" required
-                               class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
-                               placeholder="Örn: ABC Teknoloji Yazýlým Stajým" />
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <i class="fas fa-align-left mr-1"></i>Açýklama
-                        </label>
-                        <textarea name="Description" rows="3"
-                                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200"
-                                  placeholder="Bu defter hakkýnda kýsa bir açýklama..."></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-building mr-1"></i>Þirket Adý
-                            </label>
-                            <input name="CompanyName" type="text"
-                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
-                                   placeholder="Þirket adýný girin" />
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-sitemap mr-1"></i>Departman
-                            </label>
-                            <input name="Department" type="text"
-                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
-                                   placeholder="Çalýþacaðýnýz departman" />
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-calendar-alt mr-1"></i>Baþlangýç Tarihi
-                            </label>
-                            <input name="InternshipStartDate" type="date"
-                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-calendar-check mr-1"></i>Bitiþ Tarihi
-                            </label>
-                            <input name="InternshipEndDate" type="date"
-                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" />
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <i class="fas fa-calendar-day mr-1"></i>Toplam Gün
-                            </label>
-                            <input name="TotalDays" type="number" min="1" max="365"
-                                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-gray-200" 
-                                   placeholder="20" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="flex items-center">
-                            <input name="IsRequired" type="checkbox" checked class="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Bu defter zorunlu staj için kullanýlacak</span>
-                        </label>
-                    </div>
-
-                    <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
-                            <i class="fas fa-save mr-2"></i>Defteri Oluþtur
-                        </button>
-                        <button type="button" onclick="closeCreateDiaryModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
-                            <i class="fas fa-times mr-2"></i>Ýptal
-                        </button>
-                    </div>
-                </form>
-            </div>
+<!-- Create Modal -->
+<div id="createModal" class="modal-overlay" onclick="if(event.target === this) closeCreateModal()">
+    <div class="modal-notebook">
+        <div class="modal-header-notebook">
+            <h2><i class="fas fa-book-medical"></i> Yeni Staj Defteri</h2>
+            <button type="button" class="modal-close" onclick="closeCreateModal()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div class="modal-body-notebook">
+                <div class="form-group-notebook">
+                    <label class="form-label-notebook">
+                        <i class="fas fa-heading"></i> Defter Basligi *
+                    </label>
+                    <input name="Title" type="text" required class="form-input-notebook" 
+                           placeholder="Orn: ABC Sirketi Yazilim Staji" />
+                </div>
+
+                <div class="form-group-notebook">
+                    <label class="form-label-notebook">
+                        <i class="fas fa-align-left"></i> Aciklama
+                    </label>
+                    <textarea name="Description" rows="3" class="form-input-notebook" 
+                              placeholder="Bu staj defteri hakkinda kisa bir aciklama..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group-notebook">
+                        <label class="form-label-notebook">
+                            <i class="fas fa-building"></i> Sirket Adi
+                        </label>
+                        <input name="CompanyName" type="text" class="form-input-notebook" 
+                               placeholder="Sirket adi" />
+                    </div>
+                    <div class="form-group-notebook">
+                        <label class="form-label-notebook">
+                            <i class="fas fa-sitemap"></i> Departman
+                        </label>
+                        <input name="Department" type="text" class="form-input-notebook" 
+                               placeholder="Departman" />
+                    </div>
+                </div>
+
+                <div class="form-row-3">
+                    <div class="form-group-notebook">
+                        <label class="form-label-notebook">
+                            <i class="fas fa-calendar-alt"></i> Baslangic
+                        </label>
+                        <input name="InternshipStartDate" type="date" class="form-input-notebook" />
+                    </div>
+                    <div class="form-group-notebook">
+                        <label class="form-label-notebook">
+                            <i class="fas fa-calendar-check"></i> Bitis
+                        </label>
+                        <input name="InternshipEndDate" type="date" class="form-input-notebook" />
+                    </div>
+                    <div class="form-group-notebook">
+                        <label class="form-label-notebook">
+                            <i class="fas fa-calendar-day"></i> Toplam Gun
+                        </label>
+                        <input name="TotalDays" type="number" min="1" max="365" class="form-input-notebook" 
+                               placeholder="20" />
+                    </div>
+                </div>
+
+                <label class="form-checkbox-notebook">
+                    <input name="IsRequired" type="checkbox" checked />
+                    <span>Bu defter zorunlu staj icin kullanilacak</span>
+                </label>
+            </div>
+            <div class="modal-footer-notebook">
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeCreateModal()">
+                    <i class="fas fa-times"></i> Iptal
+                </button>
+                <button type="submit" class="btn-modal btn-modal-create">
+                    <i class="fas fa-save"></i> Olustur
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        // Modal açma/kapatma fonksiyonlarý
-        function showCreateDiaryModal() {
-            document.getElementById('createDiaryModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
+<script>
+    // Modal functions
+    function showCreateModal() {
+        document.getElementById('createModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 
-        function closeCreateDiaryModal() {
-            document.getElementById('createDiaryModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
 
-        function toggleDropdown(diaryId) {
-            const dropdown = document.getElementById(`dropdown-${diaryId}`);
-            document.querySelectorAll('[id^="dropdown-"]').forEach(d => { if (d !== dropdown) d.classList.add('hidden'); });
-            dropdown.classList.toggle('hidden');
-        }
+    // Dropdown menu
+    function toggleMenu(id) {
+        const menu = document.getElementById('menu-' + id);
+        const allMenus = document.querySelectorAll('.dropdown-menu-notebook');
+        
+        allMenus.forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+        });
+        
+        menu.classList.toggle('show');
+    }
 
-        async function setMainDiary(id) {
-            try {
-                const formData = new FormData();
-                formData.append('id', id);
-                const token = document.querySelector(`#dropdown-${id} input[name='__RequestVerificationToken']`).value;
-                // Doðru route genellikle /DiaryNotebook/SetMain (Student segmenti yok). Önce onu dene.
-                let url = '/DiaryNotebook/SetMain';
-                let response = await fetch(url, {
+    // Close menus on outside click
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.btn-menu') && !e.target.closest('.dropdown-menu-notebook')) {
+            document.querySelectorAll('.dropdown-menu-notebook').forEach(m => m.classList.remove('show'));
+        }
+    });
+
+    // Set main diary
+    async function setMainDiary(id) {
+        try {
+            const token = document.querySelector(`#menu-${id} input[name='__RequestVerificationToken']`).value;
+            const formData = new FormData();
+            formData.append('id', id);
+            
+            let response = await fetch('/DiaryNotebook/SetMain', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+            
+            if (response.status === 404) {
+                response = await fetch('/Student/DiaryNotebook/SetMain', {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': token },
                     body: formData
                 });
-                if (response.status === 404) {
-                    // Fallback eski tahmin edilen yol
-                    url = '/Student/DiaryNotebook/SetMain';
-                    response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'RequestVerificationToken': token },
-                        body: formData
-                    });
-                }
-                const data = await response.json();
-                if (data.success) {
-                    showToast('Ana staj defteri seçildi', 'success');
-                    setTimeout(()=> window.location = '/Dashboard', 800);
-                } else {
-                    showToast(data.message || 'Ýþlem baþarýsýz', 'error');
-                }
-            } catch (e) {
-                showToast('Sunucu hatasý: ' + e.message, 'error');
             }
-        }
-
-        function showToast(msg, type) {
-            const el = document.createElement('div');
-            el.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium text-white ${type==='success'?'bg-green-600':'bg-red-600'}`;
-            el.textContent = msg;
-            document.body.appendChild(el);
-            setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=> el.remove(),300); }, 2500);
-        }
-
-        // Sayfa dýþýna týklanýnca dropdown'larý kapat
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.dropdown')) {
-                document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
-                    d.classList.add('hidden');
-                });
+            
+            const data = await response.json();
+            if (data.success) {
+                showToast('Ana staj defteri secildi', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast(data.message || 'Islem basarisiz', 'error');
             }
-        });
-
-        // Modal dýþýna týklanýnca kapat
-        document.getElementById('createDiaryModal').addEventListener('click', function(e) {
-            if (e.target === this) closeCreateDiaryModal();
-        });
-
-        // Escape tuþu ile modal kapat
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeCreateDiaryModal();
-            }
-        });
-
-        // Card hover animasyonlarý
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.diary-notebook-card');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.classList.add('fade-in-up');
-            });
-        });
-    </script>
-
-    <style>
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+        } catch (e) {
+            showToast('Sunucu hatasi', 'error');
         }
+    }
 
-        .fade-in-up {
-            animation: fadeInUp 0.6s ease-out forwards;
-            opacity: 0;
-            transform: translateY(30px);
-        }
+    // Toast notification
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
 
-        @@keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .diary-notebook-card {
-            transition: all 0.3s ease;
-        }
-
-        .diary-notebook-card:hover {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-    </style>
+    // Escape key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeCreateModal();
+    });
+</script>
 }

@@ -1,4 +1,4 @@
-// Dashboard Helper Functions
+// Dashboard Yardýmcý Fonksiyonlarý
 class DashboardManager {
     constructor() {
         this.initializeComponents();
@@ -88,11 +88,11 @@ class DashboardManager {
                 window.location.href = `/Student/Document`;
                 break;
             default:
-                console.warn('Unknown activity type:', activityType);
+                console.warn('Bilinmeyen aktivite türü:', activityType);
         }
     }
 
-    // Chart kurulumu
+    // Grafik kurulumu
     initCharts() {
         this.initInternshipChart();
         this.initPerformanceChart();
@@ -103,7 +103,7 @@ class DashboardManager {
         if (chartContainer && window.Chart) {
             const ctx = chartContainer.getContext('2d');
             
-            // Chart verilerini AJAX ile al
+            // Grafik verilerini AJAX ile al
             this.loadChartData().then(data => {
                 new Chart(ctx, {
                     type: 'line',
@@ -144,10 +144,10 @@ class DashboardManager {
                 return await response.json();
             }
         } catch (error) {
-            console.error('Chart data loading error:', error);
+            console.error('Grafik veri yükleme hatasý:', error);
         }
         
-        // Fallback data
+        // Yedek veri
         return {
             labels: ['Ocak', 'Þubat', 'Mart', 'Nisan', 'Mayýs', 'Haziran'],
             datasets: [{
@@ -162,7 +162,7 @@ class DashboardManager {
     // Otomatik yenileme
     startAutoRefresh() {
         if (window.location.hostname === 'localhost') {
-            console.log('Auto refresh aktif - her 5 dakikada yenilenir');
+            console.log('Otomatik yenileme aktif - her 5 dakikada yenilenir');
             
             setInterval(() => {
                 this.refreshDashboardData();
@@ -239,7 +239,7 @@ class DashboardManager {
         
         if (currentActivities && newActivities) {
             currentActivities.innerHTML = newActivities.innerHTML;
-            this.initActivityCards(); // Yeniden event binder
+            this.initActivityCards(); // Yeniden olay baðlayýcý
         }
     }
 
@@ -251,14 +251,14 @@ class DashboardManager {
                 e.preventDefault();
                 this.refreshDashboardData();
                 
-                // Button animasyonu
+                // Buton animasyonu
                 btn.classList.add('animate-spin');
                 setTimeout(() => btn.classList.remove('animate-spin'), 1000);
             });
         });
     }
 
-    // Performance chart
+    // Performans grafiði
     initPerformanceChart() {
         const performanceChart = document.getElementById('performanceChart');
         if (performanceChart && window.Chart) {
@@ -291,7 +291,7 @@ class DashboardManager {
     }
 }
 
-// AJAX Helper Functions
+// AJAX Yardýmcý Fonksiyonlarý
 class AjaxHelper {
     static async get(url) {
         try {
@@ -306,9 +306,9 @@ class AjaxHelper {
             if (response.ok) {
                 return await response.json();
             }
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP hatasý! durum: ${response.status}`);
         } catch (error) {
-            console.error('AJAX GET error:', error);
+            console.error('AJAX GET hatasý:', error);
             throw error;
         }
     }
@@ -330,15 +330,15 @@ class AjaxHelper {
             if (response.ok) {
                 return await response.json();
             }
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP hatasý! durum: ${response.status}`);
         } catch (error) {
-            console.error('AJAX POST error:', error);
+            console.error('AJAX POST hatasý:', error);
             throw error;
         }
     }
 }
 
-// Toast Notification System
+// Toast Bildirim Sistemi
 class ToastManager {
     static show(message, type = 'info', duration = 3000) {
         const toast = document.createElement('div');
@@ -356,7 +356,7 @@ class ToastManager {
         // Otomatik kaldýrma
         setTimeout(() => this.remove(toast), duration);
         
-        // Manual kaldýrma
+        // Manuel kaldýrma
         toast.querySelector('.toast-close').addEventListener('click', () => {
             this.remove(toast);
         });

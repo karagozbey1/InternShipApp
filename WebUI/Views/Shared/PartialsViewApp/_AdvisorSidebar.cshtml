@@ -6,6 +6,11 @@
     {
         return (controller == currentController && action == currentAction) ? "sidebar-item-active" : "sidebar-item-inactive";
     }
+    
+    string IsActiveController(string controller)
+    {
+        return (controller == currentController) ? "sidebar-item-active" : "sidebar-item-inactive";
+    }
 }
 
 <div class="w-64 min-h-screen bg-white/80 backdrop-blur-md border-r border-white/20 shadow-lg dark:bg-gray-800 dark:border-gray-700" id="advisor-sidebar">
@@ -15,8 +20,8 @@
                 <i class="fas fa-chalkboard-teacher text-white text-xl"></i>
             </div>
             <div>
-                <h3 class="font-semibold text-gray-800 dark:text-gray-200">@User.Identity.Name</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Danýþman</p>
+                <h3 class="font-semibold text-gray-800 dark:text-gray-200">@User.Identity?.Name</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Danisman</p>
             </div>
         </div>
     </div>
@@ -45,6 +50,12 @@
                 <a asp-controller="AdvisorDiary" asp-action="Index" class="sidebar-item @IsActive("AdvisorDiary", "Index")">
                     <i class="fas fa-book-open"></i>
                     <span class="font-medium">Öðrenci Staj Defterleri</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="AdvisorEvaluation" asp-action="Index" class="sidebar-item @IsActiveController("AdvisorEvaluation")">
+                    <i class="fas fa-star"></i>
+                    <span class="font-medium">Firma Deðerlendirmeleri</span>
                 </a>
             </li>
             <li>

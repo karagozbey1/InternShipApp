@@ -3,189 +3,524 @@
     ViewData["Title"] = "Öðrencilerim";
     Layout = "_AppLayout";
 }
-<div class="space-y-6" x-data="advisorStudents()">
-    <div class="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-1">
-                    <i class="fas fa-users mr-2"></i>Öðrencilerim
-                </h1>
-                <p class="text-blue-600 dark:text-blue-300 text-sm">Üniversite ve bölüm bazlý danýþmanlýk kapsamýndaki öðrenciler</p>
-            </div>
-            <div class="flex flex-wrap gap-3 text-sm">
-                <div class="px-3 py-2 bg-white dark:bg-gray-800 rounded-xl shadow flex items-center gap-2"><span class="text-gray-500">Toplam</span><span class="font-semibold text-blue-600">@Model.TotalItems</span></div>
-                <div class="px-3 py-2 bg-white dark:bg-gray-800 rounded-xl shadow flex items-center gap-2"><span class="text-gray-500">Aktif</span><span class="font-semibold text-green-600">@Model.ActiveCount</span></div>
-                <div class="px-3 py-2 bg-white dark:bg-gray-800 rounded-xl shadow flex items-center gap-2"><span class="text-gray-500">Pasif</span><span class="font-semibold text-red-600">@Model.PassiveCount</span></div>
-                <div class="px-3 py-2 bg-white dark:bg-gray-800 rounded-xl shadow flex items-center gap-2"><span class="text-gray-500">Staj (Onaylý)</span><span class="font-semibold text-indigo-600">@Model.WithApprovedInternship</span></div>
-                <div class="px-3 py-2 bg-white dark:bg-gray-800 rounded-xl shadow flex items-center gap-2"><span class="text-gray-500">Bekleyen Baþvuru</span><span class="font-semibold text-yellow-600">@Model.WithPendingApplications</span></div>
-            </div>
-        </div>
-    </div>
 
-    <form method="get" class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/60 dark:border-gray-700 flex flex-col gap-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Ara</label>
-                <input name="Filters.Search" value="@Model.Filters.Search" placeholder="Ad / e-posta" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Bölüm</label>
-                <input name="Filters.Department" value="@Model.Filters.Department" placeholder="Bölüm" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" />
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Sýnýf</label>
-                <input name="Filters.Grade" value="@(Model.Filters.Grade?.ToString() ?? "")" type="number" min="1" max="8" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" />
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Durum</label>
-                <select name="Filters.Status" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
-                    <option value="">Tümü</option>
-                    <option value="active" selected="@(Model.Filters.Status=="active")">Aktif</option>
-                    <option value="passive" selected="@(Model.Filters.Status=="passive")">Pasif</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Sýrala</label>
-                <select name="Filters.Sort" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm">
-                    <option value="lastActivity" selected="@(Model.Filters.Sort=="lastActivity")">Son Aktivite</option>
-                    <option value="name" selected="@(Model.Filters.Sort=="name")">Ad</option>
-                    <option value="applications" selected="@(Model.Filters.Sort=="applications")">Baþvuru</option>
-                    <option value="diaries" selected="@(Model.Filters.Sort=="diaries")">Defter Girdisi</option>
-                </select>
-            </div>
-        </div>
-        <div class="flex items-center flex-wrap gap-3 justify-between">
-            <div class="flex items-center gap-2 text-xs">
-                <label class="flex items-center gap-1 cursor-pointer select-none">
-                    <span>Artan</span>
-                    <input type="radio" name="Filters.Order" value="asc" @(Model.Filters.Order=="asc"?"checked":null) />
-                </label>
-                <label class="flex items-center gap-1 cursor-pointer select-none">
-                    <span>Azalan</span>
-                    <input type="radio" name="Filters.Order" value="desc" @(Model.Filters.Order!="asc"?"checked":null) />
-                </label>
-            </div>
-            <div class="flex gap-2">
-                <button type="submit" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium shadow">
-                    <i class="fas fa-search mr-2"></i>Uygula
-                </button>
-                <a asp-action="Index" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium shadow">
-                    <i class="fas fa-undo mr-2"></i>Temizle
-                </a>
-            </div>
-        </div>
-    </form>
+@section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/advisor-theme.css" asp-append-version="true" />
+}
 
-    <div class="space-y-6">
-        @if (Model.Students.Any())
-        {
-            <div class="flex justify-between items-center">
-                <div class="text-sm text-gray-500" id="listInfo"></div>
-                <div class="flex gap-2" id="bulkActions" style="display:none;">
-                    <button type="button" onclick="openBulkNotify()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">
-                        <i class="fas fa-paper-plane mr-1"></i>Toplu Bildirim
-                    </button>
-                    <span class="text-xs text-gray-500" x-text="selectedIds.size + ' seçili'"></span>
+<div class="space-y-6">
+    <!-- Premium Hero Header -->
+    <div class="advisor-hero-header animate-fade-in-up">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white">Öðrencilerim</h1>
+                        <p class="text-white/70 text-sm">Danýþmanlýk kapsamýndaki öðrencileri yönetin</p>
+                    </div>
                 </div>
             </div>
-            <div id="ajaxStudentGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                @if (Model.Students.Any())
-                {
-                    foreach (var s in Model.Students)
-                    {
-                        <div class="ss-card relative p-5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg transition-all duration-300" data-id="@s.Id">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">@((s.FullName??"?").Split(' ').Take(2).Aggregate("",(acc,p)=>acc + (string.IsNullOrEmpty(p)?"":p[0].ToString())).ToUpper())</div>
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="font-semibold text-gray-900 dark:text-white text-sm">@s.FullName</h3>
-                                    <p class="text-xs text-indigo-600 dark:text-indigo-300 font-medium">@(s.StudentNumber ?? "-")</p>
-                                    <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-gray-600 dark:text-gray-300">
-                                        <div><span class="text-gray-400">Üniversite:</span><br/><span class="font-medium">@(s.UniversityName ?? "-")</span></div>
-                                        <div><span class="text-gray-400">Bölüm:</span><br/><span class="font-medium">@(s.Department ?? "-")</span></div>
-                                        <div><span class="text-gray-400">Sýnýf:</span><br/><span class="font-medium">@(s.Grade?.ToString() ?? "-")</span></div>
-                                        <div><span class="text-gray-400">Durum:</span><br/><span class="font-medium @(s.IsActive?"text-green-600":"text-red-600")">@(s.IsActive?"Aktif":"Pasif")</span></div>
-                                    </div>
-                                </div>
-                                <div class="text-right text-[10px] text-gray-400 whitespace-nowrap">@((s.LastActivity?.ToString("yyyy-MM-dd")) ?? "-")</div>
-                            </div>
-                            <div class="mt-4 flex gap-3">
-                                <a asp-controller="Chat" asp-action="Index" asp-route-studentId="@s.Id" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-xs font-medium">
-                                    <i class="fas fa-envelope"></i><span>Ýletiþim</span>
-                                </a>
-                                <div class="flex items-center pl-2">
-                                    <input type='checkbox' class='student-select w-4 h-4' data-id='@s.Id' />
-                                </div>
-                            </div>
-                        </div>
-                    }
-                }
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/20 text-center">
+                        <p class="text-white font-bold text-lg">@Model.TotalItems</p>
+                        <span class="text-white/70 text-xs">Toplam</span>
+                    </div>
+                    <div class="px-3 py-2 rounded-xl bg-green-500/30 backdrop-blur border border-green-400/30 text-center">
+                        <p class="text-white font-bold text-lg">@Model.ActiveCount</p>
+                        <span class="text-green-200 text-xs">Aktif</span>
+                    </div>
+                    <div class="px-3 py-2 rounded-xl bg-yellow-500/30 backdrop-blur border border-yellow-400/30 text-center">
+                        <p class="text-white font-bold text-lg">@Model.WithPendingApplications</p>
+                        <span class="text-yellow-200 text-xs">Bekleyen</span>
+                    </div>
+                    <div class="px-3 py-2 rounded-xl bg-indigo-500/30 backdrop-blur border border-indigo-400/30 text-center">
+                        <p class="text-white font-bold text-lg">@Model.WithApprovedInternship</p>
+                        <span class="text-indigo-200 text-xs">Stajda</span>
+                    </div>
+                </div>
             </div>
-            <div id="loadingSpinner" class="text-center py-6 hidden">
-                <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
-            </div>
-            <div id="endMessage" class="text-center text-xs text-gray-400 py-4 hidden">Tüm kayýtlar yüklendi</div>
-        }
-        else
-        {
-            <div class="p-8 text-center bg-white/70 dark:bg-gray-800/60 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600">
-                <i class="fas fa-user-graduate text-gray-400 text-5xl mb-4"></i>
-                <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Öðrenci bulunamadý</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-500">Filtreleri deðiþtirerek tekrar deneyin.</p>
-            </div>
-        }
+        </div>
     </div>
+
+    <!-- Premium Filtre Alaný -->
+    <div class="filter-section-premium animate-fade-in-up">
+        <form method="get" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-search mr-1"></i>Ara
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input name="Filters.Search" value="@Model.Filters.Search" 
+                               placeholder="Ad, e-posta, numara..." 
+                               class="filter-input-premium pl-10" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-graduation-cap mr-1"></i>Bölüm
+                    </label>
+                    <input name="Filters.Department" value="@Model.Filters.Department" 
+                           placeholder="Bölüm adý" 
+                           class="filter-input-premium" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-layer-group mr-1"></i>Sýnýf
+                    </label>
+                    <input name="Filters.Grade" value="@(Model.Filters.Grade?.ToString() ?? "")" 
+                           type="number" min="1" max="8" 
+                           placeholder="1-8"
+                           class="filter-input-premium" />
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-toggle-on mr-1"></i>Durum
+                    </label>
+                    <select name="Filters.Status" class="filter-input-premium">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="active" selected="@(Model.Filters.Status=="active")">? Aktif</option>
+                        <option value="passive" selected="@(Model.Filters.Status=="passive")">?? Pasif</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-sort mr-1"></i>Sýrala
+                    </label>
+                    <select name="Filters.Sort" class="filter-input-premium">
+                        <option value="lastActivity" selected="@(Model.Filters.Sort=="lastActivity")">Son Aktivite</option>
+                        <option value="name" selected="@(Model.Filters.Sort=="name")">Ýsim (A-Z)</option>
+                        <option value="applications" selected="@(Model.Filters.Sort=="applications")">Baþvuru Sayýsý</option>
+                        <option value="diaries" selected="@(Model.Filters.Sort=="diaries")">Defter Girdisi</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-500">Sýralama:</span>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="Filters.Order" value="asc" @(Model.Filters.Order=="asc"?"checked":null) 
+                               class="w-4 h-4 text-indigo-600" />
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Artan</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="Filters.Order" value="desc" @(Model.Filters.Order!="asc"?"checked":null) 
+                               class="w-4 h-4 text-indigo-600" />
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Azalan</span>
+                    </label>
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-premium btn-premium-primary">
+                        <i class="fas fa-search"></i>
+                        Filtrele
+                    </button>
+                    <a asp-action="Index" class="btn-premium btn-premium-outline">
+                        <i class="fas fa-undo"></i>
+                        Temizle
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Toplu Ýþlem Toolbar -->
+    <div id="bulkToolbar" class="hidden filter-section-premium animate-fade-in-up">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span id="selectedCount" class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-semibold text-sm">0 seçili</span>
+                <button type="button" onclick="clearSelection()" class="text-sm text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times mr-1"></i>Seçimi Temizle
+                </button>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="openBulkNotify()" class="btn-premium btn-premium-primary">
+                    <i class="fas fa-paper-plane"></i>
+                    Toplu Bildirim Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Öðrenci Kartlarý -->
+    @if (Model.Students.Any())
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6" id="studentGrid">
+            @foreach (var s in Model.Students)
+            {
+                var initials = (s.FullName ?? "?").Split(' ').Take(2).Select(p => string.IsNullOrEmpty(p) ? "" : p[0].ToString()).Aggregate("", (a, b) => a + b).ToUpper();
+                var avatarGradient = s.IsActive 
+                    ? "from-indigo-500 via-purple-500 to-pink-500" 
+                    : "from-gray-400 to-gray-500";
+                
+                <div class="student-card-premium animate-fade-in-up" data-id="@s.Id">
+                    <!-- Kart Üst Dekoratif Alan -->
+                    <div class="h-20 bg-gradient-to-r @avatarGradient relative overflow-hidden">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                        <div class="absolute top-2 left-2">
+                            <input type="checkbox" class="student-checkbox w-5 h-5 rounded border-2 border-white/50 bg-white/20 checked:bg-indigo-600 checked:border-indigo-600 cursor-pointer" 
+                                   data-id="@s.Id" onchange="updateSelection()" />
+                        </div>
+                        <div class="absolute top-2 right-2">
+                            @if (s.IsActive)
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                    Aktif
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white">Pasif</span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar ve Temel Bilgiler -->
+                    <div class="px-6 pb-4 -mt-10 relative text-center">
+                        <div class="student-avatar-premium mx-auto">@initials</div>
+                        
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mt-3 mb-1">@s.FullName</h3>
+                        <p class="text-sm text-indigo-600 dark:text-indigo-400 font-semibold mb-2">@(s.StudentNumber ?? "Numara Yok")</p>
+                        
+                        @if (!string.IsNullOrEmpty(s.Email))
+                        {
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                <i class="fas fa-envelope mr-1"></i>@s.Email
+                            </p>
+                        }
+                    </div>
+                    
+                    <!-- Detay Bilgiler Grid -->
+                    <div class="student-info-grid mx-4 mb-4">
+                        <div class="student-info-item">
+                            <div class="student-info-label">Üniversite</div>
+                            <div class="student-info-value text-xs truncate">@(s.UniversityName ?? "-")</div>
+                        </div>
+                        <div class="student-info-item">
+                            <div class="student-info-label">Bölüm</div>
+                            <div class="student-info-value text-xs truncate">@(s.Department ?? "-")</div>
+                        </div>
+                        <div class="student-info-item">
+                            <div class="student-info-label">Sýnýf</div>
+                            <div class="student-info-value">@(s.Grade?.ToString() ?? "-")</div>
+                        </div>
+                        <div class="student-info-item">
+                            <div class="student-info-label">Son Aktivite</div>
+                            <div class="student-info-value text-xs">@(s.LastActivity?.ToString("dd.MM.yy") ?? "-")</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ýstatistik Satýrý -->
+                    <div class="student-stats-row">
+                        <div class="student-stat-item">
+                            <div class="student-stat-number" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@s.TotalApplications</div>
+                            <div class="student-stat-label">Baþvuru</div>
+                        </div>
+                        <div class="student-stat-item">
+                            <div class="student-stat-number" style="background: linear-gradient(135deg, #10b981, #047857); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@s.ApprovedApplications</div>
+                            <div class="student-stat-label">Onaylý</div>
+                        </div>
+                        <div class="student-stat-item">
+                            <div class="student-stat-number" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@s.TotalDiaryEntries</div>
+                            <div class="student-stat-label">Defter</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aksiyon Butonlarý -->
+                    <div class="p-4 border-t border-gray-100 dark:border-gray-700">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="openStudentDetail(@s.Id)" class="btn-premium btn-premium-outline text-sm py-2">
+                                <i class="fas fa-user"></i>
+                                Detay
+                            </button>
+                            <a asp-controller="Chat" asp-action="Index" asp-route-studentId="@s.Id" class="btn-premium btn-premium-primary text-sm py-2">
+                                <i class="fas fa-envelope"></i>
+                                Mesaj
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- Sayfalama -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="flex justify-center mt-8">
+                <nav class="flex items-center gap-2">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" class="btn-premium btn-premium-outline">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    }
+                    
+                    <div class="flex gap-1">
+                        @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                        {
+                            <a asp-action="Index" asp-route-page="@i" 
+                               class="w-10 h-10 rounded-xl flex items-center justify-center font-semibold transition-all @(i == Model.CurrentPage ? "bg-indigo-600 text-white shadow-lg" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700")">
+                                @i
+                            </a>
+                        }
+                    </div>
+                    
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" class="btn-premium btn-premium-outline">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    }
+                </nav>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state-premium animate-fade-in-up">
+            <div class="empty-state-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <h3 class="empty-state-title">Öðrenci Bulunamadý</h3>
+            <p class="empty-state-description">Arama kriterlerinize uygun öðrenci bulunamadý. Filtreleri deðiþtirerek tekrar deneyin.</p>
+            <a asp-action="Index" class="btn-premium btn-premium-primary mt-4">
+                <i class="fas fa-undo mr-2"></i>Filtreleri Temizle
+            </a>
+        </div>
+    }
 </div>
 
 <!-- Öðrenci Detay Modal -->
-<div id="studentDetailModal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg p-6 relative">
-    <button class="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onclick="closeStudentDetail()"><i class="fas fa-times"></i></button>
-    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200"><i class="fas fa-user-graduate text-blue-500 mr-2"></i>Öðrenci Detayý</h3>
-    <div id="studentDetailContent" class="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-      <div class="text-center py-8"><i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i></div>
+<div id="studentDetailModal" class="modal-premium-overlay">
+    <div class="modal-premium max-w-lg">
+        <div class="modal-premium-header">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">Öðrenci Detayý</h2>
+                </div>
+                <button onclick="closeStudentDetail()" class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times text-white"></i>
+                </button>
+            </div>
+        </div>
+        <div id="studentDetailContent" class="modal-premium-body">
+            <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-indigo-500 text-2xl"></i>
+                <p class="text-gray-500 mt-2">Yükleniyor...</p>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Toplu Bildirim Modal -->
-<div id="bulkNotifyModal" class="fixed inset-0 bg-black bg-opacity-40 hidden z-50 flex items-center justify-center p-4">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 relative">
-    <button class="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onclick="closeBulkNotify()"><i class="fas fa-times"></i></button>
-    <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200"><i class="fas fa-paper-plane text-indigo-500 mr-2"></i>Toplu Bildirim</h3>
-    <form id="bulkNotifyForm" onsubmit="sendBulkNotification(event)">
-      @Html.AntiForgeryToken()
-      <div class="mb-3">
-        <label class="block text-xs font-medium mb-1">Baþlýk</label>
-        <input name="title" required maxlength="150" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" />
-      </div>
-      <div class="mb-4">
-        <label class="block text-xs font-medium mb-1">Mesaj</label>
-        <textarea name="message" required rows="4" maxlength="1000" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm"></textarea>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button type="button" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm" onclick="closeBulkNotify()">Vazgeç</button>
-        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium"><i class="fas fa-paper-plane mr-1"></i>Gönder</button>
-      </div>
-    </form>
-  </div>
+<div id="bulkNotifyModal" class="modal-premium-overlay">
+    <div class="modal-premium max-w-md">
+        <div class="modal-premium-header">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-paper-plane text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">Toplu Bildirim</h2>
+                        <p class="text-white/70 text-sm">Seçili öðrencilere mesaj gönder</p>
+                    </div>
+                </div>
+                <button onclick="closeBulkNotify()" class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times text-white"></i>
+                </button>
+            </div>
+        </div>
+        <form id="bulkNotifyForm" onsubmit="sendBulkNotification(event)" class="modal-premium-body">
+            @Html.AntiForgeryToken()
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Baþlýk</label>
+                    <input name="title" required maxlength="150" class="filter-input-premium" placeholder="Bildirim baþlýðý..." />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Mesaj</label>
+                    <textarea name="message" required rows="4" maxlength="1000" class="filter-input-premium" placeholder="Mesajýnýzý yazýn..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="closeBulkNotify()" class="btn-premium btn-premium-outline">Ýptal</button>
+                <button type="submit" class="btn-premium btn-premium-primary">
+                    <i class="fas fa-paper-plane"></i>
+                    Gönder
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
-@section Scripts{
-<script>
-const tokens = document.querySelector('input[name="__RequestVerificationToken"]');
-function advisorStudents(){return {}};
-let page=1, loading=false, totalPages=1, searchTimer=null; const pageSize=12; const selectedIds=new Set();
-const grid=document.getElementById('ajaxStudentGrid');
-const spinner=document.getElementById('loadingSpinner');
-const endMsg=document.getElementById('endMessage');
-const bulkActions=document.getElementById('bulkActions');
-const listInfo=document.getElementById('listInfo');
-function buildQuery(){const params=new URLSearchParams(new FormData(document.querySelector('form')));params.set('page',page);params.set('pageSize',pageSize);return '/AdvisorStudent/List?'+params.toString();"}
-function cardHtml(s){return `<div class='ss-card relative p-5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-lg transition-all duration-300' data-id='${s.id}'><div class='flex items-start gap-4'><div class='w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm'>${(s.fullName||'?').split(' ').slice(0,2).map(x=>x?x[0]:'').join('').toUpperCase()}</div><div class='flex-1 min-w-0'><h3 class='font-semibold text-gray-900 dark:text-white text-sm'>${s.fullName}</h3><p class='text-xs text-indigo-600 dark:text-indigo-300 font-medium'>${s.studentNumber||'-'}</p><div class='mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-[11px] text-gray-600 dark:text-gray-300'><div><span class='text-gray-400'>Üniversite:</span><br/><span class='font-medium'>${s.universityName||'-'}</span></div><div><span class='text-gray-400'>Bölüm:</span><br/><span class='font-medium'>${s.department||'-'}</span></div><div><span class='text-gray-400'>Sýnýf:</span><br/><span class='font-medium'>${s.grade||'-'}</span></div><div><span class='text-gray-400'>Durum:</span><br/><span class='font-medium ${s.isActive?"text-green-600":"text-red-600"}'>${s.isActive?"Aktif":"Pasif"}</span></div></div></div><div class='text-right text-[10px] text-gray-400 whitespace-nowrap'>${s.lastActivity||'-'}</div></div><div class='mt-4 flex gap-3'><a href='/Chat/Index?studentId=${s.id}' class='flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-xs font-medium transition'><i class='fas fa-envelope'></i><span>Ýletiþim</span></a><div class='flex items-center pl-2'><input type='checkbox' class='student-select w-4 h-4' data-id='${s.id}' /></div></div></div>`;}
-async function loadStudents(initial=false){ if(loading|| (page>totalPages && !initial)) return; loading=true; spinner.classList.remove('hidden'); try{ const res=await fetch(buildQuery()); const data=await res.json(); if(!data.success) return; totalPages=data.totalPages; if(initial && page===2) { listInfo.textContent=`Sayfa 1/${data.totalPages} - Toplam ${data.total}`; } else { listInfo.textContent=`Sayfa ${data.page}/${data.totalPages} - Toplam ${data.total}`; data.students.forEach(s=>{ if(document.querySelector(`.ss-card[data-id='${s.id}']`)) return; grid.insertAdjacentHTML('beforeend', cardHtml(s)); }); attachSelectionHandlers(); } if(page>=totalPages){endMsg.classList.remove('hidden');} page++; } finally {loading=false; spinner.classList.add('hidden'); }}
-// Initial load: server rendered first page already, so just load remaining pages lazily
-page = 2; // because first page rendered
-// Fetch metadata silently to get total pages if only 1 item
-loadStudents(true);
-</script>
+@section Scripts {
+    <script>
+        const selectedStudents = new Set();
+        
+        function updateSelection() {
+            selectedStudents.clear();
+            document.querySelectorAll('.student-checkbox:checked').forEach(cb => {
+                selectedStudents.add(parseInt(cb.dataset.id));
+            });
+            
+            const toolbar = document.getElementById('bulkToolbar');
+            const countEl = document.getElementById('selectedCount');
+            
+            if (selectedStudents.size > 0) {
+                toolbar.classList.remove('hidden');
+                countEl.textContent = selectedStudents.size + ' seçili';
+            } else {
+                toolbar.classList.add('hidden');
+            }
+        }
+        
+        function clearSelection() {
+            document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+            updateSelection();
+        }
+        
+        function openStudentDetail(studentId) {
+            const modal = document.getElementById('studentDetailModal');
+            const content = document.getElementById('studentDetailContent');
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            content.innerHTML = `<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-indigo-500 text-2xl"></i><p class="text-gray-500 mt-2">Yükleniyor...</p></div>`;
+            
+            fetch(`/AdvisorStudent/GetDetail/${studentId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const s = data.student;
+                        content.innerHTML = `
+                            <div class="text-center mb-6">
+                                <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold mb-3">
+                                    ${(s.fullName || '?').split(' ').slice(0,2).map(p => p?.[0] || '').join('').toUpperCase()}
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${s.fullName}</h3>
+                                <p class="text-indigo-600 font-semibold">${s.studentNumber || '-'}</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <span class="text-gray-500">E-posta</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">${s.email || '-'}</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <span class="text-gray-500">Üniversite</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">${s.universityName || '-'}</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <span class="text-gray-500">Bölüm</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">${s.department || '-'}</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <span class="text-gray-500">Sýnýf</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">${s.grade || '-'}</span>
+                                </div>
+                                <div class="flex justify-between py-2">
+                                    <span class="text-gray-500">Durum</span>
+                                    <span class="badge-premium ${s.isActive ? 'badge-approved' : 'badge-rejected'}">
+                                        ${s.isActive ? 'Aktif' : 'Pasif'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3 mt-6">
+                                <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+                                    <div class="text-2xl font-bold text-blue-600">${s.applicationCount || 0}</div>
+                                    <div class="text-xs text-blue-500">Baþvuru</div>
+                                </div>
+                                <div class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-xl">
+                                    <div class="text-2xl font-bold text-green-600">${s.approvedCount || 0}</div>
+                                    <div class="text-xs text-green-500">Onaylý</div>
+                                </div>
+                                <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
+                                    <div class="text-2xl font-bold text-purple-600">${s.diaryEntryCount || 0}</div>
+                                    <div class="text-xs text-purple-500">Defter</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        content.innerHTML = `<div class="text-center text-red-500"><i class="fas fa-exclamation-circle text-3xl mb-2"></i><p>Hata: ${data.message}</p></div>`;
+                    }
+                })
+                .catch(err => {
+                    content.innerHTML = `<div class="text-center text-red-500"><i class="fas fa-exclamation-circle text-3xl mb-2"></i><p>Hata: ${err.message}</p></div>`;
+                });
+        }
+        
+        function closeStudentDetail() {
+            document.getElementById('studentDetailModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        function openBulkNotify() {
+            if (selectedStudents.size === 0) {
+                alert('Lütfen en az bir öðrenci seçin.');
+                return;
+            }
+            document.getElementById('bulkNotifyModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeBulkNotify() {
+            document.getElementById('bulkNotifyModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        async function sendBulkNotification(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            formData.append('studentIds', JSON.stringify([...selectedStudents]));
+            
+            try {
+                const res = await fetch('/AdvisorStudent/SendBulkNotification', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('Bildirim baþarýyla gönderildi!');
+                    closeBulkNotify();
+                    clearSelection();
+                    form.reset();
+                } else {
+                    alert('Hata: ' + data.message);
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+        
+        // Modal dýþýna týklama
+        document.querySelectorAll('.modal-premium-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-premium-overlay.active').forEach(m => {
+                    m.classList.remove('active');
+                });
+                document.body.style.overflow = 'auto';
+            }
+        });
+    </script>
 }

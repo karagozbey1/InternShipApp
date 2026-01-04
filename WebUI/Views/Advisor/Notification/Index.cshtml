@@ -1,7 +1,7 @@
 @model WebUI.Models.ViewModels.Advisor.AdvisorNotificationViewModel
 @{
     ViewData["Title"] = "Bildirimler";
-    Layout = "_AppLayout"; // düzeltildi
+    Layout = "_AppLayout"; 
 }
 <div class="container mt-6">
     <div class="w-full mb-8 flex items-center justify-center">
@@ -65,9 +65,7 @@
            let currentFilter = 'all';
         let autoRefreshTimer = null;
 
-        /* ------------------------------
-           FETCH & RENDER NOTIFICATIONS
-        --------------------------------*/
+      
         async function fetchNotifications(filter) {
             const res = await fetch(`/Advisor/AdvisorNotification/Filter?type=${filter}`);
             return await res.json();
@@ -121,9 +119,7 @@
             return div;
         }
 
-        /* ------------------------------
-           FILTER & LOAD LIST
-        --------------------------------*/
+        
         async function applyFilter(f) {
             currentFilter = f;
             await loadList();
@@ -148,9 +144,7 @@
             updateCounters(data);
         }
 
-        /* ------------------------------
-           AUTO REFRESH
-        --------------------------------*/
+     
         function startAutoRefresh() {
             if (autoRefreshTimer) clearInterval(autoRefreshTimer);
             autoRefreshTimer = setInterval(() => loadList(), 30000);
@@ -160,9 +154,7 @@
             loadList();
         }
 
-        /* ------------------------------
-           NOTIFICATION ACTIONS
-        --------------------------------*/
+     
         async function markAsRead(id) {
             const res = await fetch(`/Advisor/AdvisorNotification/MarkAsRead/${id}`, { method: 'POST' });
 
@@ -196,9 +188,7 @@
             }
         }
 
-        /* ------------------------------
-           COUNTERS & BADGES
-        --------------------------------*/
+       
         async function refreshUnread() {
             const res = await fetch('/Advisor/AdvisorNotification/GetUnreadCount');
             const d = await res.json();
@@ -236,9 +226,7 @@
             document.getElementById('totalCount').textContent = data.length;
         }
 
-        /* ------------------------------
-           INIT
-        --------------------------------*/
+      
         document.addEventListener('DOMContentLoaded', () => {
             loadList();
             refreshUnread();

@@ -65,7 +65,7 @@ namespace Business.Services.Internship
             return await _unitOfWork.InternshipApprovals.GetApprovalFormByApplicationIdAsync(applicationId);
         }
 
-        // Yeni onay formu oluþturur
+        // Yeni onay formu oluþturan metod
         public async Task<InternshipApprovalForm> CreateApprovalFormAsync(InternshipApprovalForm form)
         {
             if (form == null)
@@ -97,17 +97,22 @@ namespace Business.Services.Internship
                     throw new InvalidOperationException("Sadece onaylanmýþ baþvurular için onay formu oluþturulabilir");
             }
 
-            // Danýþman atamasý
+            // Öðrenci bilgilerini al
             var student = await _unitOfWork.Users.GetByIdAsync(form.StudentId);
-            if (student?.UniversityId.HasValue == true)
+            
+            // Danýþman atamasý - form.AdvisorId zaten seçilmiþse onu kullan, yoksa otomatik ata
+            if (form.AdvisorId == null || form.AdvisorId <= 0)
             {
-                var advisors = await _unitOfWork.Users.Where(u => 
-                    u.Role == UserRole.Advisor && 
-                    u.UniversityId == student.UniversityId);
-                
-                if (advisors.Any())
+                if (student?.UniversityId.HasValue == true)
                 {
-                    form.AdvisorId = advisors.First().Id;
+                    var advisors = await _unitOfWork.Users.Where(u => 
+                        u.Role == UserRole.Advisor && 
+                        u.UniversityId == student.UniversityId);
+                    
+                    if (advisors.Any())
+                    {
+                        form.AdvisorId = advisors.First().Id;
+                    }
                 }
             }
 
@@ -119,6 +124,30 @@ namespace Business.Services.Internship
 
             await _unitOfWork.InternshipApprovals.AddAsync(form);
             await _unitOfWork.SaveAsync();
+
+            // Danýþmana bildirim gönder
+            if (form.AdvisorId.HasValue && form.AdvisorId.Value > 0)
+            {
+                try
+                {
+                    var studentName = student?.FullName ?? "Öðrenci";
+                    await _notificationService.CreateNotificationAsync(new Notification
+                    {
+                        UserId = form.AdvisorId.Value,
+                        Title = "Yeni Staj Onay Formu",
+                        Message = $"{studentName} tarafýndan {form.CompanyName} þirketinde yapýlacak staj için onay formu gönderildi. Lütfen inceleyiniz.",
+                        Type = "Application",
+                        RelatedEntityType = "ApprovalForm",
+                        RelatedEntityId = form.Id,
+                        ActionUrl = $"/Advisor/AdvisorApplication/ApplicationDetail/{form.Id}",
+                        IconClass = "fas fa-file-alt",
+                        Priority = 2,
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                catch { /* Bildirim hatasý ana iþlemi etkilemesin */ }
+            }
 
             return form;
         }
@@ -132,6 +161,10 @@ namespace Business.Services.Internship
             var existingForm = await _unitOfWork.InternshipApprovals.GetByIdAsync(form.Id);
             if (existingForm == null)
                 throw new InvalidOperationException("Onay formu bulunamadý");
+
+            // Revizyon durumundan Pending'e geçiþ kontrolü (öðrenci revizyon yaptý)
+            bool wasRevision = existingForm.Status == InternshipApprovalStatus.Revision;
+            bool becomingPending = form.Status == InternshipApprovalStatus.Pending;
 
             if (existingForm.Status != InternshipApprovalStatus.Pending && 
                 existingForm.Status != InternshipApprovalStatus.Revision)
@@ -159,6 +192,50 @@ namespace Business.Services.Internship
             if (form.WeeklyWorkHours > 0)
                 existingForm.WeeklyWorkHours = form.WeeklyWorkHours;
 
+            await _unitOfWork.SaveAsync();
+
+            // Öðrenci revizyon sonrasý formu tekrar gönderdiðinde danýþmana bildirim gönder
+            if (wasRevision && becomingPending && existingForm.AdvisorId.HasValue && existingForm.AdvisorId.Value > 0)
+            {
+                try
+                {
+                    var student = await _unitOfWork.Users.GetByIdAsync(existingForm.StudentId);
+                    var studentName = student?.FullName ?? "Öðrenci";
+                    
+                    await _notificationService.CreateNotificationAsync(new Notification
+                    {
+                        UserId = existingForm.AdvisorId.Value,
+                        Title = "Revize Edilmiþ Staj Onay Formu",
+                        Message = $"{studentName} tarafýndan {existingForm.CompanyName} þirketindeki staj için revize edilmiþ onay formu gönderildi. Lütfen tekrar inceleyiniz.",
+                        Type = "Application",
+                        RelatedEntityType = "ApprovalForm",
+                        RelatedEntityId = existingForm.Id,
+                        ActionUrl = $"/Advisor/AdvisorApplication/ApplicationDetail/{existingForm.Id}",
+                        IconClass = "fas fa-edit",
+                        Priority = 2,
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                catch { /* Bildirim hatasý ana iþlemi etkilemesin */ }
+            }
+        }
+
+        // Onay formu siler
+        public async Task DeleteApprovalFormAsync(int formId)
+        {
+            if (formId <= 0)
+                throw new ArgumentException("Geçersiz form ID", nameof(formId));
+
+            var form = await _unitOfWork.InternshipApprovals.GetByIdAsync(formId);
+            if (form == null)
+                throw new InvalidOperationException("Onay formu bulunamadý");
+
+            // Sadece Pending, Revision veya Rejected durumundaki formlar silinebilir
+            if (form.Status == InternshipApprovalStatus.Approved)
+                throw new InvalidOperationException("Onaylanmýþ formlar silinemez");
+
+            _unitOfWork.InternshipApprovals.Remove(form);
             await _unitOfWork.SaveAsync();
         }
 

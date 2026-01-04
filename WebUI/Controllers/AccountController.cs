@@ -14,19 +14,17 @@ using WebUI.Models.ViewModels.Education;
 
 namespace WebUI.Controllers;
 
-// Hesap yönetimi kontrolcüsü
 public class AccountController : Controller
 {
-    // Kullanıcı servisi
+   
     private readonly IIUserService _userService;
     
-    // Şirket servisi
+    
     private readonly IICompanyService _companyService;
     
-    // Üniversite servisi
     private readonly IIUniversityService _universityService;
 
-    // Kurucu metod
+
     public AccountController(IIUserService userService, IICompanyService ıCompanyService, IIUniversityService _UniversityService)
     {
         _userService = userService;
@@ -143,7 +141,7 @@ public class AccountController : Controller
                 Name = u.Name
             }).ToList()
         };
-        return View(model);
+        return View("~/Views/Account/Registration/Student.cshtml", model);
     }
 
     // Öğrenci kayıt işlemi
@@ -283,7 +281,7 @@ public class AccountController : Controller
     public async Task<IActionResult> CompanyRegister(CompanyRegisterViewModel model)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return View("~/Views/Account/Registration/Company.cshtml", model);
 
         var company = new Core.Entity.Company
         {
@@ -310,7 +308,7 @@ public class AccountController : Controller
         catch (InvalidOperationException)
         {
             ModelState.AddModelError("", "Bu e-posta adresiyle daha önce kayıt olunmuştur.");
-            return View(model);
+            return View("~/Views/Account/Registration/Company.cshtml", model);
         }
 
         return RedirectToAction("WaitingForApproval", new { email = user.Email });
@@ -391,7 +389,7 @@ public class AccountController : Controller
             Email = email
         };
 
-        return View(model);
+        return View("~/Views/Account/Password/Reset.cshtml", model);
     }
 
     // Şifre sıfırlama işlemi

@@ -3,34 +3,86 @@
     ViewData["Title"] = "Baþvurular";
     Layout = "_AppLayout";
 }
-<div class="company-dashboard">
-    <!-- Sayfa Baþlýðý Kartý -->
-    <div class="w-full mb-8 flex items-center justify-center">
-        <div class="rounded-2xl bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-600 shadow-sm px-8 py-6 flex items-center gap-4 w-full">
-            <i class="fas fa-file-alt text-3xl text-blue-600 dark:text-blue-400"></i>
-            <div>
-                <h1 class="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-1">Baþvurular</h1>
-                <p class="text-blue-600 dark:text-blue-400">Ýlanlarýnýza gelen baþvurularý inceleyin ve deðerlendirin.</p>
+
+@section Styles {
+<style>
+    .applications-page { min-height:100vh; background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 50%,#f5f0ff 100%); padding:24px; }
+    .hero-header { background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%); border-radius:24px; padding:32px; color:white; position:relative; overflow:hidden; box-shadow:0 20px 60px rgba(99,102,241,0.3); margin-bottom:24px; }
+    .hero-header::before { content:''; position:absolute; top:-50%; right:-20%; width:400px; height:400px; background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%); }
+    .hero-content { position:relative; z-index:1; display:flex; align-items:center; gap:20px; }
+    .hero-icon { width:72px; height:72px; border-radius:18px; background:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:28px; }
+    .hero-info h1 { font-size:1.75rem; font-weight:800; margin:0 0 4px; }
+    .hero-info p { opacity:0.9; margin:0; }
+    .filter-card { background:white; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,0.06); padding:24px; margin-bottom:24px; }
+    .filter-grid { display:grid; grid-template-columns:1fr auto auto auto auto; gap:16px; align-items:end; }
+    .filter-input { padding:12px 16px; border:2px solid #e2e8f0; border-radius:12px; font-size:0.95rem; transition:all 0.3s; background:#f8fafc; width:100%; }
+    .filter-input:focus { outline:none; border-color:#6366f1; }
+    .filter-label { font-size:0.8rem; font-weight:600; color:#64748b; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .btn-filter { padding:12px 24px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; border:none; border-radius:12px; font-weight:600; cursor:pointer; }
+    .btn-filter:hover { transform:translateY(-2px); }
+    .btn-clear { padding:12px 20px; background:#f1f5f9; color:#64748b; border:none; border-radius:12px; font-weight:600; text-decoration:none; }
+    .results-count { padding:10px 20px; background:white; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); font-weight:600; color:#374151; margin-bottom:24px; display:inline-block; }
+    .results-count i { color:#6366f1; margin-right:8px; }
+    .applications-grid { display:grid; gap:20px; }
+    .app-card { background:white; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,0.06); overflow:hidden; transition:all 0.3s; cursor:pointer; position:relative; }
+    .app-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.12); }
+    .app-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
+    .app-card.pending::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .app-card.approved::before { background:linear-gradient(90deg,#10b981,#34d399); }
+    .app-card.rejected::before { background:linear-gradient(90deg,#ef4444,#f87171); }
+    .app-card-body { padding:24px; display:flex; gap:20px; }
+    .app-avatar { width:60px; height:60px; border-radius:16px; background:linear-gradient(135deg,#6366f1,#8b5cf6); display:flex; align-items:center; justify-content:center; color:white; font-size:24px; flex-shrink:0; }
+    .app-main { flex:1; min-width:0; }
+    .app-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    .app-name { font-size:1.1rem; font-weight:700; color:#1e293b; }
+    .status-badge { padding:6px 14px; border-radius:20px; font-size:0.75rem; font-weight:600; }
+    .status-badge.pending { background:linear-gradient(135deg,#fef3c7,#fde68a); color:#92400e; }
+    .status-badge.approved { background:linear-gradient(135deg,#d1fae5,#a7f3d0); color:#065f46; }
+    .status-badge.rejected { background:linear-gradient(135deg,#fee2e2,#fecaca); color:#991b1b; }
+    .app-meta { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
+    .app-meta-item { display:flex; align-items:center; gap:8px; font-size:0.875rem; color:#64748b; }
+    .app-meta-item i { color:#6366f1; width:16px; }
+    .app-job { padding:12px 16px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border-radius:12px; margin-bottom:12px; }
+    .app-job-title { font-weight:600; color:#1d4ed8; display:flex; align-items:center; gap:8px; }
+    .app-cover { padding:12px 16px; background:#f8fafc; border-radius:12px; font-size:0.875rem; color:#475569; line-height:1.6; }
+    .app-actions { display:flex; flex-direction:column; gap:8px; padding-left:20px; border-left:1px solid #f1f5f9; }
+    .action-btn { padding:10px 16px; border-radius:10px; font-weight:600; font-size:0.85rem; text-decoration:none; text-align:center; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; border:none; }
+    .action-btn.primary { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; }
+    .action-btn.primary:hover { color:white; }
+    .action-btn.outline { background:white; color:#6366f1; border:2px solid #e2e8f0; }
+    .action-btn.success { background:#d1fae5; color:#065f46; }
+    .action-btn.danger { background:#fee2e2; color:#991b1b; }
+    .empty-state { background:white; border-radius:24px; padding:60px; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,0.06); }
+    .empty-icon { width:100px; height:100px; margin:0 auto 24px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; color:#3b82f6; }
+    .empty-title { font-size:1.5rem; font-weight:700; color:#1e293b; margin-bottom:8px; }
+    .empty-desc { color:#64748b; margin-bottom:24px; }
+    @@media (max-width:1024px) { .filter-grid { grid-template-columns:1fr 1fr; } .app-card-body { flex-direction:column; } .app-actions { flex-direction:row; border-left:none; border-top:1px solid #f1f5f9; padding-left:0; padding-top:16px; } }
+    @@media (max-width:640px) { .filter-grid { grid-template-columns:1fr; } .app-meta { grid-template-columns:1fr; } }
+</style>
+}
+
+<div class="applications-page">
+    @Html.AntiForgeryToken()
+    
+    <div class="hero-header">
+        <div class="hero-content">
+            <div class="hero-icon"><i class="fas fa-users"></i></div>
+            <div class="hero-info">
+                <h1>Baþvurular</h1>
+                <p>Ýlanlarýnýza gelen baþvurularý inceleyin ve deðerlendirin</p>
             </div>
         </div>
     </div>
-    <!-- Filters -->
-    <div class="search-filters mb-6">
-        <form method="get" class="flex flex-wrap items-end gap-4">
-            <div class="flex-1 min-w-64">
-                <label for="searchTerm" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                    <i class="fas fa-search mr-1"></i>Arama
-                </label>
-                <input type="text" id="searchTerm" name="searchTerm" value="@Model.SearchTerm"
-                       class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm"
-                       placeholder="Öðrenci adý, email, üniversite ara..." />
+
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div>
+                <label class="filter-label"><i class="fas fa-search"></i> Arama</label>
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="filter-input" placeholder="Öðrenci adý, email, üniversite ara..." />
             </div>
-            <div class="min-w-48">
-                <label for="statusFilter" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                    <i class="fas fa-filter mr-1"></i>Durum
-                </label>
-                <select name="statusFilter" id="statusFilter"
-                        class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm">
+            <div>
+                <label class="filter-label"><i class="fas fa-filter"></i> Durum</label>
+                <select name="statusFilter" class="filter-input">
                     <option value="">Tüm Durumlar</option>
                     @foreach (var status in Enum.GetValues<WebUI.Models.Company.ApplicationStatus>())
                     {
@@ -38,12 +90,9 @@
                     }
                 </select>
             </div>
-            <div class="min-w-64">
-                <label for="jobPostingIdFilter" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                    <i class="fas fa-briefcase mr-1"></i>Ýlan
-                </label>
-                <select name="jobPostingIdFilter" id="jobPostingIdFilter"
-                        class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm">
+            <div>
+                <label class="filter-label"><i class="fas fa-briefcase"></i> Ýlan</label>
+                <select name="jobPostingIdFilter" class="filter-input">
                     <option value="">Tüm Ýlanlar</option>
                     @foreach (var job in Model.AvailableJobPostings)
                     {
@@ -52,111 +101,60 @@
                 </select>
             </div>
             <div>
-                <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200">
-                    <i class="fas fa-search mr-2"></i>Filtrele
-                </button>
+                <button type="submit" class="btn-filter"><i class="fas fa-search mr-2"></i>Filtrele</button>
             </div>
             @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue || Model.JobPostingIdFilter.HasValue)
             {
                 <div>
-                    <a asp-controller="CompanyApplications" asp-action="List" class="px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <i class="fas fa-times mr-2"></i>Temizle
-                    </a>
+                    <a asp-controller="CompanyApplications" asp-action="List" class="btn-clear"><i class="fas fa-times mr-2"></i>Temizle</a>
                 </div>
             }
         </form>
     </div>
-    <!-- Results Summary -->
-    <div class="mb-6">
-        <p class="text-blue-600 dark:text-blue-400">
-            <i class="fas fa-info-circle mr-1"></i>
-            Toplam @Model.Applications.Count baþvuru bulundu
-        </p>
-    </div>
-    <!-- Applications List -->
+
+    <span class="results-count"><i class="fas fa-list-ul"></i>@Model.Applications.Count baþvuru bulundu</span>
+
     @if (Model.Applications.Any())
     {
-        <div class="space-y-4">
-            @foreach (var application in Model.Applications)
+        <div class="applications-grid">
+            @foreach (var app in Model.Applications)
             {
-                <div class="company-card p-6 hover:shadow-lg transition-shadow cursor-pointer bg-white dark:bg-gray-800 border border-blue-100 dark:border-gray-600 rounded-xl" onclick="viewApplicationDetail(@application.Id)">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-start space-x-4 flex-1">
-                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user-graduate text-blue-600 dark:text-blue-400 text-lg"></i>
+                var statusClass = app.Status.ToString().ToLower();
+                <div class="app-card @statusClass" onclick="viewApplicationDetail(@app.Id)">
+                    <div class="app-card-body">
+                        <div class="app-avatar"><i class="fas fa-user-graduate"></i></div>
+                        <div class="app-main">
+                            <div class="app-header">
+                                <span class="app-name">@app.StudentName</span>
+                                <span class="status-badge @statusClass">@app.Status.GetDisplayName()</span>
                             </div>
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-200">
-                                        @application.StudentName
-                                    </h3>
-                                    <span class="status-badge status-@application.Status.ToString().ToLower() bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full border border-blue-100 dark:border-gray-600">
-                                        @application.Status.GetDisplayName()
-                                    </span>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-700 dark:text-blue-300 mb-3">
-                                    <div class="flex items-center">
-                                        <i class="fas fa-envelope mr-2 text-blue-500 dark:text-blue-400"></i>
-                                        <span>@application.StudentEmail</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <i class="fas fa-university mr-2 text-blue-500 dark:text-blue-400"></i>
-                                        <span>@application.University</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <i class="fas fa-graduation-cap mr-2 text-blue-500 dark:text-blue-400"></i>
-                                        <span>@application.Department</span>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <i class="fas fa-calendar mr-2 text-blue-500 dark:text-blue-400"></i>
-                                        <span>@application.ApplicationDate.ToString("dd MMM yyyy")</span>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <p class="font-medium text-blue-900 dark:text-blue-200 mb-1">
-                                        <i class="fas fa-briefcase mr-2 text-green-600 dark:text-green-400"></i>
-                                        @application.JobTitle
-                                    </p>
-                                </div>
-                                @if (!string.IsNullOrEmpty(application.CoverLetter))
-                                {
-                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                                        <p class="text-sm text-blue-700 dark:text-blue-300">
-                                            <i class="fas fa-quote-left mr-1"></i>
-                                            @(application.CoverLetter.Length > 150 
-                                                ? application.CoverLetter.Substring(0, 150) + "..." 
-                                                : application.CoverLetter)
-                                        </p>
-                                    </div>
-                                }
+                            <div class="app-meta">
+                                <div class="app-meta-item"><i class="fas fa-envelope"></i> @app.StudentEmail</div>
+                                <div class="app-meta-item"><i class="fas fa-university"></i> @app.University</div>
+                                <div class="app-meta-item"><i class="fas fa-graduation-cap"></i> @app.Department</div>
+                                <div class="app-meta-item"><i class="fas fa-calendar"></i> @app.ApplicationDate.ToString("dd MMM yyyy")</div>
                             </div>
-                        </div>
-                        <div class="flex flex-col space-y-2 ml-6">
-                            <a asp-action="Detail" asp-route-id="@application.Id" 
-                               class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded text-center text-sm shadow-md transition-all duration-200"
-                               onclick="event.stopPropagation();">
-                                <i class="fas fa-eye mr-1"></i>Detay
-                            </a>
-                            @if (!string.IsNullOrEmpty(application.CvPath))
+                            <div class="app-job">
+                                <span class="app-job-title"><i class="fas fa-briefcase"></i> @app.JobTitle</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(app.CoverLetter))
                             {
-                                <a href="@application.CvPath" target="_blank" 
-                                   class="px-4 py-2 border border-blue-300 dark:border-gray-600 rounded text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 text-sm text-center transition-colors duration-200"
-                                   onclick="event.stopPropagation();">
-                                    <i class="fas fa-file-pdf mr-1"></i>CV Ýndir
-                                </a>
+                                <div class="app-cover">
+                                    <i class="fas fa-quote-left"></i>
+                                    @(app.CoverLetter.Length > 150 ? app.CoverLetter.Substring(0, 150) + "..." : app.CoverLetter)
+                                </div>
                             }
-                            @if (application.Status == WebUI.Models.Company.ApplicationStatus.Pending)
+                        </div>
+                        <div class="app-actions">
+                            <a asp-action="Detail" asp-route-id="@app.Id" class="action-btn primary" onclick="event.stopPropagation();"><i class="fas fa-eye"></i> Detay</a>
+                            @if (!string.IsNullOrEmpty(app.CvPath))
                             {
-                                <div class="flex space-x-1">
-                                    <button onclick="updateApplicationStatus(@application.Id, '@WebUI.Models.Company.ApplicationStatus.Approved'); event.stopPropagation();" 
-                                            class="flex-1 px-2 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded hover:bg-green-200 dark:hover:bg-green-900/50 text-xs transition-colors duration-200">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button onclick="updateApplicationStatus(@application.Id, '@WebUI.Models.Company.ApplicationStatus.Rejected'); event.stopPropagation();" 
-                                            class="flex-1 px-2 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 text-xs transition-colors duration-200">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
+                                <a href="@app.CvPath" target="_blank" class="action-btn outline" onclick="event.stopPropagation();"><i class="fas fa-file-pdf"></i> CV</a>
+                            }
+                            @if (app.Status == WebUI.Models.Company.ApplicationStatus.Pending)
+                            {
+                                <button class="action-btn success" onclick="updateApplicationStatus(@app.Id, 'Approved'); event.stopPropagation();"><i class="fas fa-check"></i></button>
+                                <button class="action-btn danger" onclick="updateApplicationStatus(@app.Id, 'Rejected'); event.stopPropagation();"><i class="fas fa-times"></i></button>
                             }
                         </div>
                     </div>
@@ -166,66 +164,50 @@
     }
     else
     {
-        <div class="company-card bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-600">
-            <div class="p-12 text-center">
-                <i class="fas fa-file-alt text-6xl text-blue-300 dark:text-blue-500 mb-4"></i>
-                <h3 class="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-2">
-                    Baþvuru bulunmuyor
-                </h3>
-                <p class="text-blue-600 dark:text-blue-400 mb-6">
-                    @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue || Model.JobPostingIdFilter.HasValue)
-                    {
-                        <span>Arama kriterlerinize uygun baþvuru bulunamadý. Filtreleri deðiþtirmeyi deneyin.</span>
-                    }
-                    else
-                    {
-                        <span>Henüz hiç baþvuru almamýþsýnýz. Ýlanlarýnýzý paylaþarak öðrencilerin dikkatini çekin.</span>
-                    }
-                </p>
-                <div class="space-x-4">
-                    @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue || Model.JobPostingIdFilter.HasValue)
-                    {
-                        <a asp-controller="CompanyApplications" asp-action="List" class="btn-outline-primary-company px-6 py-3 rounded-lg border border-blue-300 dark:border-gray-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                            <i class="fas fa-times mr-2"></i>Filtreleri Temizle
-                        </a>
-                    }
-                    <a asp-controller="CompanyJobPostings" asp-action="Create" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200">
-                        <i class="fas fa-plus mr-2"></i>Yeni Ýlan Oluþtur
-                    </a>
-                </div>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+            <h3 class="empty-title">Baþvuru bulunmuyor</h3>
+            <p class="empty-desc">
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue || Model.JobPostingIdFilter.HasValue)
+                {
+                    <span>Arama kriterlerinize uygun baþvuru bulunamadý.</span>
+                }
+                else
+                {
+                    <span>Henüz hiç baþvuru almamýþsýnýz.</span>
+                }
+            </p>
+            <div style="display:flex;gap:16px;justify-content:center;">
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue || Model.JobPostingIdFilter.HasValue)
+                {
+                    <a asp-controller="CompanyApplications" asp-action="List" class="btn-clear"><i class="fas fa-times mr-2"></i>Filtreleri Temizle</a>
+                }
+                <a asp-controller="CompanyJobPostings" asp-action="Create" class="btn-filter"><i class="fas fa-plus mr-2"></i>Yeni Ýlan Oluþtur</a>
             </div>
         </div>
     }
 </div>
-@section Scripts {
-    <script>
-        const applicationDetailUrlPattern = '@Url.Action("Detail","CompanyApplications", new { id = 0 })'; // ends with /0
-        const applicationDetailBase = applicationDetailUrlPattern.endsWith('/0') ? applicationDetailUrlPattern.slice(0, -2) : applicationDetailUrlPattern;
-        const updateStatusUrl = '@Url.Action("UpdateApplicationStatus","CompanyApplications")';
 
-        function viewApplicationDetail(applicationId) {
-            window.location.href = applicationDetailBase + '/' + applicationId;
+@section Scripts {
+<script>
+    const applicationDetailBase = '@Url.Action("Detail","CompanyApplications", new { id = 0 })'.replace('/0', '');
+    const updateStatusUrl = '@Url.Action("UpdateApplicationStatus","CompanyApplications")';
+
+    function viewApplicationDetail(id) {
+        window.location.href = applicationDetailBase + '/' + id;
+    }
+
+    function updateApplicationStatus(id, status) {
+        var statusText = status === 'Approved' ? 'onaylamak' : 'reddetmek';
+        if (confirm('Bu baþvuruyu ' + statusText + ' istediðinizden emin misiniz?')) {
+            $.post(updateStatusUrl, {
+                id: id,
+                status: status,
+                __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val()
+            })
+            .done(function() { location.reload(); })
+            .fail(function() { alert('Ýþlem sýrasýnda bir hata oluþtu.'); });
         }
-        function updateApplicationStatus(applicationId, status) {
-            var statusText = status === 'Approved' ? 'onaylamak' : 'reddetmek';
-            if (confirm('Bu baþvuruyu ' + statusText + ' istediðinizden emin misiniz?')) {
-                $.post(updateStatusUrl, {
-                    id: applicationId,
-                    status: status,
-                    __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val()
-                })
-                    .done(function () { location.reload(); })
-                    .fail(function () { alert('Ýþlem sýrasýnda bir hata oluþtu.'); });
-            }
-        }
-        $(document).keydown(function (e) {
-            if (e.ctrlKey && e.keyCode === 70) {
-                e.preventDefault();
-                $('#searchTerm').focus();
-            }
-        });
-        setInterval(function() {
-            console.log('Checking for new applications...');
-        }, 60000);
-    </script>
+    }
+</script>
 }

@@ -4,149 +4,266 @@
     Layout = "_AppLayout";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/advisor-theme.css" asp-append-version="true" />
+}
+
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-lg dark:from-blue-900/20 dark:to-indigo-900/20 dark:border-blue-700">
-        <div class="flex justify-between items-center">
+    <!-- Premium Hero Header -->
+    <div class="advisor-hero-header animate-fade-in-up">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-2">
-                    <i class="fas fa-book-open me-3"></i>Öðrenci Staj Defterleri
-                </h1>
-                <p class="text-blue-600 dark:text-blue-300">
-                    <i class="fas fa-university mr-2"></i>@Model.AdvisorInfo.UniversityName - @Model.AdvisorInfo.Department Bölümü
-                </p>
-                <p class="text-sm text-blue-500 dark:text-blue-400">
-                    Bölümünüzde @Model.AdvisorInfo.TotalStudentsInDepartment öðrenci var, @Model.AdvisorInfo.StudentsWithDiaries öðrencinin staj defteri bulunuyor.
-                </p>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <i class="fas fa-book-open text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white">Öðrenci Staj Defterleri</h1>
+                        <p class="text-white/70 text-sm">
+                            <i class="fas fa-university mr-1"></i>@Model.AdvisorInfo.UniversityName - @Model.AdvisorInfo.Department
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-3">
-                <button onclick="exportAllDiaries()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
-                    <i class="fas fa-file-excel mr-2"></i>Excel Ýndir
-                </button>
-                <a asp-controller="AdvisorDashboard" asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Dashboard
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="px-4 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/20">
+                    <span class="text-white/70 text-xs">Öðrenci</span>
+                    <p class="text-white font-bold text-lg">@Model.AdvisorInfo.TotalStudentsInDepartment</p>
+                </div>
+                <div class="px-4 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/20">
+                    <span class="text-white/70 text-xs">Defter Var</span>
+                    <p class="text-white font-bold text-lg">@Model.AdvisorInfo.StudentsWithDiaries</p>
+                </div>
+                <a asp-controller="AdvisorDashboard" asp-action="Index" class="btn-premium btn-premium-glass">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="hidden sm:inline">Dashboard</span>
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Öðrenci Adý</label>
-                <input type="text" name="Filters.StudentName" value="@Model.Filters.StudentName" 
-                       class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-200"
-                       placeholder="Öðrenci adý ara..." />
+    <!-- Premium Filtre Alaný -->
+    <div class="filter-section-premium animate-fade-in-up">
+        <form method="get" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-user mr-1"></i>Öðrenci
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" name="Filters.StudentName" value="@Model.Filters.StudentName" 
+                               class="filter-input-premium pl-10"
+                               placeholder="Öðrenci adý ara..." />
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-filter mr-1"></i>Durum
+                    </label>
+                    <select name="Filters.Status" class="filter-input-premium">
+                        <option value="">Tüm Durumlar</option>
+                        <option value="pending" selected="@(Model.Filters.Status == "pending")">? Bekleyen Girdiler</option>
+                        <option value="approved" selected="@(Model.Filters.Status == "approved")">? Onaylanan Girdiler</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-calendar mr-1"></i>Baþlangýç
+                    </label>
+                    <input type="date" name="Filters.StartDate" value="@Model.Filters.StartDate?.ToString("yyyy-MM-dd")" 
+                           class="filter-input-premium" />
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                        <i class="fas fa-calendar-check mr-1"></i>Bitiþ
+                    </label>
+                    <input type="date" name="Filters.EndDate" value="@Model.Filters.EndDate?.ToString("yyyy-MM-dd")" 
+                           class="filter-input-premium" />
+                </div>
             </div>
             
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Durum</label>
-                <select name="Filters.Status" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-200">
-                    <option value="">Tümü</option>
-                    <option value="pending" selected="@(Model.Filters.Status == "pending")">Bekleyen</option>
-                    <option value="approved" selected="@(Model.Filters.Status == "approved")">Onaylanan</option>
-                </select>
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Baþlangýç Tarihi</label>
-                <input type="date" name="Filters.StartDate" value="@Model.Filters.StartDate?.ToString("yyyy-MM-dd")" 
-                       class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-200" />
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bitiþ Tarihi</label>
-                <input type="date" name="Filters.EndDate" value="@Model.Filters.EndDate?.ToString("yyyy-MM-dd")" 
-                       class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-200" />
-            </div>
-            
-            <div class="md:col-span-2 lg:col-span-4 flex gap-3">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
-                    <i class="fas fa-search mr-2"></i>Filtrele
-                </button>
-                <a asp-action="Index" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
-                    <i class="fas fa-undo mr-2"></i>Temizle
-                </a>
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Toplam <strong>@Model.TotalItems</strong> öðrenci defteri bulundu
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="btn-premium btn-premium-primary">
+                        <i class="fas fa-search"></i>
+                        Filtrele
+                    </button>
+                    <a asp-action="Index" class="btn-premium btn-premium-outline">
+                        <i class="fas fa-undo"></i>
+                        Temizle
+                    </a>
+                </div>
             </div>
         </form>
     </div>
 
-    <!-- Student Diaries List -->
+    <!-- Öðrenci Defter Kartlarý -->
     @if (Model.StudentDiaries.Any())
     {
-        <!-- Öðrenci Kartlarý -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @foreach (var studentGroup in Model.StudentDiaries)
             {
-                <div class="student-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                                @{ var nameParts = studentGroup.Student.FullName.Split(' '); var initials = ""; if (nameParts.Length >= 1 && !string.IsNullOrEmpty(nameParts[0])) initials += nameParts[0][0]; if (nameParts.Length >= 2 && !string.IsNullOrEmpty(nameParts[1])) initials += nameParts[1][0]; }
-                                @initials.ToUpper()
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">@studentGroup.Student.FullName</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400"><i class="fas fa-envelope mr-1"></i>@studentGroup.Student.Email</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-500"><i class="fas fa-graduation-cap mr-1"></i>@(studentGroup.Student.Department ?? "Bölüm Belirtilmemiþ")</p>
-                                <div class="mt-2 flex flex-wrap gap-2 text-xs">
-                                    @if (studentGroup.DiaryId.HasValue)
-                                    {<span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded">Defter ID: @studentGroup.DiaryId</span>}
-                                    @if (!string.IsNullOrWhiteSpace(studentGroup.DiaryTitle))
-                                    {<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded">@studentGroup.DiaryTitle</span>}
-                                    <span class="px-2 py-1 @(studentGroup.IsRequired ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700") rounded">@(studentGroup.IsRequired ? "Zorunlu" : "Gönüllü")</span>
+                var nameParts = studentGroup.Student.FullName.Split(' ');
+                var initials = "";
+                if (nameParts.Length >= 1 && !string.IsNullOrEmpty(nameParts[0])) initials += nameParts[0][0];
+                if (nameParts.Length >= 2 && !string.IsNullOrEmpty(nameParts[1])) initials += nameParts[1][0];
+                
+                <div class="diary-card-premium animate-fade-in-up">
+                    <!-- Kart Üst Dekoratif Alan -->
+                    <div class="h-20 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                        <div class="absolute top-2 right-2 flex gap-1">
+                            @if (studentGroup.IsRequired)
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">Zorunlu</span>
+                            }
+                            else
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white">Gönüllü</span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <!-- Avatar ve Bilgiler -->
+                    <div class="px-6 pb-4 -mt-10 relative">
+                        <div class="diary-student-avatar mx-auto mb-3 border-4 border-white dark:border-gray-800">
+                            @initials.ToUpper()
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">@studentGroup.Student.FullName</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-envelope mr-1"></i>@studentGroup.Student.Email
+                            </p>
+                            @if (!string.IsNullOrEmpty(studentGroup.Student.Department))
+                            {
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                    <i class="fas fa-graduation-cap mr-1"></i>@studentGroup.Student.Department
+                                </p>
+                            }
+                        </div>
+                        
+                        <!-- Staj Bilgileri -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 mb-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+                                    <i class="fas fa-building text-blue-600 dark:text-blue-400 text-sm"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Staj Firmasý</p>
+                                    <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                        @(studentGroup.InternshipCompany.Length > 25 ? studentGroup.InternshipCompany.Substring(0, 25) + "..." : studentGroup.InternshipCompany)
+                                    </p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="p-4 bg-gray-50 dark:bg-gray-700/50">
-                        <div class="grid grid-cols-1 gap-2 text-sm">
-                            <div class="flex items-center justify-between"><span class="text-gray-600 dark:text-gray-400"><i class="fas fa-building mr-1"></i>Staj Firmasý:</span><span class="text-gray-800 dark:text-gray-200 font-medium">@(studentGroup.InternshipCompany.Length > 20 ? studentGroup.InternshipCompany.Substring(0, 20) + "..." : studentGroup.InternshipCompany)</span></div>
                             @if (studentGroup.InternshipStartDate.HasValue && studentGroup.InternshipEndDate.HasValue)
-                            {<div class="flex items-center justify-between"><span class="text-gray-600 dark:text-gray-400"><i class="fas fa-calendar mr-1"></i>Staj Dönemi:</span><span class="text-gray-800 dark:text-gray-200 font-medium">@studentGroup.InternshipStartDate.Value.ToString("dd.MM") - @studentGroup.InternshipEndDate.Value.ToString("dd.MM")</span></div>}
+                            {
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                                        <i class="fas fa-calendar-alt text-purple-600 dark:text-purple-400 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Staj Dönemi</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                                            @studentGroup.InternshipStartDate.Value.ToString("dd MMM") - @studentGroup.InternshipEndDate.Value.ToString("dd MMM yyyy")
+                                        </p>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg"><div class="text-xl font-bold text-blue-600 dark:text-blue-400">@studentGroup.TotalEntries</div><div class="text-xs text-blue-500 dark:text-blue-300">Toplam Girdi</div></div>
-                            <div class="text-center p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg"><div class="text-xl font-bold text-yellow-600 dark:text-yellow-400">@studentGroup.PendingEntries</div><div class="text-xs text-yellow-500 dark:text-yellow-300">Bekleyen</div></div>
+                    
+                    <!-- Ýstatistikler -->
+                    <div class="diary-stats-grid">
+                        <div class="diary-stat-box total">
+                            <div class="diary-stat-number">@studentGroup.TotalEntries</div>
+                            <div class="diary-stat-label">Toplam Girdi</div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 mt-3">
-                            <div class="text-center p-3 bg-green-50 dark:bg-green-900/30 rounded-lg"><div class="text-xl font-bold text-green-600 dark:text-green-400">@studentGroup.ApprovedEntries</div><div class="text-xs text-green-500 dark:text-green-300">Onaylanan</div></div>
-                            <div class="text-center p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg"><div class="text-xl font-bold text-purple-600 dark:text-purple-400">@(studentGroup.LastEntryDate?.ToString("dd.MM") ?? "-")</div><div class="text-xs text-purple-500 dark:text-purple-300">Son Girdi</div></div>
+                        <div class="diary-stat-box pending">
+                            <div class="diary-stat-number">@studentGroup.PendingEntries</div>
+                            <div class="diary-stat-label">Bekleyen</div>
+                        </div>
+                        <div class="diary-stat-box approved">
+                            <div class="diary-stat-number">@studentGroup.ApprovedEntries</div>
+                            <div class="diary-stat-label">Onaylanan</div>
+                        </div>
+                        <div class="diary-stat-box last">
+                            <div class="diary-stat-number">@(studentGroup.LastEntryDate?.ToString("dd.MM") ?? "-")</div>
+                            <div class="diary-stat-label">Son Girdi</div>
                         </div>
                     </div>
-                    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                        <button onclick="openStudentDiaryModal(@studentGroup.Student.Id, '@studentGroup.Student.FullName', @studentGroup.DiaryId)" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 font-medium">
-                            <i class="fas fa-eye mr-2"></i>Defteri Aç
+                    
+                    <!-- Ýlerleme Çubuðu -->
+                    @{
+                        var progress = studentGroup.TotalEntries > 0 
+                            ? (int)((double)studentGroup.ApprovedEntries / studentGroup.TotalEntries * 100) 
+                            : 0;
+                    }
+                    <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
+                        <div class="flex justify-between text-xs text-gray-500 mb-2">
+                            <span>Onay Ýlerlemesi</span>
+                            <span class="font-semibold">%@progress</span>
+                        </div>
+                        <div class="progress-premium">
+                            <div class="progress-premium-bar" style="width: @progress%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aksiyon Butonu -->
+                    <div class="p-4 border-t border-gray-100 dark:border-gray-700">
+                        <button onclick="openStudentDiaryModal(@studentGroup.Student.Id, '@studentGroup.Student.FullName', @(studentGroup.DiaryId.HasValue ? studentGroup.DiaryId.Value.ToString() : "null"))" 
+                                class="w-full btn-premium btn-premium-primary">
+                            <i class="fas fa-eye"></i>
+                            <span>Defteri Ýncele</span>
+                            @if (studentGroup.PendingEntries > 0)
+                            {
+                                <span class="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-xs">@studentGroup.PendingEntries yeni</span>
+                            }
                         </button>
                     </div>
                 </div>
             }
         </div>
 
-        <!-- Pagination -->
+        <!-- Sayfalama -->
         @if (Model.TotalItems > Model.PageSize)
         {
             <div class="flex justify-center mt-8">
-                <nav class="flex space-x-2">
+                <nav class="flex items-center gap-2">
                     @if (Model.HasPreviousPage)
                     {
                         <a asp-action="Index" asp-route-page="@(Model.CurrentPage - 1)" 
-                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Önceki</a>
+                           class="btn-premium btn-premium-outline">
+                            <i class="fas fa-chevron-left"></i>
+                            Önceki
+                        </a>
                     }
                     
-                    @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
-                    {
-                        <a asp-action="Index" asp-route-page="@i" 
-                           class="px-4 py-2 @(i == Model.CurrentPage ? "bg-blue-500 text-white" : "bg-white text-gray-700 hover:bg-gray-50") border border-gray-300 rounded-lg transition-colors">@i</a>
-                    }
+                    <div class="flex gap-1">
+                        @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                        {
+                            <a asp-action="Index" asp-route-page="@i" 
+                               class="w-10 h-10 rounded-xl flex items-center justify-center font-semibold transition-all @(i == Model.CurrentPage ? "bg-indigo-600 text-white shadow-lg" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700")">
+                                @i
+                            </a>
+                        }
+                    </div>
                     
                     @if (Model.HasNextPage)
                     {
                         <a asp-action="Index" asp-route-page="@(Model.CurrentPage + 1)" 
-                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Sonraki</a>
+                           class="btn-premium btn-premium-outline">
+                            Sonraki
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
                     }
                 </nav>
             </div>
@@ -154,24 +271,24 @@
     }
     else
     {
-        <div class="p-6 rounded-2xl bg-white/70 backdrop-blur-sm border-white/20 border shadow-lg dark:bg-gray-800/50 dark:border-gray-700">
-            <div class="text-center py-12">
-                <i class="fas fa-book-open text-gray-400 text-6xl mb-4"></i>
-                <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Staj Defteri Bulunamadý</h3>
-                <p class="text-gray-500 dark:text-gray-500 mb-4">
-                    @if (!string.IsNullOrEmpty(Model.Filters.StudentName) || !string.IsNullOrEmpty(Model.Filters.Status))
-                    {
-                        <span>Arama kriterlerinize uygun staj defteri bulunamadý. Filtreleri temizleyerek tekrar deneyin.</span>
-                    }
-                    else
-                    {
-                        <span>Bölümünüzden henüz staj defteri tutan öðrenci bulunmamaktadýr.</span>
-                    }
-                </p>
-                <a asp-action="Index" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-colors duration-200">
-                    <i class="fas fa-undo mr-2"></i>Filtreleri Temizle
-                </a>
+        <div class="empty-state-premium animate-fade-in-up">
+            <div class="empty-state-icon">
+                <i class="fas fa-book-open"></i>
             </div>
+            <h3 class="empty-state-title">Staj Defteri Bulunamadý</h3>
+            <p class="empty-state-description">
+                @if (!string.IsNullOrEmpty(Model.Filters.StudentName) || !string.IsNullOrEmpty(Model.Filters.Status))
+                {
+                    <span>Arama kriterlerinize uygun staj defteri bulunamadý.</span>
+                }
+                else
+                {
+                    <span>Bölümünüzden henüz staj defteri tutan öðrenci bulunmamaktadýr.</span>
+                }
+            </p>
+            <a asp-action="Index" class="btn-premium btn-premium-primary mt-4">
+                <i class="fas fa-undo mr-2"></i>Filtreleri Temizle
+            </a>
         </div>
     }
 </div>
@@ -179,30 +296,36 @@
 @Html.AntiForgeryToken()
 
 <!-- Öðrenci Staj Defteri Modal -->
-<div id="studentDiaryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white" id="studentName">
-                        <i class="fas fa-book-open text-blue-500 mr-2"></i>Öðrenci Staj Defteri
-                    </h2>
-                    <button onclick="closeStudentDiaryModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <i class="fas fa-times"></i>
-                    </button>
+<div id="studentDiaryModal" class="modal-premium-overlay">
+    <div class="modal-premium max-w-5xl">
+        <div class="modal-premium-header">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <i class="fas fa-book-open text-white"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold" id="studentName">Öðrenci Staj Defteri</h2>
+                        <p class="text-white/70 text-sm">Günlük girdileri inceleyin</p>
+                    </div>
                 </div>
-                
-                <!-- Loading -->
-                <div id="diaryLoading" class="text-center py-8">
-                    <i class="fas fa-spinner fa-spin text-blue-500 text-3xl mb-4"></i>
-                    <p class="text-gray-600 dark:text-gray-400">Staj defteri yükleniyor...</p>
-                </div>
-                
-                <!-- Diary Entries Content -->
-                <div id="diaryEntriesContent" class="hidden">
-                    <!-- Dynamic content will be loaded here -->
-                </div>
+                <button onclick="closeStudentDiaryModal()" class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+                    <i class="fas fa-times text-white"></i>
+                </button>
             </div>
+        </div>
+        
+        <div class="modal-premium-body">
+            <!-- Loading -->
+            <div id="diaryLoading" class="text-center py-12">
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <i class="fas fa-spinner fa-spin text-indigo-600 text-2xl"></i>
+                </div>
+                <p class="text-gray-500">Staj defteri yükleniyor...</p>
+            </div>
+            
+            <!-- Diary Entries Content -->
+            <div id="diaryEntriesContent" class="hidden"></div>
         </div>
     </div>
 </div>
@@ -213,142 +336,169 @@
         let currentDiaryId = null;
         let currentStudentEntries = [];
         
-        function exportAllDiaries() {
-            alert('Excel export özelliði yakýnda eklenecek.');
-        }
-        
-        // Öðrenci staj defteri modal'ýný aç
+        // Modal açma/kapama
         function openStudentDiaryModal(studentId, studentName, diaryId) {
             currentStudentId = studentId;
             currentDiaryId = diaryId || null;
-            document.getElementById('studentName').innerHTML = `<i class="fas fa-book-open text-blue-500 mr-2"></i>${studentName} - Staj Defteri ${currentDiaryId ? '(ID: '+currentDiaryId+')' : ''}`;
-            document.getElementById('studentDiaryModal').classList.remove('hidden');
+            
+            document.getElementById('studentName').textContent = studentName + ' - Staj Defteri';
+            document.getElementById('studentDiaryModal').classList.add('active');
             document.getElementById('diaryLoading').classList.remove('hidden');
             document.getElementById('diaryEntriesContent').classList.add('hidden');
             document.body.style.overflow = 'hidden';
+            
             const url = `/Advisor/AdvisorDiary/GetStudentDiaryEntries/${studentId}?diaryId=${currentDiaryId || ''}`;
-            fetch(url).then(r=>r.json()).then(data=>{ if(data.success){ currentStudentEntries=data.entries; renderDiaryEntries(data.entries);} else {alert(data.message||'Hata'); closeStudentDiaryModal();}}).catch(err=>{alert('Hata: '+err.message); closeStudentDiaryModal();}).finally(()=>{document.getElementById('diaryLoading').classList.add('hidden'); document.getElementById('diaryEntriesContent').classList.remove('hidden');});
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        currentStudentEntries = data.entries;
+                        renderDiaryEntries(data.entries);
+                    } else {
+                        alert(data.message || 'Hata oluþtu');
+                        closeStudentDiaryModal();
+                    }
+                })
+                .catch(err => {
+                    alert('Hata: ' + err.message);
+                    closeStudentDiaryModal();
+                })
+                .finally(() => {
+                    document.getElementById('diaryLoading').classList.add('hidden');
+                    document.getElementById('diaryEntriesContent').classList.remove('hidden');
+                });
         }
-        function closeStudentDiaryModal(){ document.getElementById('studentDiaryModal').classList.add('hidden'); document.body.style.overflow='auto'; currentStudentId=null; currentDiaryId=null; currentStudentEntries=[]; }
         
-        // Staj defteri girdilerini render et
+        function closeStudentDiaryModal() {
+            document.getElementById('studentDiaryModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            currentStudentId = null;
+            currentDiaryId = null;
+            currentStudentEntries = [];
+        }
+        
+        // Defter girdilerini render et
         function renderDiaryEntries(entries) {
+            const content = document.getElementById('diaryEntriesContent');
+            
             if (!entries || entries.length === 0) {
-                document.getElementById('diaryEntriesContent').innerHTML = `
-                    <div class="text-center py-12">
-                        <i class="fas fa-book text-gray-400 text-6xl mb-4"></i>
-                        <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">Henüz girdi yok</h3>
-                        <p class="text-gray-500 dark:text-gray-500">Bu öðrenci henüz staj defteri girdisi yapmamýþ.</p>
+                content.innerHTML = `
+                    <div class="empty-state-premium">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3 class="empty-state-title">Henüz Girdi Yok</h3>
+                        <p class="empty-state-description">Bu öðrenci henüz staj defteri girdisi yapmamýþ.</p>
                     </div>
                 `;
                 return;
             }
             
-            // Girdileri tarihe göre grupla
             const groupedEntries = groupEntriesByDate(entries);
             
             let html = `
-                <div class="mb-4 flex justify-between items-center">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                        <i class="fas fa-calendar-alt mr-2"></i>Staj Defteri Girdileri (${entries.length} girdi)
-                    </h3>
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">
+                            <i class="fas fa-calendar-alt mr-2 text-indigo-500"></i>Toplam ${entries.length} Girdi
+                        </span>
+                    </div>
                     <div class="flex gap-2">
-                        <button onclick="filterEntries('all')" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm hover:bg-blue-200 transition-colors entry-filter active" data-filter="all">
+                        <button onclick="filterEntries('all')" class="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-indigo-100 text-indigo-700 entry-filter active" data-filter="all">
                             Tümü
                         </button>
-                        <button onclick="filterEntries('pending')" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-lg text-sm hover:bg-yellow-200 transition-colors entry-filter" data-filter="pending">
-                            Bekleyen
+                        <button onclick="filterEntries('pending')" class="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-yellow-100 hover:text-yellow-700 entry-filter" data-filter="pending">
+                            <i class="fas fa-clock mr-1"></i>Bekleyen
                         </button>
-                        <button onclick="filterEntries('approved')" class="px-3 py-1 bg-green-100 text-green-800 rounded-lg text-sm hover:bg-green-200 transition-colors entry-filter" data-filter="approved">
-                            Onaylanan
+                        <button onclick="filterEntries('approved')" class="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-700 entry-filter" data-filter="approved">
+                            <i class="fas fa-check mr-1"></i>Onaylý
                         </button>
                     </div>
                 </div>
-                
-                <div class="space-y-4" id="entriesList">
+                <div class="space-y-6" id="entriesList">
             `;
             
-            // Her gün için girdileri göster
             for (const dateGroup of groupedEntries) {
                 html += `
-                    <div class="date-group border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
-                        <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-600">
-                            <h4 class="font-semibold text-gray-800 dark:text-gray-200">
-                                <i class="fas fa-calendar mr-2"></i>${dateGroup.date}
-                                <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">(${dateGroup.entries.length} girdi)</span>
-                            </h4>
+                    <div class="date-group">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                                <i class="fas fa-calendar text-indigo-600 dark:text-indigo-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white">${dateGroup.date}</h4>
+                                <p class="text-xs text-gray-500">${dateGroup.entries.length} girdi</p>
+                            </div>
                         </div>
-                        <div class="p-4 space-y-3">
+                        <div class="space-y-3 pl-6 border-l-2 border-indigo-200 dark:border-indigo-800">
                 `;
                 
-                // O gün için tüm girdiler
                 for (const entry of dateGroup.entries) {
-                    const statusClass = entry.isApproved ? 'green' : 'yellow';
+                    const statusClass = entry.isApproved ? 'approved' : 'pending';
                     const statusText = entry.isApproved ? 'Onaylandý' : 'Beklemede';
-                    const statusIcon = entry.isApproved ? 'check' : 'clock';
+                    const statusBadgeClass = entry.isApproved ? 'badge-approved' : 'badge-pending';
                     
                     html += `
-                        <div class="entry-item bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-all duration-300" data-status="${entry.isApproved ? 'approved' : 'pending'}">
-                            <div class="flex justify-between items-start mb-3">
+                        <div class="diary-entry-card ${statusClass}" data-status="${statusClass}">
+                            <div class="flex items-start justify-between gap-4 mb-3">
                                 <div class="flex-1">
                                     <h5 class="font-semibold text-gray-900 dark:text-white mb-2">${entry.title}</h5>
-                                    <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                                         <span><i class="fas fa-clock mr-1"></i>${entry.workingHours} saat</span>
-                                        <span class="px-2 py-1 rounded-full text-xs font-medium bg-${statusClass}-100 text-${statusClass}-800 dark:bg-${statusClass}-900 dark:text-${statusClass}-200">
-                                            <i class="fas fa-${statusIcon} mr-1"></i>${statusText}
+                                        <span class="badge-premium ${statusBadgeClass}">
+                                            <i class="fas fa-${entry.isApproved ? 'check' : 'clock'}"></i>
+                                            ${statusText}
                                         </span>
                                     </div>
                                 </div>
                                 ${!entry.isApproved ? `
                                 <div class="flex gap-2">
-                                    <button onclick="approveEntry(${entry.id}, '${entry.title}')" class="text-green-600 hover:text-green-700 px-2 py-1 rounded hover:bg-green-50 dark:hover:bg-green-900 transition-colors" title="Onayla">
+                                    <button onclick="approveEntry(${entry.id}, '${entry.title}')" class="application-action-btn approve" title="Onayla">
                                         <i class="fas fa-check"></i>
                                     </button>
-                                    <button onclick="rejectEntry(${entry.id}, '${entry.title}')" class="text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900 transition-colors" title="Reddet">
+                                    <button onclick="rejectEntry(${entry.id}, '${entry.title}')" class="application-action-btn reject" title="Reddet">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
-                                ` : ''}}
+                                ` : ''}
                             </div>
                             
-                            <div class="mb-3">
-                                <h6 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ýçerik:</h6>
-                                <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">${entry.content}</p>
+                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 mb-3">
+                                <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${entry.content}</p>
                             </div>
                             
                             ${entry.learnedTopics ? `
-                            <div class="mb-3">
-                                <h6 class="text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-1">
-                                    <i class="fas fa-lightbulb mr-1"></i>Öðrenilenler:
-                                </h6>
-                                <p class="text-yellow-600 dark:text-yellow-400 text-sm bg-yellow-50 dark:bg-yellow-900/30 p-2 rounded">${entry.learnedTopics}</p>
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-3 mb-3">
+                                <p class="text-xs font-semibold text-yellow-700 dark:text-yellow-300 mb-1">
+                                    <i class="fas fa-lightbulb mr-1"></i>Öðrenilenler
+                                </p>
+                                <p class="text-sm text-yellow-800 dark:text-yellow-200">${entry.learnedTopics}</p>
                             </div>
                             ` : ''}
                             
                             ${entry.challenges ? `
-                            <div class="mb-3">
-                                <h6 class="text-sm font-medium text-orange-700 dark:text-orange-300 mb-1">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>Zorluklar:
-                                </h6>
-                                <p class="text-orange-600 dark:text-orange-400 text-sm bg-orange-50 dark:bg-orange-900/30 p-2 rounded">${entry.challenges}</p>
+                            <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 mb-3">
+                                <p class="text-xs font-semibold text-orange-700 dark:text-orange-300 mb-1">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Karþýlaþýlan Zorluklar
+                                </p>
+                                <p class="text-sm text-orange-800 dark:text-orange-200">${entry.challenges}</p>
                             </div>
                             ` : ''}
                             
-                            <div class="border-t border-gray-200 dark:border-gray-600 pt-3 mt-3">
-                                <h6 class="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
-                                    <i class="fas fa-comment mr-1"></i>Danýþman Yorumu:
-                                </h6>
+                            <div class="border-t border-gray-100 dark:border-gray-700 pt-3">
+                                <p class="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-2">
+                                    <i class="fas fa-comment mr-1"></i>Danýþman Yorumu
+                                </p>
                                 ${entry.advisorFeedback ? `
-                                    <p class="text-purple-600 dark:text-purple-400 text-sm bg-purple-50 dark:bg-purple-900/30 p-2 rounded">${entry.advisorFeedback}</p>
+                                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3">
+                                        <p class="text-sm text-purple-800 dark:text-purple-200">${entry.advisorFeedback}</p>
+                                    </div>
                                 ` : `
-                                    <div class="space-y-2">
-                                        <p class="text-gray-500 dark:text-gray-400 text-sm italic">Henüz yorum yapýlmamýþ.</p>
-                                        <div class="flex gap-2">
-                                            <textarea id="comment_${entry.id}" class="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded text-sm focus:ring-2 focus:ring-purple-500 bg-white dark:bg-gray-700 dark:text-gray-200" rows="2" placeholder="Yorumunuzu yazýn..."></textarea>
-                                            <button onclick="submitComment(${entry.id})" class="px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded text-sm transition-colors">
-                                                <i class="fas fa-paper-plane"></i>
-                                            </button>
-                                        </div>
+                                    <div class="flex gap-2">
+                                        <textarea id="comment_${entry.id}" class="flex-1 filter-input-premium text-sm" rows="2" placeholder="Yorumunuzu yazýn..."></textarea>
+                                        <button onclick="submitComment(${entry.id})" class="btn-premium btn-premium-primary h-fit">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </button>
                                     </div>
                                 `}
                             </div>
@@ -356,21 +506,15 @@
                     `;
                 }
                 
-                html += `
-                        </div>
-                    </div>
-                `;
+                html += `</div></div>`;
             }
             
             html += '</div>';
-            
-            document.getElementById('diaryEntriesContent').innerHTML = html;
+            content.innerHTML = html;
         }
         
-        // Girdileri tarihe göre grupla
         function groupEntriesByDate(entries) {
             const groups = {};
-            
             entries.forEach(entry => {
                 const date = new Date(entry.date).toLocaleDateString('tr-TR', {
                     year: 'numeric',
@@ -378,198 +522,104 @@
                     day: 'numeric',
                     weekday: 'long'
                 });
-                
-                if (!groups[date]) {
-                    groups[date] = [];
-                }
+                if (!groups[date]) groups[date] = [];
                 groups[date].push(entry);
             });
-            
-            // Tarihe göre sýrala
             return Object.keys(groups)
                 .sort((a, b) => new Date(groups[b][0].date) - new Date(groups[a][0].date))
-                .map(date => ({
-                    date: date,
-                    entries: groups[date].sort((a, b) => new Date(b.date) - new Date(a.date))
-                }));
+                .map(date => ({ date, entries: groups[date] }));
         }
         
-        // Girdi filtreleme
         function filterEntries(filter) {
-            // Filter butonlarýný güncelle
             document.querySelectorAll('.entry-filter').forEach(btn => {
-                btn.classList.remove('active', 'bg-blue-500', 'text-white');
-                btn.classList.add('bg-blue-100', 'text-blue-800');
+                btn.classList.remove('bg-indigo-100', 'text-indigo-700');
+                btn.classList.add('bg-gray-100', 'text-gray-600');
             });
+            document.querySelector(`[data-filter="${filter}"]`).classList.remove('bg-gray-100', 'text-gray-600');
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('bg-indigo-100', 'text-indigo-700');
             
-            const activeBtn = document.querySelector(`[data-filter="${filter}"]`);
-            activeBtn.classList.remove('bg-blue-100', 'text-blue-800');
-            activeBtn.classList.add('active', 'bg-blue-500', 'text-white');
-            
-            // Girdileri filtrele
-            const entries = document.querySelectorAll('.entry-item');
-            entries.forEach(entry => {
+            document.querySelectorAll('.diary-entry-card').forEach(entry => {
                 const status = entry.dataset.status;
-                let show = false;
-                
-                switch(filter) {
-                    case 'all':
-                        show = true;
-                        break;
-                    case 'pending':
-                        show = status === 'pending';
-                        break;
-                    case 'approved':
-                        show = status === 'approved';
-                        break;
-                }
-                
-                if (show) {
-                    entry.style.display = 'block';
-                    entry.style.opacity = '1';
-                } else {
-                    entry.style.display = 'none';
-                    entry.style.opacity = '0';
-                }
+                entry.style.display = (filter === 'all' || status === filter) ? 'block' : 'none';
             });
             
-            // Boþ grup gizle
             document.querySelectorAll('.date-group').forEach(group => {
-                const visibleEntries = group.querySelectorAll('.entry-item:not([style*="display: none"])');
-                if (visibleEntries.length === 0) {
-                    group.style.display = 'none';
-                } else {
-                    group.style.display = 'block';
-                }
+                const visible = group.querySelectorAll('.diary-entry-card:not([style*="display: none"])');
+                group.style.display = visible.length ? 'block' : 'none';
             });
         }
         
-        // Yorum gönder
         function submitComment(entryId) {
             const comment = document.getElementById(`comment_${entryId}`).value.trim();
-            if (!comment) {
-                alert('Lütfen bir yorum yazýn.');
-                return;
-            }
+            if (!comment) { alert('Lütfen bir yorum yazýn.'); return; }
             
-            // Create a form and submit
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/Advisor/AdvisorDiary/ApproveEntry';
             
-            // Add anti-forgery token
             const token = document.querySelector('input[name="__RequestVerificationToken"]');
             if (token) {
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = token.value;
-                form.appendChild(tokenInput);
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = '__RequestVerificationToken';
+                input.value = token.value;
+                form.appendChild(input);
             }
             
-            // Add entry ID
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'entryId';
-            idInput.value = entryId;
-            form.appendChild(idInput);
-            
-            // Add feedback
-            const feedbackInput = document.createElement('input');
-            feedbackInput.type = 'hidden';
-            feedbackInput.name = 'feedback';
-            feedbackInput.value = comment;
-            form.appendChild(feedbackInput);
+            ['entryId', 'feedback'].forEach((name, i) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = i === 0 ? entryId : comment;
+                form.appendChild(input);
+            });
             
             document.body.appendChild(form);
             form.submit();
         }
         
-        // Girdi onayla
         function approveEntry(entryId, title) {
-            if (confirm(`"${title}" adlý girdiyi onaylamak istediðinizden emin misiniz?`)) {
-                // Create a form and submit
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/Advisor/AdvisorDiary/ApproveEntry';
-                
-                // Add anti-forgery token
-                const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                if (token) {
-                    const tokenInput = document.createElement('input');
-                    tokenInput.type = 'hidden';
-                    tokenInput.name = '__RequestVerificationToken';
-                    tokenInput.value = token.value;
-                    form.appendChild(tokenInput);
-                }
-                
-                // Add entry ID
-                const idInput = document.createElement('input');
-                idInput.type = 'hidden';
-                idInput.name = 'entryId';
-                idInput.value = entryId;
-                form.appendChild(idInput);
-                
-                // Add feedback (empty for approve)
-                const feedbackInput = document.createElement('input');
-                feedbackInput.type = 'hidden';
-                feedbackInput.name = 'feedback';
-                feedbackInput.value = '';
-                form.appendChild(feedbackInput);
-                
-                document.body.appendChild(form);
-                form.submit();
+            if (confirm(`"${title}" girdisini onaylamak istiyor musunuz?`)) {
+                submitComment(entryId);
             }
         }
         
-        // Girdi reddet
         function rejectEntry(entryId, title) {
-            const reason = prompt(`"${title}" adlý girdiyi neden reddediyorsunuz?`);
+            const reason = prompt(`"${title}" girdisini neden reddediyorsunuz?`);
             if (reason && reason.trim()) {
-                // Create a form and submit
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/Advisor/AdvisorDiary/RejectEntry';
                 
-                // Add anti-forgery token
                 const token = document.querySelector('input[name="__RequestVerificationToken"]');
                 if (token) {
-                    const tokenInput = document.createElement('input');
-                    tokenInput.type = 'hidden';
-                    tokenInput.name = '__RequestVerificationToken';
-                    tokenInput.value = token.value;
-                    form.appendChild(tokenInput);
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = '__RequestVerificationToken';
+                    input.value = token.value;
+                    form.appendChild(input);
                 }
                 
-                // Add entry ID
-                const idInput = document.createElement('input');
-                idInput.type = 'hidden';
-                idInput.name = 'DiaryEntryId';
-                idInput.value = entryId;
-                form.appendChild(idInput);
-                
-                // Add feedback
-                const feedbackInput = document.createElement('input');
-                feedbackInput.type = 'hidden';
-                feedbackInput.name = 'Feedback';
-                feedbackInput.value = reason.trim();
-                form.appendChild(feedbackInput);
+                [['DiaryEntryId', entryId], ['Feedback', reason.trim()]].forEach(([name, value]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    form.appendChild(input);
+                });
                 
                 document.body.appendChild(form);
                 form.submit();
             }
         }
         
-        // Modal kontrolleri
+        // Modal dýþýna týklama
         document.getElementById('studentDiaryModal').addEventListener('click', function(e) {
             if (e.target === this) closeStudentDiaryModal();
         });
         
-        // ESC tuþu ile modal kapat
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeStudentDiaryModal();
-            }
+            if (e.key === 'Escape') closeStudentDiaryModal();
         });
     </script>
 }

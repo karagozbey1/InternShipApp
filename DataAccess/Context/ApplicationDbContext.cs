@@ -32,10 +32,44 @@ namespace DataAccess.Context
         public DbSet<InternshipDiary> InternshipDiaries { get; set; } = null!;
         public DbSet<InternshipPeriodStudent> InternshipPeriodStudents { get; set; } = null!;
         public DbSet<OfferFavorite> OfferFavorites { get; set; } = null!;
+        public DbSet<InternEvaluation> InternEvaluations { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // InternEvaluation Entity Configuration
+            modelBuilder.Entity<InternEvaluation>(entity =>
+            {
+                entity.Property(e => e.StrengthsComment).HasMaxLength(2000);
+                entity.Property(e => e.ImprovementAreasComment).HasMaxLength(2000);
+                entity.Property(e => e.GeneralComment).HasMaxLength(2000);
+                entity.Property(e => e.RecommendationComment).HasMaxLength(2000);
+
+                entity.HasOne(e => e.Application)
+                      .WithMany()
+                      .HasForeignKey(e => e.ApplicationId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.EvaluatorUser)
+                      .WithMany()
+                      .HasForeignKey(e => e.EvaluatorUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Student)
+                      .WithMany()
+                      .HasForeignKey(e => e.StudentId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Company)
+                      .WithMany()
+                      .HasForeignKey(e => e.CompanyId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.ApplicationId);
+                entity.HasIndex(e => e.StudentId);
+                entity.HasIndex(e => e.CompanyId);
+            });
 
             modelBuilder.Entity<User>(entity =>
             {
@@ -103,7 +137,6 @@ namespace DataAccess.Context
                       .HasForeignKey(e => e.DiaryId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Optional link to the original application (one-to-one-ish)
                 entity.HasOne(d => d.Application)
                       .WithMany()
                       .HasForeignKey(d => d.ApplicationId)
@@ -149,7 +182,6 @@ namespace DataAccess.Context
                       .HasMaxLength(50)
                       .IsRequired();
 
-                // İlişkiler
                 entity.HasOne(f => f.Application)
                       .WithMany()
                       .HasForeignKey(f => f.ApplicationId)
@@ -165,7 +197,6 @@ namespace DataAccess.Context
                       .HasForeignKey(f => f.AdvisorId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Index'ler
                 entity.HasIndex(f => f.ApplicationId).IsUnique();
                 entity.HasIndex(f => new { f.StudentId, f.Status });
                 entity.HasIndex(f => new { f.AdvisorId, f.Status });
@@ -200,14 +231,12 @@ namespace DataAccess.Context
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
-            // Configure enum conversion for Duration
             modelBuilder.Entity<InternshipOffer>()
                 .Property(o => o.Duration)
                 .HasConversion<string>()
                 .HasMaxLength(50)
                 .IsRequired();
 
-            // Configure enum conversion for JobType
             modelBuilder.Entity<InternshipOffer>()
                 .Property(o => o.JobType)
                 .HasConversion<string>()
@@ -216,15 +245,12 @@ namespace DataAccess.Context
 
             modelBuilder.Entity<InternshipApplication>(entity =>
             {
-                // Property configurations
-                // Status veritabanında int olarak tutuluyor; string dönüşüm kaldırıldı
                 entity.Property(a => a.Status)
                       .IsRequired();
 
                 entity.Property(a => a.StudentNote)
                       .HasMaxLength(1000);
 
-                // Relationships
                 entity.HasOne(a => a.Student)
                       .WithMany(u => u.StudentApplications)
                       .HasForeignKey(a => a.StudentId)
@@ -234,14 +260,13 @@ namespace DataAccess.Context
                       .WithMany(u => u.AdvisorApplications)
                       .HasForeignKey(a => a.AdvisorId)
                       .OnDelete(DeleteBehavior.Restrict)
-                      .IsRequired(false); // AdvisorId nullable olabilir
+                      .IsRequired(false);
 
                 entity.HasOne(a => a.InternshipOffer)
                       .WithMany(o => o.InternshipApplications)
                       .HasForeignKey(a => a.InternshipOfferId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Indexes
                 entity.HasIndex(a => new { a.StudentId, a.Status });
                 entity.HasIndex(a => new { a.InternshipOfferId, a.Status });
             });
@@ -258,20 +283,16 @@ namespace DataAccess.Context
                 .HasForeignKey(c => c.SenderUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // InternshipDocument konfigürasyonları - DÜZELTİLDİ
             modelBuilder.Entity<InternshipDocument>(entity =>
             {
-                // Required alanlar
                 entity.Property(d => d.FileName).IsRequired().HasMaxLength(500);
                 entity.Property(d => d.FilePath).IsRequired().HasMaxLength(1000);
                 entity.Property(d => d.DocumentType).IsRequired().HasMaxLength(100);
-                entity.Property(d => d.Title).HasMaxLength(200); // Belge başlık adı
-                // Optional alanlar
+                entity.Property(d => d.Title).HasMaxLength(200);
                 entity.Property(d => d.ContentType).HasMaxLength(200);
                 entity.Property(d => d.Description).HasMaxLength(1000);
                 entity.Property(d => d.Status).HasMaxLength(50);
 
-                // İlişkiler - tümü opsiyonel
                 entity.HasOne(d => d.InternshipApplication)
                       .WithMany(a => a.InternshipDocuments)
                       .HasForeignKey(d => d.ApplicationId)
@@ -290,7 +311,6 @@ namespace DataAccess.Context
                       .OnDelete(DeleteBehavior.SetNull)
                       .IsRequired(false);
 
-                // Yeni: ApprovalForm ilişkisi (opsiyonel)
                 entity.HasOne(d => d.ApprovalForm)
                       .WithMany()
                       .HasForeignKey(d => d.ApprovalFormId)
@@ -301,7 +321,6 @@ namespace DataAccess.Context
             modelBuilder.Entity<InternshipPeriod>()
                .HasKey(p => p.PeriodId);
 
-            // configure many-to-many via join entity InternshipPeriodStudent
             modelBuilder.Entity<InternshipPeriodStudent>(entity =>
             {
                 entity.HasKey(e => new { e.InternshipPeriodId, e.StudentId });

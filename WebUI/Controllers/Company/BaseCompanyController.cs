@@ -79,6 +79,7 @@ namespace WebUI.Controllers.Company
                 StudentId = application.StudentId,
                 StudentName = application.Student?.FullName ?? "Bilinmeyen",
                 Position = application.InternshipOffer?.Field ?? "Bilinmeyen Pozisyon",
+                University = application.Student?.University?.Name ?? "Bilinmeyen",
                 StartDate = application.StartDate,
                 EndDate = application.EndDate,
                 CompletedDays = Math.Max(0, completedDays),

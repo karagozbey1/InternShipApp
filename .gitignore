@@ -7,7 +7,7 @@ project.lock.json
 *.pyc
 
 # Visual Studio Code
-.vscode
+.vscode/
 
 # User-specific files
 *.suo
@@ -30,5 +30,72 @@ msbuild.log
 msbuild.err
 msbuild.wrn
 
-# Visual Studio 2015
+# Visual Studio 2015+
 .vs/
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Test Results
+TestResults/
+[Tt]est[Rr]esult*/
+
+# NCrunch
+_NCrunch_*/
+*.ncrunch*
+
+# Cache files
+*.cache
+*.log
+*.tmp
+*.temp
+
+# Node modules (if any frontend)
+node_modules/
+dist/
+npm-debug.log*
+
+# Secrets and configurations - NEVER COMMIT
+appsettings.Development.json
+appsettings.*.Development.json
+.env
+.env.*
+*.pfx
+*.pem
+*secrets*
+*secret.json
+
+# Database files
+*.sqlite
+*.db
+*.mdf
+*.ldf
+
+# Published files
+publish/
+PublishOutput/
+
+# LibMan
+**/wwwroot/lib/
+
+# User uploads (don't commit user data)
+**/wwwroot/uploads/
+**/uploads/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Logs
+logs/
+
+# Rider
+.idea/
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user

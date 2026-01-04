@@ -5,149 +5,160 @@
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/advisor-theme.css" asp-append-version="true" />
     <style>
-        .intern-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        .dark .intern-card {
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-            border: 1px solid #4b5563;
-        }
-        .intern-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
-        }
-        .progress-container {
-            background: #f1f5f9;
-            border-radius: 12px;
+        .intern-card-premium {
+            background: white;
+            border-radius: 20px;
             overflow: hidden;
-            height: 8px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        .dark .progress-container {
-            background: #374151;
+        .intern-card-premium:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.15);
         }
-        .progress-fill {
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        .intern-card-header {
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .intern-card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        }
+        .intern-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+            border: 4px solid white;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            margin-top: -35px;
+            position: relative;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+        .intern-card-premium:hover .intern-avatar {
+            transform: scale(1.1) rotate(-5deg);
+        }
+        .progress-premium-bar {
             height: 100%;
-            border-radius: 12px;
-            transition: width 1s ease-in-out;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 50px;
+            transition: width 1s ease-out;
+            position: relative;
         }
-        .btn-chat {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse-status 2s infinite;
         }
-        .btn-chat:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-            color: white;
-        }
-        .btn-detail {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .btn-detail:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-            color: white;
-        }
-        .btn-export {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .btn-export:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-            color: white;
+        .dark .intern-card-premium {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(71, 85, 105, 0.3);
         }
     </style>
 }
 
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                <i class="fas fa-users mr-3 text-blue-600 dark:text-blue-400"></i>Aktif Stajyerler
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400">Þu anda þirketinizde staj yapan öðrencileri görüntüleyin ve takip edin.</p>
-        </div>
-        <div class="flex space-x-4">
-            <a asp-action="Reports" class="btn-export">
-                <i class="fas fa-chart-bar mr-2"></i>Raporlar
-            </a>
-            <a asp-action="ExportToExcel" class="btn-export">
-                <i class="fas fa-download mr-2"></i>Listeyi Dýþa Aktar
-            </a>
+    <!-- Premium Hero Header -->
+    <div class="advisor-hero-header animate-fade-in-up">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white">Aktif Stajyerler</h1>
+                        <p class="text-white/70 text-sm">Sirketinizde staj yapan ogrencileri takip edin</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <a asp-action="Reports" class="btn-premium btn-premium-glass">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="hidden sm:inline">Raporlar</span>
+                </a>
+                <button onclick="refreshPage()" class="btn-premium btn-premium-glass">
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="hidden sm:inline">Yenile</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-lg">
+    <!-- Istatistik Kartlari -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="advisor-stat-card-premium animate-fade-in-up stagger-1">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Toplam Aktif Stajyer</p>
-                    <p class="text-3xl font-bold text-gray-900 dark:text-white">@Model.Count</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Toplam Aktif</p>
+                    <p class="advisor-stat-value">@Model.Count</p>
                 </div>
-                <div class="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl">
-                    <i class="fas fa-users text-white text-xl"></i>
+                <div class="advisor-stat-icon" style="background: var(--gradient-primary);">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="mt-3 flex items-center text-xs text-green-600">
+                <i class="fas fa-check-circle mr-1"></i>
+                <span>Aktif stajyer</span>
+            </div>
+        </div>
+
+        <div class="advisor-stat-card-premium animate-fade-in-up stagger-2">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Bu Hafta Baslayan</p>
+                    <p class="advisor-stat-value" style="background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@Model.Count(m => m.StartDate >= DateTime.Now.AddDays(-7))</p>
+                </div>
+                <div class="advisor-stat-icon" style="background: var(--gradient-success);">
+                    <i class="fas fa-calendar-plus"></i>
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-lg">
+
+        <div class="advisor-stat-card-premium animate-fade-in-up stagger-3">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Bu Hafta Baþlayan</p>
-                    <p class="text-3xl font-bold text-gray-900 dark:text-white">@Model.Count(m => m.StartDate >= DateTime.Now.AddDays(-7))</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Bu Ay Bitecek</p>
+                    <p class="advisor-stat-value" style="background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@Model.Count(m => m.EndDate <= DateTime.Now.AddDays(30) && m.EndDate >= DateTime.Now)</p>
                 </div>
-                <div class="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-xl">
-                    <i class="fas fa-calendar-check text-white text-xl"></i>
+                <div class="advisor-stat-icon" style="background: var(--gradient-warning);">
+                    <i class="fas fa-hourglass-half"></i>
                 </div>
             </div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-lg">
+
+        <div class="advisor-stat-card-premium animate-fade-in-up stagger-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Bu Ay Bitecek</p>
-                    <p class="text-3xl font-bold text-gray-900 dark:text-white">@Model.Count(m => m.EndDate <= DateTime.Now.AddDays(30))</p>
+                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Ort. Ilerleme</p>
+                    <p class="advisor-stat-value" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">%@(Model.Any() ? Model.Average(m => m.ProgressPercentage).ToString("F0") : "0")</p>
                 </div>
-                <div class="p-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl">
-                    <i class="fas fa-calendar-times text-white text-xl"></i>
+                <div class="advisor-stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                    <i class="fas fa-chart-line"></i>
                 </div>
             </div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-600 shadow-lg">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Ortalama Ýlerleme</p>
-                    <p class="text-3xl font-bold text-gray-900 dark:text-white">@(Model.Any() ? Model.Average(m => m.ProgressPercentage).ToString("F1") : "0")%</p>
-                </div>
-                <div class="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl">
-                    <i class="fas fa-chart-line text-white text-xl"></i>
+            <div class="mt-3">
+                <div class="progress-premium">
+                    <div class="progress-premium-bar" style="width: @(Model.Any() ? Model.Average(m => m.ProgressPercentage).ToString("F0", System.Globalization.CultureInfo.InvariantCulture) : "0")%"></div>
                 </div>
             </div>
         </div>
@@ -155,69 +166,86 @@
 
     @if (Model.Any())
     {
-        <!-- Active Interns List -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Stajyer Kartlari -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @foreach (var intern in Model.OrderBy(m => m.EndDate))
             {
-                <div class="intern-card">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                <span class="text-white font-bold text-lg">@intern.StudentName.Substring(0, 1).ToUpper()</span>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@intern.StudentName</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">@intern.Position</p>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <a asp-action="StartChat" asp-route-studentId="@intern.StudentId" class="btn-chat" title="Ýletiþim">
-                                <i class="fas fa-comments"></i>
-                            </a>
-                            <a asp-action="Detail" asp-route-id="@intern.Id" class="btn-detail" title="Detay">
-                                <i class="fas fa-eye"></i>
-                            </a>
+                var initials = string.Join("", intern.StudentName.Split(' ').Where(n => !string.IsNullOrEmpty(n)).Select(n => n[0]).Take(2)).ToUpper();
+                var remaining = intern.EndDate.Date - DateTime.Now.Date;
+                var totalDays = (int)remaining.TotalDays;
+                var isEndingSoon = totalDays <= 14 && totalDays > 0;
+                var isEnded = totalDays <= 0;
+                
+                <div class="intern-card-premium animate-fade-in-up">
+                    <div class="intern-card-header">
+                        <div class="absolute top-3 right-3 flex items-center gap-2">
+                            @if (isEnded)
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white">Tamamlandi</span>
+                            }
+                            else if (isEndingSoon)
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-500 text-white animate-pulse">@totalDays gun kaldi</span>
+                            }
+                            else
+                            {
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white flex items-center gap-1">
+                                    <span class="status-indicator"></span>
+                                    Aktif
+                                </span>
+                            }
                         </div>
                     </div>
-
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-600 dark:text-gray-400">
-                                <i class="fas fa-calendar mr-2"></i>
-                                @intern.StartDate.ToString("dd MMM yyyy") - @intern.EndDate.ToString("dd MMM yyyy")
-                            </span>
-                            <span class="font-medium text-gray-900 dark:text-white">
-                                @{
-                                    var remaining = intern.EndDate.Date - DateTime.Now.Date;
-                                    var totalDays = (int)remaining.TotalDays;
-                                    var months = totalDays / 30;
-                                    var days = totalDays % 30;
-                                    
-                                    string remainingText;
-                                    if (totalDays <= 0)
-                                        remainingText = "Tamamlandý";
-                                    else if (months > 0)
-                                        remainingText = $"{months} ay {days} gün";
-                                    else
-                                        remainingText = $"{days} gün";
-                                }
-                                @remainingText kaldý
-                            </span>
+                    
+                    <div class="px-6 pb-4 text-center">
+                        <div class="intern-avatar mx-auto">@initials</div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mt-3 mb-1">@intern.StudentName</h3>
+                        <p class="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-2">@intern.Position</p>
+                        @if (!string.IsNullOrEmpty(intern.University))
+                        {
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-university mr-1"></i>@intern.University
+                            </p>
+                        }
+                    </div>
+                    
+                    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+                        <div class="grid grid-cols-2 gap-4 text-center mb-4">
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Baslangic</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-white">@intern.StartDate.ToString("dd MMM yyyy")</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Bitis</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-white">@intern.EndDate.ToString("dd MMM yyyy")</p>
+                            </div>
                         </div>
-
-                        <div>
+                        
+                        <div class="mb-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Ýlerleme</span>
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">@intern.ProgressPercentage.ToString("F1")%</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">Ilerleme</span>
+                                <span class="text-xs font-semibold text-indigo-600">%@intern.ProgressPercentage.ToString("F0")</span>
                             </div>
-                            <div class="progress-container">
-                                <div class="progress-fill" style="width: @intern.ProgressPercentage.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            <div class="progress-premium">
+                                <div class="progress-premium-bar" style="width: @intern.ProgressPercentage.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>@intern.CompletedDays gun tamamlandi</span>
+                                <span>@intern.TotalDays gun toplam</span>
                             </div>
                         </div>
-
-                        <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-                            <span>Tamamlanan: @intern.CompletedDays gün</span>
-                            <span>Toplam: @intern.TotalDays gün</span>
+                    </div>
+                    
+                    <div class="p-4 border-t border-gray-100 dark:border-gray-700">
+                        <div class="grid grid-cols-2 gap-3">
+                            <a asp-action="StartChat" asp-route-studentId="@intern.StudentId" class="btn-premium btn-premium-outline text-sm py-2">
+                                <i class="fas fa-comments"></i>
+                                Mesaj
+                            </a>
+                            <a asp-action="Detail" asp-route-id="@intern.Id" class="btn-premium btn-premium-primary text-sm py-2">
+                                <i class="fas fa-eye"></i>
+                                Detay
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -226,25 +254,19 @@
     }
     else
     {
-        <!-- Empty State -->
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-lg rounded-xl">
-            <div class="p-12 text-center">
-                <i class="fas fa-users text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    Aktif stajyer bulunmuyor
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-6">
-                    Þu anda þirketinizde aktif staj yapan öðrenci bulunmuyor. 
-                    Yeni ilanlar oluþturarak öðrencilere fýrsat sunabilirsiniz.
-                </p>
-                <div class="space-x-4">
-                    <a asp-controller="CompanyJobPostings" asp-action="Create" class="btn-detail px-6 py-3 rounded-lg">
-                        <i class="fas fa-plus mr-2"></i>Yeni Ýlan Oluþtur
-                    </a>
-                    <a asp-controller="CompanyApplications" asp-action="List" class="btn-chat px-6 py-3 rounded-lg">
-                        <i class="fas fa-file-alt mr-2"></i>Baþvurularý Ýncele
-                    </a>
-                </div>
+        <div class="empty-state-premium animate-fade-in-up">
+            <div class="empty-state-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="empty-state-title">Aktif Stajyer Bulunmuyor</h3>
+            <p class="empty-state-description">Su anda sirketinizde aktif staj yapan ogrenci bulunmuyor.</p>
+            <div class="flex flex-wrap justify-center gap-3 mt-6">
+                <a asp-controller="CompanyJobPostings" asp-action="Create" class="btn-premium btn-premium-primary">
+                    <i class="fas fa-plus"></i>Yeni Ilan Olustur
+                </a>
+                <a asp-controller="CompanyApplications" asp-action="List" class="btn-premium btn-premium-outline">
+                    <i class="fas fa-file-alt"></i>Basvurulari Incele
+                </a>
             </div>
         </div>
     }
@@ -252,39 +274,13 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Animate progress bars on load
-            $('.progress-fill').each(function() {
-                var width = $(this).css('width');
-                $(this).css('width', '0%').animate({
-                    width: width
-                }, 1000);
+        function refreshPage() { location.reload(); }
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.progress-premium-bar').forEach(function(bar) {
+                var width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(function() { bar.style.width = width; }, 100);
             });
-
-            // Auto-refresh every 5 minutes
-            setInterval(function() {
-                console.log('Refreshing intern data...');
-                // Could implement AJAX refresh here
-            }, 300000);
         });
-
-        // Success messages for actions
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <text>
-            setTimeout(function() {
-                alert('@TempData["SuccessMessage"]');
-            }, 100);
-            </text>
-        }
-
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <text>
-            setTimeout(function() {
-                alert('@TempData["ErrorMessage"]');
-            }, 100);
-            </text>
-        }
     </script>
 }

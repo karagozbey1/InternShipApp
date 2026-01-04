@@ -1,0 +1,217 @@
+@model List<WebUI.Controllers.Student.StudentEvaluationViewModel>
+@{
+    ViewData["Title"] = "Staj Degerlendirmelerim";
+    Layout = "_AppLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/AdvisorCss/advisor-theme.css" asp-append-version="true" />
+    <style>
+        .evaluation-card-premium {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .evaluation-card-premium:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(245, 158, 11, 0.15);
+        }
+        .evaluation-card-header {
+            height: 80px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .evaluation-card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        }
+        .rating-badge {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+            border: 4px solid white;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+            margin-top: -35px;
+            position: relative;
+            z-index: 10;
+        }
+        .star-rating {
+            color: #f59e0b;
+        }
+        .star-empty {
+            color: #d1d5db;
+        }
+        .new-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ef4444;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+        .dark .evaluation-card-premium {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(71, 85, 105, 0.3);
+        }
+    </style>
+}
+
+<div class="space-y-6">
+    <!-- Premium Hero Header -->
+    <div class="advisor-hero-header animate-fade-in-up" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                        <i class="fas fa-star text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white">Staj Degerlendirmelerim</h1>
+                        <p class="text-white/70 text-sm">Firmalar tarafindan yapilan performans degerlendirmeleriniz</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <a asp-controller="Dashboard" asp-action="Index" class="btn-premium btn-premium-glass">
+                    <i class="fas fa-home"></i>
+                    <span class="hidden sm:inline">Ana Sayfa</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <!-- Istatistik Ozeti -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="advisor-stat-card-premium animate-fade-in-up stagger-1">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Toplam Degerlendirme</p>
+                        <p class="advisor-stat-value" style="background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@Model.Count</p>
+                    </div>
+                    <div class="advisor-stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="advisor-stat-card-premium animate-fade-in-up stagger-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Ortalama Basari Puani</p>
+                        <p class="advisor-stat-value" style="background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@(Model.Any() ? Model.Average(m => m.OverallRating).ToString("F1") : "0")/5</p>
+                    </div>
+                    <div class="advisor-stat-icon" style="background: var(--gradient-success);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="advisor-stat-card-premium animate-fade-in-up stagger-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Yeni</p>
+                        <p class="advisor-stat-value" style="background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">@Model.Count(m => !m.IsViewed)</p>
+                    </div>
+                    <div class="advisor-stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Degerlendirme Kartlari -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            @foreach (var eval in Model.OrderByDescending(m => m.CreatedAt))
+            {
+                <div class="evaluation-card-premium animate-fade-in-up">
+                    <div class="evaluation-card-header">
+                        @if (!eval.IsViewed)
+                        {
+                            <span class="new-badge">Yeni</span>
+                        }
+                    </div>
+                    
+                    <div class="px-6 pb-4 text-center">
+                        <div class="rating-badge mx-auto">@eval.OverallRating</div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mt-3 mb-1">@eval.CompanyName</h3>
+                        <p class="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-2">@eval.Position</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-calendar mr-1"></i>@eval.StartDate.ToString("dd.MM.yyyy") - @eval.EndDate.ToString("dd.MM.yyyy")
+                        </p>
+                    </div>
+                    
+                    <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+                        <!-- Yildiz Gosterimi (Sadece Genel Puan) -->
+                        <div class="flex justify-center mb-4">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= eval.OverallRating)
+                                {
+                                    <i class="fas fa-star star-rating text-xl mx-0.5"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-star star-empty text-xl mx-0.5"></i>
+                                }
+                            }
+                        </div>
+                        
+                        <!-- Basari Puani -->
+                        <div class="text-center p-3 rounded-xl bg-white dark:bg-gray-700 mb-4">
+                            <p class="text-xs text-gray-500 mb-1">Genel Basari Puani</p>
+                            <p class="text-2xl font-bold text-yellow-600">@eval.OverallRating/5</p>
+                        </div>
+
+                        <p class="text-xs text-gray-500 text-center">
+                            <i class="fas fa-info-circle mr-1"></i>Detayli degerlendirme danisman tarafindan gorulebilir
+                        </p>
+                    </div>
+                    
+                    <div class="p-4 border-t border-gray-100 dark:border-gray-700">
+                        <a asp-action="View" asp-route-id="@eval.Id" class="w-full btn-premium btn-premium-warning py-2 text-sm">
+                            <i class="fas fa-eye"></i>
+                            Detayi Gor
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state-premium animate-fade-in-up">
+            <div class="empty-state-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="fas fa-star"></i>
+            </div>
+            <h3 class="empty-state-title">Henuz Degerlendirme Yok</h3>
+            <p class="empty-state-description">Staj tamamladiginizda firmalar tarafindan degerlendirme yapilacaktir.</p>
+            <div class="flex flex-wrap justify-center gap-3 mt-6">
+                <a asp-controller="Dashboard" asp-action="Index" class="btn-premium btn-premium-primary">
+                    <i class="fas fa-home"></i>Ana Sayfaya Don
+                </a>
+            </div>
+        </div>
+    }
+</div>

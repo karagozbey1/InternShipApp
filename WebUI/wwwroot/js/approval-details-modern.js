@@ -1,6 +1,6 @@
 /**
- * Modern Approval Details JavaScript
- * Handles interactions and animations for approval form details page
+ * Modern Onay Detaylarý JavaScript
+ * Onay formu detay sayfasý için etkileþimleri ve animasyonlarý yönetir
  */
 
 class ApprovalDetails {
@@ -16,21 +16,21 @@ class ApprovalDetails {
     }
 
     bindEvents() {
-        // Edit button click handling
+        // Düzenle butonu týklama iþlemi
         document.addEventListener('click', (e) => {
             if (e.target.closest('.edit-btn')) {
                 this.handleEditClick(e.target.closest('.edit-btn'));
             }
         });
 
-        // Status card hover effects
+        // Durum kartý hover efektleri
         const statusDisplays = document.querySelectorAll('.status-display');
         statusDisplays.forEach(display => {
             display.addEventListener('mouseenter', () => this.animateStatusCard(display, true));
             display.addEventListener('mouseleave', () => this.animateStatusCard(display, false));
         });
 
-        // Document link clicks
+        // Doküman baðlantýsý týklamalarý
         document.addEventListener('click', (e) => {
             if (e.target.closest('.doc-view')) {
                 this.handleDocumentView(e);
@@ -39,10 +39,10 @@ class ApprovalDetails {
     }
 
     handleEditClick(button) {
-        // Add loading state
+        // Yükleniyor durumu ekle
         this.setButtonLoading(button, true);
         
-        // Add smooth transition effect
+        // Yumuþak geçiþ efekti ekle
         setTimeout(() => {
             this.setButtonLoading(button, false);
         }, 800);
@@ -73,7 +73,7 @@ class ApprovalDetails {
     }
 
     initAnimations() {
-        // Intersection Observer for fade-in animations
+        // Fade-in animasyonlarý için Intersection Observer
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -87,12 +87,12 @@ class ApprovalDetails {
             });
         }, observerOptions);
 
-        // Observe all cards
+        // Tüm kartlarý gözlemle
         document.querySelectorAll('.fade-in').forEach(card => {
             observer.observe(card);
         });
 
-        // Status pulse animation
+        // Durum nabýz animasyonu
         const statusText = document.querySelector('.hero-status-text');
         if (statusText) {
             this.startStatusPulse(statusText);
@@ -105,22 +105,22 @@ class ApprovalDetails {
             setTimeout(() => {
                 element.style.animation = 'statusPulse 2s ease-in-out infinite';
             }, 10);
-        }, 10000); // Pulse every 10 seconds
+        }, 10000); // Her 10 saniyede nabýz at
     }
 
     setupStatusUpdates() {
-        // Real-time status updates (if needed)
+        // Gerçek zamanlý durum güncellemeleri (gerekirse)
         const statusCard = document.querySelector('.status-display');
         if (statusCard) {
-            // Simulate real-time updates (replace with actual WebSocket/SignalR implementation)
+            // Gerçek zamanlý güncellemeleri simüle et (gerçek WebSocket/SignalR ile deðiþtirin)
             this.checkStatusUpdates();
         }
     }
 
     checkStatusUpdates() {
-        // This would be replaced with actual real-time implementation
-        // For now, just a placeholder for future enhancement
-        console.log('Status update check initialized');
+        // Bu, gerçek gerçek zamanlý uygulama ile deðiþtirilecek
+        // Þimdilik gelecekteki geliþtirme için sadece bir yer tutucu
+        console.log('Durum güncelleme kontrolü baþlatýldý');
     }
 
     handleDocumentView(e) {
@@ -128,10 +128,10 @@ class ApprovalDetails {
         const link = e.target.closest('.doc-view');
         const href = link.getAttribute('href');
         
-        // Add loading effect
+        // Yükleniyor efekti ekle
         link.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Açýlýyor...';
         
-        // Open document in new tab
+        // Dokümaný yeni sekmede aç
         setTimeout(() => {
             window.open(href, '_blank');
             link.innerHTML = 'Gör';
@@ -139,7 +139,7 @@ class ApprovalDetails {
     }
 
     handleNotifications() {
-        // Check for success/error messages
+        // Baþarý/hata mesajlarýný kontrol et
         const urlParams = new URLSearchParams(window.location.search);
         const success = urlParams.get('success');
         const error = urlParams.get('error');
@@ -153,7 +153,7 @@ class ApprovalDetails {
     }
 
     showNotification(message, type = 'info') {
-        // Create notification element
+        // Bildirim elementi oluþtur
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.innerHTML = `
@@ -166,7 +166,7 @@ class ApprovalDetails {
             </div>
         `;
 
-        // Add styles
+        // Stilleri ekle
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -205,12 +205,12 @@ class ApprovalDetails {
 
         document.body.appendChild(notification);
 
-        // Animate in
+        // Ýçeri animasyonu
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
 
-        // Auto remove after 5 seconds
+        // 5 saniye sonra otomatik kaldýr
         setTimeout(() => {
             notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
@@ -241,7 +241,7 @@ class ApprovalDetails {
         return colors[type] || colors.info;
     }
 
-    // Utility methods
+    // Yardýmcý metodlar
     formatDate(date) {
         return new Intl.DateTimeFormat('tr-TR', {
             year: 'numeric',
@@ -258,7 +258,7 @@ class ApprovalDetails {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Copy to clipboard functionality
+    // Panoya kopyalama iþlevselliði
     copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
             this.showNotification('Panoya kopyalandý!', 'success');
@@ -267,12 +267,12 @@ class ApprovalDetails {
         });
     }
 
-    // Print functionality
+    // Yazdýrma iþlevselliði
     printPage() {
         window.print();
     }
 
-    // Share functionality
+    // Paylaþma iþlevselliði
     sharePage() {
         if (navigator.share) {
             navigator.share({
@@ -285,17 +285,17 @@ class ApprovalDetails {
     }
 }
 
-// Initialize when DOM is loaded
+// DOM yüklendiðinde baþlat
 document.addEventListener('DOMContentLoaded', () => {
     new ApprovalDetails();
 });
 
-// Export for potential module usage
+// Potansiyel modül kullanýmý için dýþa aktar
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ApprovalDetails;
 }
 
-// Additional CSS for notifications (injected dynamically)
+// Bildirimler için ek CSS (dinamik olarak enjekte edilir)
 const notificationStyles = `
     .notification {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -340,7 +340,7 @@ const notificationStyles = `
     }
 `;
 
-// Inject notification styles
+// Bildirim stillerini enjekte et
 const styleElement = document.createElement('style');
 styleElement.textContent = notificationStyles;
 document.head.appendChild(styleElement);

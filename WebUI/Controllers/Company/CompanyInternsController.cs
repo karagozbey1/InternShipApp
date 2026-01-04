@@ -9,18 +9,25 @@ using Core.Entity;
 namespace WebUI.Controllers.Company
 {
     [Authorize(Roles = "Company")]
-    [Route("Company/Interns")] // /Company/Interns
+    [Route("Company/Interns")] 
     public class CompanyInternsController : BaseCompanyController
     {
+        private readonly IInternEvaluationService _evaluationService;
+
         public CompanyInternsController(
             IICompanyService companyService,
             IInternshipOfferService offerService,
             IInternshipApplicationService applicationService,
             IIUserService userService,
             Business.Interfaces.Order.IINotificationService notificationService,
-            Business.Interfaces.Chat.IIChatService chatService)
-            : base(companyService, offerService, applicationService, userService, notificationService, chatService) { }
+            Business.Interfaces.Chat.IIChatService chatService,
+            IInternEvaluationService evaluationService)
+            : base(companyService, offerService, applicationService, userService, notificationService, chatService) 
+        { 
+            _evaluationService = evaluationService;
+        }
 
+        // Aktif stajyerlerin listesini getirip görüntüleyen action.
         [HttpGet("")]
         public async Task<IActionResult> List()
         {
@@ -47,7 +54,7 @@ namespace WebUI.Controllers.Company
             }
         }
 
-        // Intern detail page
+        // Belirtilen baþvuru id'sine ait stajyer detayýný yükleyen action.
         [HttpGet("Detail/{id}")]
         public async Task<IActionResult> Detail(int id)
         {
@@ -68,6 +75,12 @@ namespace WebUI.Controllers.Company
                 }
 
                 var model = MapToInternDetailViewModel(application);
+                
+                // Mevcut deðerlendirmeyi kontrol et
+                var existingEvaluation = await _evaluationService.GetByApplicationIdAsync(id);
+                model.HasEvaluation = existingEvaluation != null;
+                model.Evaluation = existingEvaluation != null ? MapToEvaluationViewModel(existingEvaluation) : null;
+                
                 return View("~/Views/Company/Interns/Detail.cshtml", model);
             }
             catch (Exception ex)
@@ -77,7 +90,152 @@ namespace WebUI.Controllers.Company
             }
         }
 
-        // Export to Excel
+        // Deðerlendirme kaydetme
+        [HttpPost("Evaluate")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Evaluate([FromBody] EvaluationCreateModel model)
+        {
+            try
+            {
+                if (model == null)
+                    return Json(new { success = false, message = "Geçersiz veri." });
+
+                var companyId = await GetCurrentCompanyIdAsync();
+                var userId = GetCurrentUserId();
+
+                // Baþvuruyu kontrol et
+                var application = await _applicationService.GetApplicationWithDetailsAsync(model.ApplicationId);
+                if (application == null || application.InternshipOffer?.CompanyId != companyId)
+                    return Json(new { success = false, message = "Baþvuru bulunamadý veya yetkiniz yok." });
+
+                // Mevcut deðerlendirme var mý kontrol et
+                var existingEvaluation = await _evaluationService.GetByApplicationIdAsync(model.ApplicationId);
+                
+                if (existingEvaluation != null)
+                {
+                    // Güncelle
+                    existingEvaluation.TechnicalSkillsRating = model.TechnicalSkillsRating;
+                    existingEvaluation.CommunicationRating = model.CommunicationRating;
+                    existingEvaluation.TeamworkRating = model.TeamworkRating;
+                    existingEvaluation.PunctualityRating = model.PunctualityRating;
+                    existingEvaluation.InitiativeRating = model.InitiativeRating;
+                    existingEvaluation.ProblemSolvingRating = model.ProblemSolvingRating;
+                    existingEvaluation.OverallRating = model.OverallRating;
+                    existingEvaluation.StrengthsComment = model.StrengthsComment;
+                    existingEvaluation.ImprovementAreasComment = model.ImprovementAreasComment;
+                    existingEvaluation.GeneralComment = model.GeneralComment;
+                    existingEvaluation.RecommendationComment = model.RecommendationComment;
+                    existingEvaluation.WouldRecommendForHire = model.WouldRecommendForHire;
+                    existingEvaluation.WouldAcceptAgain = model.WouldAcceptAgain;
+                    existingEvaluation.UpdatedAt = DateTime.UtcNow;
+
+                    await _evaluationService.UpdateEvaluationAsync(existingEvaluation);
+                    
+                    return Json(new { success = true, message = "Deðerlendirme güncellendi.", isUpdate = true });
+                }
+                else
+                {
+                    // Yeni oluþtur
+                    var evaluation = new InternEvaluation
+                    {
+                        ApplicationId = model.ApplicationId,
+                        EvaluatorUserId = userId,
+                        StudentId = application.StudentId,
+                        CompanyId = companyId,
+                        TechnicalSkillsRating = model.TechnicalSkillsRating,
+                        CommunicationRating = model.CommunicationRating,
+                        TeamworkRating = model.TeamworkRating,
+                        PunctualityRating = model.PunctualityRating,
+                        InitiativeRating = model.InitiativeRating,
+                        ProblemSolvingRating = model.ProblemSolvingRating,
+                        OverallRating = model.OverallRating,
+                        StrengthsComment = model.StrengthsComment,
+                        ImprovementAreasComment = model.ImprovementAreasComment,
+                        GeneralComment = model.GeneralComment,
+                        RecommendationComment = model.RecommendationComment,
+                        WouldRecommendForHire = model.WouldRecommendForHire,
+                        WouldAcceptAgain = model.WouldAcceptAgain,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    await _evaluationService.CreateEvaluationAsync(evaluation);
+
+                    // Öðrenciye bildirim gönder
+                    try
+                    {
+                        var company = await _companyService.GetCompanyByIdAsync(companyId);
+                        await _notificationService.CreateNotificationAsync(new Notification
+                        {
+                            UserId = application.StudentId,
+                            Title = "Staj Deðerlendirmesi Yapýldý",
+                            Message = $"{company?.CompanyName ?? "Firma"} tarafýndan staj performansýnýz deðerlendirildi. Detaylarý görüntülemek için týklayýn.",
+                            Type = "Evaluation",
+                            IsRead = false,
+                            CreatedAt = DateTime.UtcNow,
+                            IconClass = "fas fa-star",
+                            ActionUrl = $"/Student/Evaluation/View/{evaluation.Id}"
+                        });
+                    }
+                    catch { }
+
+                    return Json(new { success = true, message = "Deðerlendirme kaydedildi.", isUpdate = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Hata: " + ex.Message });
+            }
+        }
+
+        // Deðerlendirme detayýný getir
+        [HttpGet("GetEvaluation/{applicationId}")]
+        public async Task<IActionResult> GetEvaluation(int applicationId)
+        {
+            try
+            {
+                var companyId = await GetCurrentCompanyIdAsync();
+                var application = await _applicationService.GetApplicationWithDetailsAsync(applicationId);
+                
+                if (application == null || application.InternshipOffer?.CompanyId != companyId)
+                    return Json(new { success = false, message = "Baþvuru bulunamadý veya yetkiniz yok." });
+
+                var evaluation = await _evaluationService.GetByApplicationIdAsync(applicationId);
+                
+                if (evaluation == null)
+                    return Json(new { success = true, exists = false });
+
+                return Json(new { 
+                    success = true, 
+                    exists = true,
+                    evaluation = new
+                    {
+                        evaluation.Id,
+                        evaluation.TechnicalSkillsRating,
+                        evaluation.CommunicationRating,
+                        evaluation.TeamworkRating,
+                        evaluation.PunctualityRating,
+                        evaluation.InitiativeRating,
+                        evaluation.ProblemSolvingRating,
+                        evaluation.OverallRating,
+                        evaluation.StrengthsComment,
+                        evaluation.ImprovementAreasComment,
+                        evaluation.GeneralComment,
+                        evaluation.RecommendationComment,
+                        evaluation.WouldRecommendForHire,
+                        evaluation.WouldAcceptAgain,
+                        evaluation.AverageRating,
+                        CreatedAt = evaluation.CreatedAt.ToString("dd.MM.yyyy HH:mm"),
+                        UpdatedAt = evaluation.UpdatedAt?.ToString("dd.MM.yyyy HH:mm")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // Aktif stajyerleri CSV formatýnda dýþa aktaran action.
         [HttpGet("Export")]
         public async Task<IActionResult> ExportToExcel()
         {
@@ -95,7 +253,6 @@ namespace WebUI.Controllers.Company
                     .Where(a => a.Status == InternshipApplicationStatus.Approved && a.EndDate > DateTime.Now)
                     .ToList();
 
-                // Create Excel content (simplified - would use EPPlus or similar in real implementation)
                 var csv = "Ad Soyad,Pozisyon,Baþlangýç Tarihi,Bitiþ Tarihi,Kalan Süre,Ýlerleme\n";
                 foreach (var intern in activeInterns)
                 {
@@ -114,7 +271,7 @@ namespace WebUI.Controllers.Company
             }
         }
 
-        // Reports page
+        // Þirket için rapor verilerini toplayýp view model'e dönüþtürerek rapor sayfasýný döndüren action.
         [HttpGet("Reports")]
         public async Task<IActionResult> Reports()
         {
@@ -129,7 +286,7 @@ namespace WebUI.Controllers.Company
                     allApps.AddRange(apps);
                 }
 
-                var model = new CompanyReportsViewModel
+                var companyModel = new CompanyReportsViewModel
                 {
                     TotalApplications = allApps.Count,
                     ApprovedApplications = allApps.Count(a => a.Status == InternshipApplicationStatus.Approved),
@@ -142,25 +299,38 @@ namespace WebUI.Controllers.Company
                     StatusData = GetStatusData(allApps)
                 };
 
-                return View("~/Views/Company/Reports/Index.cshtml", model);
+                var vm = new WebUI.Models.ViewModels.Company.CompanyReportViewModel
+                {
+                    TotalApplications = companyModel.TotalApplications,
+                    ApprovedApplications = companyModel.ApprovedApplications,
+                    PendingApplications = Math.Max(0, companyModel.TotalApplications - companyModel.ApprovedApplications - companyModel.CompletedInterns),
+                    RejectedApplications = 0,
+                    ThisMonthApplications = companyModel.ThisMonthApplications,
+                    ActiveInterns = companyModel.ActiveInterns,
+                    ApprovalRate = companyModel.ApprovalRate,
+                    CompletedInterns = companyModel.CompletedInterns,
+                    MonthlyData = new List<WebUI.Models.ViewModels.Company.MonthlyApplicationData>(),
+                    DepartmentData = new List<WebUI.Models.ViewModels.Company.DepartmentApplicationData>(),
+                    StatusData = new List<WebUI.Models.ViewModels.Company.StatusApplicationData>(),
+                    RecentActivities = new List<WebUI.Models.ViewModels.Company.RecentActivityData>()
+                };
+
+                return View("~/Views/Company/Reports/Index.cshtml", vm);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Raporlar yüklenirken hata oluþtu: " + ex.Message;
-                return View("~/Views/Company/Reports/Index.cshtml", new CompanyReportsViewModel());
+                return View("~/Views/Company/Reports/Index.cshtml", new WebUI.Models.ViewModels.Company.CompanyReportViewModel());
             }
         }
 
-        // Chat redirection - Company users will be redirected to Student Chat area
+        // Belirtilen öðrenci ile sohbet baþlatmak veya sohbet sayfasýna yönlendirmek için kullanýlan action.
         [HttpGet("Chat/{studentId}")]
         public async Task<IActionResult> StartChat(int studentId)
         {
             try
             {
-                // Get current company user ID
                 var currentUserId = GetCurrentUserId();
-                
-                // Verify student exists
                 var student = await _userService.GetUserByIdAsync(studentId);
                 if (student == null)
                 {
@@ -168,8 +338,6 @@ namespace WebUI.Controllers.Company
                     return RedirectToAction("List");
                 }
 
-                // Redirect to the Student Chat controller with userId parameter
-                // This will allow the company user to chat with the specific student
                 return RedirectToAction("Index", "Chat", new { area = "", userId = studentId });
             }
             catch (Exception ex)
@@ -192,6 +360,7 @@ namespace WebUI.Controllers.Company
                 StudentName = application.Student?.FullName ?? "Bilinmeyen",
                 StudentEmail = application.Student?.Email ?? "Bilinmeyen",
                 StudentPhone = application.Student?.Phone ?? "Belirtilmemiþ",
+                StudentNumber = application.Student?.StudentNumber ?? "Belirtilmemiþ",
                 University = application.Student?.University?.Name ?? "Bilinmeyen",
                 Department = application.Student?.Department ?? "Bilinmeyen",
                 Position = application.InternshipOffer?.Field ?? "Bilinmeyen Pozisyon",
@@ -213,6 +382,30 @@ namespace WebUI.Controllers.Company
                     DocumentType = d.DocumentType ?? "Other",
                     UploadedAt = d.UploadedAt
                 }).ToList() ?? new List<DocumentItemViewModel>()
+            };
+        }
+
+        private EvaluationViewModel MapToEvaluationViewModel(InternEvaluation evaluation)
+        {
+            return new EvaluationViewModel
+            {
+                Id = evaluation.Id,
+                TechnicalSkillsRating = evaluation.TechnicalSkillsRating,
+                CommunicationRating = evaluation.CommunicationRating,
+                TeamworkRating = evaluation.TeamworkRating,
+                PunctualityRating = evaluation.PunctualityRating,
+                InitiativeRating = evaluation.InitiativeRating,
+                ProblemSolvingRating = evaluation.ProblemSolvingRating,
+                OverallRating = evaluation.OverallRating,
+                StrengthsComment = evaluation.StrengthsComment,
+                ImprovementAreasComment = evaluation.ImprovementAreasComment,
+                GeneralComment = evaluation.GeneralComment,
+                RecommendationComment = evaluation.RecommendationComment,
+                WouldRecommendForHire = evaluation.WouldRecommendForHire,
+                WouldAcceptAgain = evaluation.WouldAcceptAgain,
+                AverageRating = evaluation.AverageRating,
+                CreatedAt = evaluation.CreatedAt,
+                UpdatedAt = evaluation.UpdatedAt
             };
         }
 
@@ -265,10 +458,10 @@ namespace WebUI.Controllers.Company
         {
             return applications
                 .Where(a => !string.IsNullOrEmpty(a.Student?.Department))
-                .GroupBy(a => a.Student.Department)
+                .GroupBy(a => a.Student!.Department)
                 .Select(g => new DepartmentDataItem
                 {
-                    Department = g.Key,
+                    Department = g.Key!,
                     Count = g.Count()
                 })
                 .OrderByDescending(d => d.Count)
@@ -286,5 +479,24 @@ namespace WebUI.Controllers.Company
             };
         }
         #endregion
+    }
+
+    // Deðerlendirme oluþturma modeli
+    public class EvaluationCreateModel
+    {
+        public int ApplicationId { get; set; }
+        public int TechnicalSkillsRating { get; set; }
+        public int CommunicationRating { get; set; }
+        public int TeamworkRating { get; set; }
+        public int PunctualityRating { get; set; }
+        public int InitiativeRating { get; set; }
+        public int ProblemSolvingRating { get; set; }
+        public int OverallRating { get; set; }
+        public string? StrengthsComment { get; set; }
+        public string? ImprovementAreasComment { get; set; }
+        public string? GeneralComment { get; set; }
+        public string? RecommendationComment { get; set; }
+        public bool WouldRecommendForHire { get; set; }
+        public bool WouldAcceptAgain { get; set; }
     }
 }

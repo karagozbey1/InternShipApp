@@ -1,6 +1,7 @@
 using Business.Interfaces;
 using Business.Interfaces.Internship;
 using Business.Interfaces.UserRepose;
+using Business.Interfaces.Order;
 using Core.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,17 +17,20 @@ namespace WebUI.Controllers.Student
         private readonly IDiaryService _entryService;
         private readonly IIUserService _userService;
         private readonly IInternshipApplicationService _applicationService;
+        private readonly IINotificationService _notificationService;
 
         public DiaryNotebookController(
             IInternshipDiaryService diaryService,
             IDiaryService entryService,
             IIUserService userService,
-            IInternshipApplicationService applicationService)
+            IInternshipApplicationService applicationService,
+            IINotificationService notificationService)
         {
             _diaryService = diaryService;
             _entryService = entryService;
             _userService = userService;
             _applicationService = applicationService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -64,7 +68,7 @@ namespace WebUI.Controllers.Student
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Defterler yüklenirken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Defterler yuklenirken hata olustu: " + ex.Message;
                 return View("~/Views/Student/DiaryNotebook/Index.cshtml", new StudentViewModels.DiaryNotebookListViewModel());
             }
         }
@@ -83,23 +87,21 @@ namespace WebUI.Controllers.Student
             {
                 var userId = GetCurrentUserId();
 
-                // If an applicationId is provided, try to load application and prefill model fields
                 if (applicationId.HasValue)
                 {
                     var app = await _applicationService.GetByIdAsync(applicationId.Value);
                     if (app == null || app.StudentId != userId)
                     {
-                        TempData["ErrorMessage"] = "Geçersiz baþvuru bilgisi.";
+                        TempData["ErrorMessage"] = "Gecersiz basvuru bilgisi.";
                         return RedirectToAction(nameof(Index));
                     }
 
                     if (app.Status != InternshipApplicationStatus.Approved)
                     {
-                        TempData["ErrorMessage"] = "Sadece onaylanmýþ baþvurular için defter oluþturulabilir.";
+                        TempData["ErrorMessage"] = "Sadece onaylanmis basvurular icin defter olusturulabilir.";
                         return RedirectToAction(nameof(Index));
                     }
 
-                    // Prefill model values from application when they are empty
                     if (string.IsNullOrWhiteSpace(model.Title))
                         model.Title = app.InternshipOffer?.Title ?? "Staj Defteri";
 
@@ -115,27 +117,23 @@ namespace WebUI.Controllers.Student
                     if (!model.InternshipEndDate.HasValue || model.InternshipEndDate == default)
                         model.InternshipEndDate = app.EndDate;
 
-                    // store application id in a temp field on model if available
                     model.ApplicationId = applicationId.Value;
                 }
 
-                // Boolean handling for IsRequired field
                 if (Request.Form.ContainsKey("IsRequired"))
                 {
                     var isRequiredValues = Request.Form["IsRequired"].ToArray();
                     model.IsRequired = isRequiredValues.Any(v => v == "true" || v == "on");
                 }
 
-                // ModelState cleanup
                 if (ModelState.ContainsKey("IsRequired"))
                 {
                     ModelState.Remove("IsRequired");
                 }
 
-                // Title validation
                 if (string.IsNullOrWhiteSpace(model.Title))
                 {
-                    ModelState.AddModelError("Title", "Defter baþlýðý zorunludur.");
+                    ModelState.AddModelError("Title", "Defter basligi zorunludur.");
                 }
 
                 if (!ModelState.IsValid)
@@ -146,11 +144,10 @@ namespace WebUI.Controllers.Student
                 var user = await _userService.GetUserByIdAsync(userId);
                 if (user == null)
                 {
-                    TempData["ErrorMessage"] = "Kullanýcý bulunamadý. Lütfen tekrar giriþ yapýn.";
+                    TempData["ErrorMessage"] = "Kullanici bulunamadi. Lutfen tekrar giris yapin.";
                     return View("~/Views/Student/DiaryNotebook/Create.cshtml", model);
                 }
 
-                // PostgreSQL için UTC DateTime
                 DateTime? startDate = null;
                 DateTime? endDate = null;
 
@@ -182,12 +179,12 @@ namespace WebUI.Controllers.Student
                 };
 
                 await _diaryService.CreateDiaryAsync(diary);
-                TempData["SuccessMessage"] = "Staj defteri baþarýyla oluþturuldu.";
+                TempData["SuccessMessage"] = "Staj defteri basariyla olusturuldu.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Defter oluþturulurken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Defter olusturulurken hata olustu: " + ex.Message;
                 return View("~/Views/Student/DiaryNotebook/Create.cshtml", model);
             }
         }
@@ -202,13 +199,13 @@ namespace WebUI.Controllers.Student
 
                 if (diary == null)
                 {
-                    TempData["ErrorMessage"] = "Defter bulunamadý.";
+                    TempData["ErrorMessage"] = "Defter bulunamadi.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 if (diary.StudentId != userId)
                 {
-                    TempData["ErrorMessage"] = "Bu deftere eriþim yetkiniz yok.";
+                    TempData["ErrorMessage"] = "Bu deftere erisim yetkiniz yok.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -249,7 +246,7 @@ namespace WebUI.Controllers.Student
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Defter detayý yüklenirken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Defter detayi yuklenirken hata olustu: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -260,21 +257,19 @@ namespace WebUI.Controllers.Student
         {
             try
             {
-                // Date default deðeri UTC olarak set et
                 if (model.Date == default(DateTime))
                 {
                     model.Date = DateTime.UtcNow.Date;
                 }
 
-                // Validation
                 if (string.IsNullOrWhiteSpace(model.Title))
                 {
-                    return Json(new { success = false, message = "Baþlýk alaný zorunludur." });
+                    return Json(new { success = false, message = "Baslik alani zorunludur." });
                 }
 
                 if (string.IsNullOrWhiteSpace(model.Content))
                 {
-                    return Json(new { success = false, message = "Ýçerik alaný zorunludur." });
+                    return Json(new { success = false, message = "Icerik alani zorunludur." });
                 }
 
                 var userId = GetCurrentUserId();
@@ -296,11 +291,50 @@ namespace WebUI.Controllers.Student
                 };
 
                 await _diaryService.AddEntryToDiaryAsync(entry);
-                return Json(new { success = true, message = "Defter girdisi baþarýyla eklendi." });
+
+                // Danismana bildirim gonder
+                await SendDiaryNotificationToAdvisor(userId, diaryId, model.Title);
+
+                return Json(new { success = true, message = "Defter girdisi basariyla eklendi." });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Girdi eklenirken hata oluþtu: " + ex.Message });
+                return Json(new { success = false, message = "Girdi eklenirken hata olustu: " + ex.Message });
+            }
+        }
+
+        private async Task SendDiaryNotificationToAdvisor(int studentId, int diaryId, string entryTitle)
+        {
+            try
+            {
+                var applications = await _applicationService.GetApplicationsByStudentIdAsync(studentId);
+                var approvedApp = applications.FirstOrDefault(a => a.Status == InternshipApplicationStatus.Approved);
+                
+                if (approvedApp == null || !approvedApp.AdvisorId.HasValue) return;
+
+                var student = await _userService.GetUserByIdAsync(studentId);
+                if (student == null) return;
+
+                var notification = new Notification
+                {
+                    UserId = approvedApp.AdvisorId.Value,
+                    Title = "Yeni Staj Defteri Girdisi",
+                    Message = $"{student.FullName} yeni bir staj defteri girdisi ekledi: {entryTitle}",
+                    Type = "Diary",
+                    Priority = 2,
+                    RelatedEntityType = "DiaryEntry",
+                    RelatedEntityId = diaryId,
+                    IconClass = "fas fa-book",
+                    ActionUrl = $"/Advisor/AdvisorDiary/StudentDiary/{studentId}",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _notificationService.CreateNotificationAsync(notification);
+            }
+            catch
+            {
+                // Bildirim gonderilemese bile ana islemi etkilememeli
             }
         }
 
@@ -315,7 +349,7 @@ namespace WebUI.Controllers.Student
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Girdi silinirken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Girdi silinirken hata olustu: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Detail), new { id = diaryId });
@@ -332,7 +366,7 @@ namespace WebUI.Controllers.Student
 
                 if (diary == null)
                 {
-                    TempData["ErrorMessage"] = "Defter bulunamadý.";
+                    TempData["ErrorMessage"] = "Defter bulunamadi.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -347,7 +381,7 @@ namespace WebUI.Controllers.Student
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Defter silinirken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Defter silinirken hata olustu: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
@@ -364,19 +398,60 @@ namespace WebUI.Controllers.Student
 
                 if (diary == null || diary.StudentId != userId)
                 {
-                    TempData["ErrorMessage"] = "Defter bulunamadý veya yetkiniz yok.";
+                    TempData["ErrorMessage"] = "Defter bulunamadi veya yetkiniz yok.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 await _diaryService.UpdateDiaryStatusAsync(id, !diary.IsCompleted);
-                TempData["SuccessMessage"] = diary.IsCompleted ? "Defter tekrar aktif hale getirildi." : "Defter tamamlandý olarak iþaretlendi.";
+                
+                if (!diary.IsCompleted)
+                {
+                    await SendDiaryCompletedNotificationToAdvisor(userId, id, diary.Title);
+                }
+                
+                TempData["SuccessMessage"] = diary.IsCompleted ? "Defter tekrar aktif hale getirildi." : "Defter tamamlandi olarak isaretlendi.";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Durum güncellenirken hata oluþtu: " + ex.Message;
+                TempData["ErrorMessage"] = "Durum guncellenirken hata olustu: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task SendDiaryCompletedNotificationToAdvisor(int studentId, int diaryId, string diaryTitle)
+        {
+            try
+            {
+                var applications = await _applicationService.GetApplicationsByStudentIdAsync(studentId);
+                var approvedApp = applications.FirstOrDefault(a => a.Status == InternshipApplicationStatus.Approved);
+                
+                if (approvedApp == null || !approvedApp.AdvisorId.HasValue) return;
+
+                var student = await _userService.GetUserByIdAsync(studentId);
+                if (student == null) return;
+
+                var notification = new Notification
+                {
+                    UserId = approvedApp.AdvisorId.Value,
+                    Title = "Staj Defteri Tamamlandi",
+                    Message = $"{student.FullName} staj defterini tamamladi: {diaryTitle}. Incelemeniz bekleniyor.",
+                    Type = "Diary",
+                    Priority = 3,
+                    RelatedEntityType = "Diary",
+                    RelatedEntityId = diaryId,
+                    IconClass = "fas fa-check-circle",
+                    ActionUrl = $"/Advisor/AdvisorDiary/StudentDiary/{studentId}",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _notificationService.CreateNotificationAsync(notification);
+            }
+            catch
+            {
+                // Bildirim gonderilemese bile ana islemi etkilememeli
+            }
         }
 
         [HttpPost]
@@ -389,7 +464,7 @@ namespace WebUI.Controllers.Student
                 var diary = await _diaryService.GetDiaryWithEntriesAsync(id);
                 if (diary == null || diary.StudentId != userId)
                 {
-                    return Json(new { success = false, message = "Defter bulunamadý veya yetkiniz yok." });
+                    return Json(new { success = false, message = "Defter bulunamadi veya yetkiniz yok." });
                 }
 
                 Response.Cookies.Append("MainDiaryId", id.ToString(), new CookieOptions
@@ -401,7 +476,7 @@ namespace WebUI.Controllers.Student
                     Path = "/"
                 });
 
-                return Json(new { success = true, message = "Ana staj defteri olarak ayarlandý." });
+                return Json(new { success = true, message = "Ana staj defteri olarak ayarlandi." });
             }
             catch (Exception ex)
             {
@@ -409,7 +484,6 @@ namespace WebUI.Controllers.Student
             }
         }
 
-        // Helper methods
         private int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

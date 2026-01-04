@@ -74,6 +74,8 @@ namespace WebUI.Controllers
             var offers = await _offerService.GetAllActiveOffersAsync();
             var now = DateTime.UtcNow;
             offers = offers.Where(o => o.IsActive && (!o.ApplicationDeadline.HasValue || o.ApplicationDeadline.Value >= now)).ToList();
+            // Deduplicate by Id in case repository or joins produced duplicate rows
+            offers = offers.GroupBy(o => o.Id).Select(g => g.First()).ToList();
             var companyIds = offers.Where(o => o.CompanyId > 0).Select(o => o.CompanyId).Distinct().ToList();
             var companyMap = new Dictionary<int, Core.Entity.Company>();
             foreach (var cid in companyIds)
@@ -155,6 +157,8 @@ namespace WebUI.Controllers
             var offers = await _offerService.GetAllActiveOffersAsync();
             var now = DateTime.UtcNow;
             offers = offers.Where(o => o.IsActive && (!o.ApplicationDeadline.HasValue || o.ApplicationDeadline.Value >= now)).ToList();
+            // Normalize duplicates that may occur due to joins; keep first occurrence per Id
+            offers = offers.GroupBy(o => o.Id).Select(g => g.First()).ToList();
             var companyIds = offers.Where(o => o.CompanyId > 0).Select(o => o.CompanyId).Distinct().ToList();
             var companyMap = new Dictionary<int, Core.Entity.Company>();
             foreach (var cid in companyIds) { try { var comp = await _companyService.GetCompanyByIdAsync(cid); if (comp != null) companyMap[cid] = comp; } catch { } }

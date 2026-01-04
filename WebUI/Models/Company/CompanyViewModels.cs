@@ -270,6 +270,7 @@ namespace WebUI.Models.Company
         public int StudentId { get; set; }
         public string StudentName { get; set; } = "";
         public string Position { get; set; } = "";
+        public string University { get; set; } = "";
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int CompletedDays { get; set; }
@@ -285,6 +286,7 @@ namespace WebUI.Models.Company
         public string StudentName { get; set; } = "";
         public string StudentEmail { get; set; } = "";
         public string StudentPhone { get; set; } = "";
+        public string StudentNumber { get; set; } = "";
         public string University { get; set; } = "";
         public string Department { get; set; } = "";
         public string Position { get; set; } = "";
@@ -297,9 +299,34 @@ namespace WebUI.Models.Company
         public string StudentClass { get; set; } = "";
         public string? CoverLetter { get; set; }
         public List<DocumentItemViewModel> Documents { get; set; } = new();
+        
+        // Deðerlendirme bilgileri
+        public bool HasEvaluation { get; set; }
+        public EvaluationViewModel? Evaluation { get; set; }
     }
 
-    // New: Company Reports ViewModels
+    // Deðerlendirme görüntüleme modeli
+    public class EvaluationViewModel
+    {
+        public int Id { get; set; }
+        public int TechnicalSkillsRating { get; set; }
+        public int CommunicationRating { get; set; }
+        public int TeamworkRating { get; set; }
+        public int PunctualityRating { get; set; }
+        public int InitiativeRating { get; set; }
+        public int ProblemSolvingRating { get; set; }
+        public int OverallRating { get; set; }
+        public string? StrengthsComment { get; set; }
+        public string? ImprovementAreasComment { get; set; }
+        public string? GeneralComment { get; set; }
+        public string? RecommendationComment { get; set; }
+        public bool WouldRecommendForHire { get; set; }
+        public bool WouldAcceptAgain { get; set; }
+        public decimal AverageRating { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
     public class CompanyReportsViewModel
     {
         public int TotalApplications { get; set; }

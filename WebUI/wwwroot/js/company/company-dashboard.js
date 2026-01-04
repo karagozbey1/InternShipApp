@@ -1,10 +1,10 @@
-// Company Dashboard JavaScript
+// Þirket Dashboard JavaScript
 
 $(document).ready(function() {
-    // Initialize dashboard
+    // Dashboard'u baþlat
     initializeDashboard();
     
-    // Status badge click handlers
+    // Durum badge týklama iþleyicileri
     $('.status-badge').on('click', function(e) {
         e.stopPropagation();
         var status = $(this).data('status');
@@ -13,7 +13,7 @@ $(document).ready(function() {
         }
     });
     
-    // Application item click handlers
+    // Baþvuru öðesi týklama iþleyicileri
     $('.application-item').on('click', function() {
         var applicationId = $(this).data('application-id');
         if (applicationId) {
@@ -21,27 +21,27 @@ $(document).ready(function() {
         }
     });
     
-    // Refresh data every 30 seconds
+    // Her 30 saniyede veriyi yenile
     setInterval(function() {
         refreshDashboardData();
     }, 30000);
 });
 
 function initializeDashboard() {
-    // Initialize charts if Chart.js is available
+    // Chart.js mevcutsa grafikleri baþlat
     if (typeof Chart !== 'undefined') {
         initializeCharts();
     }
     
-    // Initialize tooltips
+    // Tooltip'leri baþlat
     initializeTooltips();
     
-    // Initialize notifications
+    // Bildirimleri baþlat
     checkForNewApplications();
 }
 
 function initializeCharts() {
-    // Application Status Chart
+    // Baþvuru Durumu Grafiði
     var statusCtx = document.getElementById('statusChart');
     if (statusCtx) {
         new Chart(statusCtx, {
@@ -70,7 +70,7 @@ function initializeCharts() {
         });
     }
     
-    // Applications Over Time Chart
+    // Zaman Ýçinde Baþvurular Grafiði
     var timeCtx = document.getElementById('applicationsChart');
     if (timeCtx) {
         new Chart(timeCtx, {
@@ -99,7 +99,7 @@ function initializeCharts() {
 }
 
 function initializeTooltips() {
-    // Add tooltips for interactive elements
+    // Etkileþimli elementler için tooltip ekle
     $('[data-tooltip]').each(function() {
         var $element = $(this);
         var tooltipText = $element.data('tooltip');
@@ -134,34 +134,34 @@ function hideTooltip() {
 }
 
 function filterByStatus(status) {
-    // Redirect to applications page with status filter
+    // Durum filtresiyle baþvurular sayfasýna yönlendir
     window.location.href = '/Company/Applications?statusFilter=' + status;
 }
 
 function viewApplicationDetail(applicationId) {
-    // Navigate to application detail page
+    // Baþvuru detay sayfasýna git
     window.location.href = '/Company/ApplicationDetail/' + applicationId;
 }
 
 function refreshDashboardData() {
-    // Refresh dashboard statistics (could be implemented with AJAX)
-    console.log('Refreshing dashboard data...');
+    // Dashboard istatistiklerini yenile (AJAX ile uygulanabilir)
+    console.log('Dashboard verileri yenileniyor...');
 }
 
 function checkForNewApplications() {
-    // Check for new applications and show notification
-    // This could be implemented with SignalR for real-time updates
-    console.log('Checking for new applications...');
+    // Yeni baþvurularý kontrol et ve bildirim göster
+    // SignalR ile gerçek zamanlý güncellemeler için uygulanabilir
+    console.log('Yeni baþvurular kontrol ediliyor...');
 }
 
-// Export functions for global access
+// Global eriþim için fonksiyonlarý dýþa aktar
 window.CompanyDashboard = {
     filterByStatus: filterByStatus,
     viewApplicationDetail: viewApplicationDetail,
     refreshDashboardData: refreshDashboardData
 };
 
-// Utility functions
+// Yardýmcý fonksiyonlar
 function formatDate(dateString) {
     var date = new Date(dateString);
     return date.toLocaleDateString('tr-TR', {
@@ -207,7 +207,7 @@ function showNotification(message, type = 'info') {
     
     $('#notifications-container').append(notification);
     
-    // Auto-hide after 5 seconds
+    // 5 saniye sonra otomatik gizle
     setTimeout(function() {
         $('.alert').fadeOut();
     }, 5000);

@@ -3,230 +3,290 @@
     ViewData["Title"] = "Ýlanlarým";
     Layout = "_AppLayout";
 }
-<!-- Sayfa Baþlýðý Kartý ve Ýlan Gir Butonu -->
-<div class="w-full mb-8">
-    <div class="rounded-2xl bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-600 shadow-sm px-8 py-6 flex items-center justify-between w-full">
-        <div class="flex items-center gap-4">
-            <i class="fas fa-lightbulb text-3xl text-blue-600 dark:text-blue-400"></i>
-            <div>
-                <h1 class="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-1">Ýlanlarým</h1>
-                <p class="text-blue-600 dark:text-blue-400">Yayýnladýðýnýz staj ve iþ ilanlarýný yönetin.</p>
+
+@section Styles {
+<style>
+    .job-page { min-height:100vh; background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 50%,#f0f9ff 100%); }
+    
+    /* Hero Header */
+    .hero-header { background:linear-gradient(135deg,#0ea5e9 0%,#6366f1 50%,#8b5cf6 100%); border-radius:24px; padding:32px; color:white; position:relative; overflow:hidden; box-shadow:0 20px 60px rgba(14,165,233,0.3); margin-bottom:24px; }
+    .hero-header::before { content:''; position:absolute; top:-50%; right:-20%; width:400px; height:400px; background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%); }
+    .hero-content { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px; }
+    .hero-icon { width:72px; height:72px; border-radius:18px; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; font-size:28px; }
+    .hero-info h1 { font-size:1.75rem; font-weight:800; margin:0 0 4px; }
+    .hero-info p { opacity:0.9; margin:0; }
+    
+    .btn-create { padding:16px 28px; background:white; color:#6366f1; border-radius:16px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:10px; box-shadow:0 8px 30px rgba(0,0,0,0.15); transition:all 0.3s; }
+    .btn-create:hover { transform:translateY(-3px) scale(1.02); box-shadow:0 12px 40px rgba(0,0,0,0.2); color:#4f46e5; }
+    
+    /* Filter Card */
+    .filter-card { background:white; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,0.06); padding:24px; margin-bottom:24px; }
+    .filter-grid { display:grid; grid-template-columns:1fr auto auto auto auto; gap:16px; align-items:end; }
+    .filter-input { padding:12px 16px; border:2px solid #e2e8f0; border-radius:12px; font-size:0.95rem; transition:all 0.3s; background:#f8fafc; }
+    .filter-input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 4px rgba(99,102,241,0.1); background:white; }
+    .filter-label { font-size:0.8rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .btn-filter { padding:12px 24px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; border:none; border-radius:12px; font-weight:600; cursor:pointer; transition:all 0.3s; }
+    .btn-filter:hover { transform:translateY(-2px); box-shadow:0 4px 20px rgba(99,102,241,0.4); }
+    .btn-clear { padding:12px 20px; background:#f1f5f9; color:#64748b; border:none; border-radius:12px; font-weight:600; text-decoration:none; transition:all 0.3s; display:inline-flex; align-items:center; gap:6px; }
+    .btn-clear:hover { background:#e2e8f0; color:#475569; }
+    
+    /* Job Cards */
+    .job-grid { display:grid; gap:20px; }
+    .job-card { background:white; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,0.06); overflow:hidden; transition:all 0.3s; cursor:pointer; position:relative; }
+    .job-card:hover { transform:translateY(-4px); box-shadow:0 12px 40px rgba(0,0,0,0.12); }
+    .job-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899); }
+    
+    .job-card-header { padding:24px 24px 16px; display:flex; justify-content:space-between; align-items:flex-start; }
+    .job-title { font-size:1.25rem; font-weight:700; color:#1e293b; margin:0 0 8px; }
+    .job-meta { display:flex; gap:16px; flex-wrap:wrap; }
+    .job-meta-item { display:flex; align-items:center; gap:6px; font-size:0.875rem; color:#64748b; }
+    .job-meta-item i { color:#6366f1; }
+    
+    .status-badge { padding:6px 14px; border-radius:20px; font-size:0.75rem; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+    .status-active { background:linear-gradient(135deg,#d1fae5,#a7f3d0); color:#065f46; }
+    .status-inactive { background:linear-gradient(135deg,#fee2e2,#fecaca); color:#991b1b; }
+    
+    .job-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:0 24px 16px; }
+    .stat-box { padding:16px; border-radius:14px; text-align:center; }
+    .stat-box.blue { background:linear-gradient(135deg,#eff6ff,#dbeafe); }
+    .stat-box.purple { background:linear-gradient(135deg,#faf5ff,#f3e8ff); }
+    .stat-box.amber { background:linear-gradient(135deg,#fffbeb,#fef3c7); }
+    .stat-value { font-size:1.5rem; font-weight:800; }
+    .stat-box.blue .stat-value { color:#1d4ed8; }
+    .stat-box.purple .stat-value { color:#7c3aed; }
+    .stat-box.amber .stat-value { color:#d97706; }
+    .stat-label { font-size:0.7rem; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; margin-top:4px; }
+    
+    .job-card-footer { padding:16px 24px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; }
+    .job-date { font-size:0.8rem; color:#64748b; display:flex; align-items:center; gap:6px; }
+    .job-actions { display:flex; gap:8px; }
+    .action-btn { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all 0.3s; border:none; cursor:pointer; }
+    .action-btn.view { background:#eff6ff; color:#3b82f6; }
+    .action-btn.edit { background:#fef3c7; color:#d97706; }
+    .action-btn.delete { background:#fee2e2; color:#ef4444; }
+    .action-btn:hover { transform:scale(1.1); }
+    
+    /* Empty State */
+    .empty-state { background:white; border-radius:24px; padding:60px; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,0.06); }
+    .empty-icon { width:100px; height:100px; margin:0 auto 24px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; color:#3b82f6; }
+    .empty-title { font-size:1.5rem; font-weight:700; color:#1e293b; margin-bottom:8px; }
+    .empty-desc { color:#64748b; margin-bottom:24px; }
+    
+    /* Modal */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.active { display:flex; }
+    .modal-content { background:white; border-radius:24px; max-width:800px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 25px 80px rgba(0,0,0,0.25); }
+    .modal-header { padding:24px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; border-radius:24px 24px 0 0; }
+    .modal-header h3 { font-size:1.25rem; font-weight:700; margin:0; }
+    .modal-close { width:40px; height:40px; border-radius:12px; background:rgba(255,255,255,0.2); border:none; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.3s; }
+    .modal-close:hover { background:rgba(255,255,255,0.3); transform:rotate(90deg); }
+    .modal-body { padding:24px; }
+    
+    @@media (max-width:1024px) { .filter-grid { grid-template-columns:1fr 1fr; } }
+    @@media (max-width:640px) { .filter-grid { grid-template-columns:1fr; } .hero-content { flex-direction:column; text-align:center; } .job-stats { grid-template-columns:1fr; } }
+</style>
+}
+
+<div class="job-page p-6">
+    @Html.AntiForgeryToken()
+    
+    <!-- Hero Header -->
+    <div class="hero-header">
+        <div class="hero-content">
+            <div class="flex items-center gap-5">
+                <div class="hero-icon"><i class="fas fa-briefcase"></i></div>
+                <div class="hero-info">
+                    <h1>Ýlanlarým</h1>
+                    <p>Yayýnladýðýnýz staj ve iþ ilanlarýný yönetin</p>
+                </div>
             </div>
+            <a asp-controller="CompanyJobPostings" asp-action="Create" class="btn-create">
+                <i class="fas fa-plus-circle"></i>
+                Yeni Ýlan Oluþtur
+            </a>
         </div>
-        <a asp-controller="CompanyJobPostings" asp-action="Create" class="px-6 py-3 rounded-xl font-semibold transition-transform bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:scale-105 flex items-center gap-2">
-            <i class="fas fa-plus-circle"></i>Ýlan Gir
-        </a>
     </div>
-</div>
 
-<!-- Filters -->
-<div class="search-filters mb-6 p-6 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-md flex flex-wrap items-end gap-4">
-    <form method="get" class="flex flex-wrap items-end gap-4 w-full">
-        <!-- Search Term -->
-        <div class="flex-1 min-w-64">
-            <label for="searchTerm" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                <i class="fas fa-search mr-1"></i>Arama
-            </label>
-            <input type="text" id="searchTerm" name="searchTerm" value="@Model.SearchTerm"
-                   class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm"
-                   placeholder="Ýlan baþlýðý, pozisyon veya þehir ara..." />
-        </div>
-        <!-- Type Filter -->
-        <div class="min-w-48">
-            <label for="typeFilter" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                <i class="fas fa-filter mr-1"></i>Tür
-            </label>
-            <select name="typeFilter" id="typeFilter"
-                    class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm">
-                <option value="">Tüm Türler</option>
-                @foreach (var type in Enum.GetValues<WebUI.Models.Company.JobPostingType>())
-                {
-                    <option value="@type" selected="@(Model.TypeFilter == type)">@type.GetDisplayName()</option>
-                }
-            </select>
-        </div>
-        <!-- Active Filter -->
-        <div class="min-w-40">
-            <label for="isActiveFilter" class="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-                <i class="fas fa-toggle-on mr-1"></i>Durum
-            </label>
-            <select name="isActiveFilter" id="isActiveFilter"
-                    class="w-full px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-700 focus:border-blue-700 bg-white dark:bg-gray-700 dark:text-white shadow-sm">
-                <option value="">Tüm Durumlar</option>
-                <option value="true" selected="@(Model.IsActiveFilter == true)">Aktif</option>
-                <option value="false" selected="@(Model.IsActiveFilter == false)">Pasif</option>
-            </select>
-        </div>
-        <!-- Search Button -->
-        <div>
-            <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200">
-                <i class="fas fa-search mr-2"></i>Filtrele
-            </button>
-        </div>
-        <!-- Clear Button -->
-        @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
-        {
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
             <div>
-                <a asp-controller="CompanyJobPostings" asp-action="List" class="px-4 py-2 border border-blue-300 dark:border-gray-600 rounded-lg text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                    <i class="fas fa-times mr-2"></i>Temizle
-                </a>
+                <label class="filter-label"><i class="fas fa-search"></i> Arama</label>
+                <input type="text" name="searchTerm" value="@Model.SearchTerm" class="filter-input w-full" placeholder="Ýlan baþlýðý, pozisyon veya þehir ara..." />
             </div>
-        }
-    </form>
-</div>
+            <div>
+                <label class="filter-label"><i class="fas fa-layer-group"></i> Tür</label>
+                <select name="typeFilter" class="filter-input">
+                    <option value="">Tüm Türler</option>
+                    @foreach (var type in Enum.GetValues<WebUI.Models.Company.JobPostingType>())
+                    {
+                        <option value="@type" selected="@(Model.TypeFilter == type)">@type.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="filter-label"><i class="fas fa-toggle-on"></i> Durum</label>
+                <select name="isActiveFilter" class="filter-input">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="true" selected="@(Model.IsActiveFilter == true)">Aktif</option>
+                    <option value="false" selected="@(Model.IsActiveFilter == false)">Pasif</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn-filter"><i class="fas fa-search mr-2"></i>Filtrele</button>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
+            {
+                <div>
+                    <a asp-controller="CompanyJobPostings" asp-action="List" class="btn-clear"><i class="fas fa-times"></i>Temizle</a>
+                </div>
+            }
+        </form>
+    </div>
 
-<!-- Job Postings Grid -->
-@if (Model.JobPostings.Any())
-{
-    <div class="space-y-4">
-        @foreach (var job in Model.JobPostings)
-        {
-            <div id="job-card-@job.Id" class="job-posting-card shadow-sm rounded-2xl p-6 border cursor-pointer bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-200" data-jobid="@job.Id" onclick="viewJobDetail(@job.Id)">
-                <div class="relative">
-                    <!-- Active badge top-right -->
-                    <div class="absolute top-0 right-0 mt-3 mr-3">
+    <!-- Results Summary -->
+    <div class="mb-6 flex items-center gap-3">
+        <span class="px-4 py-2 bg-white rounded-full shadow-sm font-semibold text-gray-700">
+            <i class="fas fa-list-ul mr-2 text-indigo-500"></i>@Model.JobPostings.Count ilan bulundu
+        </span>
+    </div>
+
+    <!-- Job Cards Grid -->
+    @if (Model.JobPostings.Any())
+    {
+        <div class="job-grid">
+            @foreach (var job in Model.JobPostings)
+            {
+                <div class="job-card" onclick="viewJobDetail(@job.Id)">
+                    <div class="job-card-header">
+                        <div>
+                            <h3 class="job-title">@job.Title</h3>
+                            <div class="job-meta">
+                                <span class="job-meta-item"><i class="fas fa-map-marker-alt"></i> @job.Location</span>
+                                <span class="job-meta-item"><i class="fas fa-user-tie"></i> @job.Position</span>
+                                <span class="job-meta-item"><i class="fas fa-clock"></i> Son: @job.ApplicationDeadline.ToString("dd MMM yyyy")</span>
+                            </div>
+                        </div>
                         @if (job.IsActive)
                         {
-                            <span class="inline-flex items-center gap-2 text-xs font-medium text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                <i class="fas fa-check-circle"></i> Aktif
-                            </span>
+                            <span class="status-badge status-active"><i class="fas fa-check-circle"></i> Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-inactive"><i class="fas fa-pause-circle"></i> Pasif</span>
                         }
                     </div>
-
-                    <!-- Title and meta -->
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@job.Title</h3>
-                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-4">
-                            <span class="flex items-center gap-2"><i class="fas fa-map-marker-alt text-blue-400 dark:text-blue-300"></i> @job.Location</span>
-                            <span class="flex items-center gap-2"><i class="fas fa-briefcase text-blue-400 dark:text-blue-300"></i> @job.Position</span>
-                            <span class="flex items-center gap-2"><i class="fas fa-clock text-blue-400 dark:text-blue-300"></i> Son baþvuru: @job.ApplicationDeadline.ToString("dd.MM.yyyy")</span>
+                    
+                    <div class="job-stats">
+                        <div class="stat-box blue">
+                            <div class="stat-value">@job.ApplicationCount</div>
+                            <div class="stat-label">Baþvuru</div>
+                        </div>
+                        <div class="stat-box purple">
+                            <div class="stat-value">@job.Quota</div>
+                            <div class="stat-label">Kontenjan</div>
+                        </div>
+                        <div class="stat-box amber">
+                            <div class="stat-value">@(job.Salary.HasValue ? string.Format(new System.Globalization.CultureInfo("tr-TR"), "{0:N0}", job.Salary) : "-")</div>
+                            <div class="stat-label">? Ücret</div>
                         </div>
                     </div>
-
-                    <!-- Colored stat blocks (3 blocks) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 flex items-center justify-between">
-                            <div>
-                                <div class="text-xs text-blue-600 dark:text-blue-400">Baþvuru</div>
-                                <div class="text-xl font-semibold text-blue-900 dark:text-blue-200">@job.ApplicationCount</div>
-                            </div>
-                            <i class="fas fa-user-check text-blue-400 dark:text-blue-300 text-xl"></i>
-                        </div>
-
-                        <div class="p-4 rounded-lg bg-white dark:bg-gray-700 border border-purple-100 dark:border-purple-800 shadow-sm flex items-center justify-between">
-                            <div>
-                                <div class="text-xs text-purple-600 dark:text-purple-400">Departman</div>
-                                <div class="text-sm font-medium text-purple-800 dark:text-purple-300">@job.Position</div>
-                            </div>
-                            <i class="fas fa-file-alt text-purple-400 dark:text-purple-300 text-xl"></i>
-                        </div>
-
-                        <div class="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 flex items-center justify-between">
-                            <div>
-                                <div class="text-xs text-yellow-600 dark:text-yellow-400">Maaþ</div>
-                                <div class="text-xl font-semibold text-yellow-900 dark:text-yellow-200">@((job.Salary.HasValue) ? string.Format(new System.Globalization.CultureInfo("tr-TR"), "{0:N0}", job.Salary) + " TL" : "?")</div>
-                            </div>
-                            <i class="fas fa-coins text-yellow-400 dark:text-yellow-300 text-xl"></i>
-                        </div>
-                    </div>
-
-                    <!-- Footer row with created date and small action icons -->
-                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-600 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                        <div>
-                            <i class="fas fa-calendar-alt mr-2"></i> Oluþturulma: @job.CreatedDate.ToString("dd.MM.yyyy")
-                        </div>
-                        <div class="flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                            <a href="#" onclick="viewJobDetail(@job.Id); event.stopPropagation();" title="Ýlan Detayý" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-eye"></i></a>
-                            <a asp-controller="CompanyJobPostings" asp-action="Create" asp-route-id="@job.Id" title="Düzenle" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-edit"></i></a>
-                            <a href="#" onclick="deleteJobPosting(@job.Id); event.stopPropagation();" title="Sil" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-trash"></i></a>
-                            <a href="#" title="Diðer" class="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"><i class="fas fa-ellipsis-v"></i></a>
+                    
+                    <div class="job-card-footer">
+                        <span class="job-date"><i class="fas fa-calendar-alt"></i> @job.CreatedDate.ToString("dd MMM yyyy")</span>
+                        <div class="job-actions">
+                            <button class="action-btn view" onclick="viewJobDetail(@job.Id); event.stopPropagation();" title="Detay"><i class="fas fa-eye"></i></button>
+                            <a asp-controller="CompanyJobPostings" asp-action="Create" asp-route-id="@job.Id" class="action-btn edit" onclick="event.stopPropagation();" title="Düzenle"><i class="fas fa-edit"></i></a>
+                            <button class="action-btn delete" onclick="deleteJobPosting(@job.Id); event.stopPropagation();" title="Sil"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
-}
-else
-{
-    <!-- Empty State -->
-    <div class="company-card bg-blue-50 dark:bg-gray-800 border border-blue-100 dark:border-gray-600">
-        <div class="p-12 text-center">
-            <i class="fas fa-briefcase text-6xl text-blue-300 dark:text-blue-500 mb-4"></i>
-            <h3 class="text-xl font-semibold text-blue-900 dark:text-blue-200 mb-2">
-                Henüz ilan bulunmuyor
-            </h3>
-            <p class="text-blue-600 dark:text-blue-400 mb-6">
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-briefcase"></i></div>
+            <h3 class="empty-title">Henüz ilan bulunmuyor</h3>
+            <p class="empty-desc">
                 @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
                 {
-                    <span>Arama kriterlerinize uygun ilan bulunamadý. Filtreleri deðiþtirin.</span>
+                    <span>Arama kriterlerinize uygun ilan bulunamadý.</span>
                 }
                 else
                 {
                     <span>Ýlk ilanýnýzý oluþturarak öðrencilere fýrsat sunmaya baþlayýn.</span>
                 }
             </p>
-            <div class="space-x-4">
+            <div class="flex justify-center gap-4">
                 @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.TypeFilter.HasValue || Model.IsActiveFilter.HasValue)
                 {
-                    <a asp-controller="CompanyJobPostings" asp-action="List" class="btn-outline-primary-company px-6 py-3 rounded-lg border border-blue-300 dark:border-gray-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <i class="fas fa-times mr-2"></i>Filtreleri Temizle
-                    </a>
+                    <a asp-controller="CompanyJobPostings" asp-action="List" class="btn-clear"><i class="fas fa-times mr-2"></i>Filtreleri Temizle</a>
                 }
-                <a asp-controller="CompanyJobPostings" asp-action="Create" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200">
-                    <i class="fas fa-plus mr-2"></i>Ýlk Ýlanýmý Oluþtur
-                </a>
+                <a asp-controller="CompanyJobPostings" asp-action="Create" class="btn-create" style="color:#6366f1;"><i class="fas fa-plus mr-2"></i>Ýlk Ýlanýmý Oluþtur</a>
             </div>
         </div>
-    </div>
-}
+    }
+</div>
 
-<!-- Modal for job detail -->
-<div id="jobDetailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 items-center justify-center">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full mx-4 overflow-auto max-h-[90vh]">
-        <div class="p-4 border-b border-gray-200 dark:border-gray-600 flex justify-between items-center">
-            <h3 class="font-semibold text-gray-900 dark:text-white">Ýlan Detayý</h3>
-            <button onclick="closeJobDetailModal()" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors duration-200"><i class="fas fa-times"></i></button>
+<!-- Detail Modal -->
+<div id="jobDetailModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-alt mr-2"></i>Ýlan Detayý</h3>
+            <button class="modal-close" onclick="closeJobDetailModal()"><i class="fas fa-times"></i></button>
         </div>
-        <div id="jobDetailContent" class="p-6">
-            <!-- partial will be loaded here -->
+        <div id="jobDetailContent" class="modal-body">
+            <div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Yükleniyor...</p></div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        const deleteJobUrl = '@Url.Action("DeleteJobPosting","CompanyJobPostings")';
-        const detailJobUrl = '@Url.Action("JobPostingDetail","CompanyJobPostings")';
+<script>
+    const deleteJobUrl = '@Url.Action("DeleteJobPosting","CompanyJobPostings")';
+    const detailJobUrl = '@Url.Action("JobPostingDetail","CompanyJobPostings")';
 
-        function deleteJobPosting(jobId) {
-            if (confirm('Bu ilaný silmek istediðinizden emin misiniz? Bu iþlem geri alýnamaz.')) {
-                $.post(deleteJobUrl, { jobId: jobId, __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val() })
-                    .done(function () { location.reload(); })
-                    .fail(function () { alert('Ýþlem sýrasýnda bir hata oluþtu.'); });
-            }
+    function deleteJobPosting(jobId) {
+        if (confirm('Bu ilaný silmek istediðinizden emin misiniz? Bu iþlem geri alýnamaz.')) {
+            $.ajax({
+                url: deleteJobUrl,
+                type: 'POST',
+                data: { 
+                    jobId: jobId, 
+                    __RequestVerificationToken: $('input[name=__RequestVerificationToken]').val() 
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Ýlan silinemedi.');
+                    }
+                },
+                error: function() {
+                    alert('Ýþlem sýrasýnda bir hata oluþtu.');
+                }
+            });
         }
+    }
 
-        function viewJobDetail(jobId) {
-            try {
-                $('#jobDetailContent').html('<div class="p-6 text-center text-gray-500 dark:text-gray-400">Yükleniyor...</div>');
-                $('#jobDetailModal').removeClass('hidden').addClass('flex');
-                $.get(detailJobUrl, { id: jobId })
-                    .done(function (html) { $('#jobDetailContent').html(html); })
-                    .fail(function () { $('#jobDetailContent').html('<div class="p-6 text-center text-red-500 dark:text-red-400">Detaylar yüklenirken hata oluþtu.</div>'); });
-            } catch (e) { console.error(e); }
-        }
+    function viewJobDetail(jobId) {
+        $('#jobDetailContent').html('<div class="text-center py-8 text-gray-500"><i class="fas fa-spinner fa-spin text-2xl"></i><p class="mt-2">Yükleniyor...</p></div>');
+        $('#jobDetailModal').addClass('active');
+        $.get(detailJobUrl, { id: jobId })
+            .done(function(html) { $('#jobDetailContent').html(html); })
+            .fail(function() { $('#jobDetailContent').html('<div class="text-center py-8 text-red-500"><i class="fas fa-exclamation-circle text-2xl"></i><p class="mt-2">Detaylar yüklenemedi.</p></div>'); });
+    }
 
-        function closeJobDetailModal() {
-            $('#jobDetailModal').addClass('hidden').removeClass('flex');
-            $('#jobDetailContent').html('');
-        }
+    function closeJobDetailModal() {
+        $('#jobDetailModal').removeClass('active');
+    }
 
-        // Close modal on background click
-        $('#jobDetailModal').on('click', function (e) {
-            if (e.target.id === 'jobDetailModal') {
-                closeJobDetailModal();
-            }
-        });
-    </script>
+    $('#jobDetailModal').on('click', function(e) {
+        if (e.target.id === 'jobDetailModal') closeJobDetailModal();
+    });
+
+    $(document).keydown(function(e) { if (e.key === 'Escape') closeJobDetailModal(); });
+</script>
 }

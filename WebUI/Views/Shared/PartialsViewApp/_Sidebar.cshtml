@@ -6,6 +6,11 @@
     {
         return (controller == currentController && action == currentAction) ? "sidebar-item-active" : "sidebar-item-inactive";
     }
+    
+    string IsActiveController(string controller)
+    {
+        return (controller == currentController) ? "sidebar-item-active" : "sidebar-item-inactive";
+    }
 }
 
 <div class="w-64 min-h-screen bg-white/80 backdrop-blur-md border-r border-white/20 shadow-lg dark:bg-gray-800 dark:border-gray-700" id="student-sidebar">
@@ -15,8 +20,8 @@
                 <i class="fas fa-user-graduate text-white text-xl"></i>
             </div>
             <div>
-                <h3 class="font-semibold text-gray-800 dark:text-gray-200">@User.Identity.Name</h3>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Öğrenci</p>
+                <h3 class="font-semibold text-gray-800 dark:text-gray-200">@User.Identity?.Name</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Ogrenci</p>
             </div>
         </div>
     </div>
@@ -51,19 +56,25 @@
             <li>
                 <a asp-controller="Application" asp-action="Index" class="sidebar-item @IsActive("Application", "Index")">
                     <i class="fas fa-file-text"></i>
-                    <span class="font-medium">Başvurularım</span>
+                    <span class="font-medium">Basvurularim</span>
                 </a>
             </li>
             <li>
                 <a asp-controller="Approval" asp-action="Step1Documents" class="sidebar-item @IsActive("Approval", "Step1Documents")">
                     <i class="fas fa-clipboard-check"></i>
-                    <span class="font-medium">Onay Formları</span>
+                    <span class="font-medium">Onay Formlari</span>
                 </a>
             </li>
             <li>
                 <a asp-controller="DiaryNotebook" asp-action="Index" class="sidebar-item @IsActive("DiaryNotebook", "Index")">
                     <i class="fas fa-book-open"></i>
                     <span class="font-medium">Staj Defterlerim</span>
+                </a>
+            </li>
+            <li>
+                <a asp-area="" asp-controller="Evaluation" asp-action="Index" class="sidebar-item @IsActiveController("Evaluation")">
+                    <i class="fas fa-star"></i>
+                    <span class="font-medium">Degerlendirmelerim</span>
                 </a>
             </li>
             <li>
@@ -75,7 +86,7 @@
             <li>
                 <a asp-controller="Statistics" asp-action="Index" class="sidebar-item @IsActive("Statistics", "Index")">
                     <i class="fas fa-chart-bar"></i>
-                    <span class="font-medium">İstatistikler</span>
+                    <span class="font-medium">Istatistikler</span>
                 </a>
             </li>
             <li>
@@ -91,7 +102,7 @@
                 @Html.AntiForgeryToken()
                 <button type="submit" class="w-full flex items-center gap-3 p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all duration-200">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span class="font-medium">Çıkış Yap</span>
+                    <span class="font-medium">Cikis Yap</span>
                 </button>
             </form>
         </div>
