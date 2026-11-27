@@ -223,13 +223,5 @@ dotnet run --project WebUI
 dotnet test InternshipTrackingSystem.sln
 ```
 
-## Uygulama Vitrini
-
-> Ekran görüntüleri `docs/screenshots/` dizinine eklendiğinde aşağıdaki vitrin tablosu GitHub üzerinde otomatik olarak görüntülenecektir.
-
-| Öğrenci Kontrol Paneli | Dört Adımlı Onay Sihirbazı | Danışman İnceleme Ekranı | Şirket Stajyer Değerlendirme |
-| :---: | :---: | :---: | :---: |
-| ![Öğrenci Paneli](docs/screenshots/student_dashboard.png) | ![Onay Sihirbazı](docs/screenshots/approval_wizard.png) | ![Danışman Onay](docs/screenshots/advisor_review.png) | ![Stajyer Değerlendirme](docs/screenshots/company_evaluation.png) |
-| İlan arama, favoriler ve durum takibi | Oturum destekli form ve belge yükleme | Onay, revizyon ve otomatik defter açılışı | Yedi kriterli puanlama ve CSV dışa aktarım |
 
 **Geliştiren:** Yusuf Karagöz — Yazılım Mühendisi
